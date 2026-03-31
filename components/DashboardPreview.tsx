@@ -37,10 +37,7 @@ const dishes = [
 
 export function DashboardPreview() {
   return (
-    <div
-      id="how-it-works"
-      className="relative mx-auto w-full max-w-[40rem] lg:mx-0"
-    >
+    <div className="relative mx-auto w-full max-w-[40rem] lg:mx-0">
       <div className="absolute inset-8 -z-10 rounded-[2.75rem] blur-3xl animate-[pulseGlow_12s_ease-in-out_infinite] [background-image:var(--dashboard-halo)]" />
 
       <FloatingInfoCard

@@ -37,7 +37,7 @@ export function HowItWorksSection() {
       </div>
 
       <div className="relative mx-auto grid w-full max-w-[1560px] grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-18 lg:px-8 xl:gap-24">
-        <div className="max-w-2xl pt-4 sm:pt-8 lg:pt-24 xl:pt-28">
+        <div className="max-w-2xl pt-4 sm:pt-8 lg:pt-28 xl:pt-32">
           <span className="inline-flex items-center rounded-full border bg-[var(--surface-soft)] px-4 py-1.5 text-sm font-semibold tracking-wide text-[var(--text-primary)] shadow-[0_0_28px_rgba(249,115,22,0.12)] [border-color:var(--border-soft)]">
             How it works
           </span>
