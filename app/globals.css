@@ -78,6 +78,36 @@
   --feature-card-shadow: 0 24px 60px rgba(2, 6, 23, 0.28);
   --feature-card-hover-shadow: 0 28px 72px rgba(249, 115, 22, 0.12);
   --feature-icon-ring: rgba(255, 255, 255, 0.08);
+  --how-step-card-bg: linear-gradient(
+    180deg,
+    rgba(19, 28, 49, 0.86),
+    rgba(15, 22, 40, 0.78)
+  );
+  --how-step-card-bg-hover: linear-gradient(
+    180deg,
+    rgba(23, 33, 58, 0.9),
+    rgba(18, 27, 48, 0.82)
+  );
+  --how-step-card-border: rgba(148, 163, 184, 0.18);
+  --how-step-card-shadow: 0 28px 74px rgba(2, 6, 23, 0.24);
+  --how-step-card-hover-shadow: 0 32px 84px rgba(15, 23, 42, 0.34);
+  --how-step-card-sheen: radial-gradient(
+    circle at top left,
+    rgba(255, 255, 255, 0.08),
+    transparent 58%
+  );
+  --how-it-works-glow-left: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.2) 0%,
+    rgba(249, 115, 22, 0.1) 44%,
+    transparent 74%
+  );
+  --how-it-works-glow-right: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.16) 0%,
+    rgba(168, 85, 247, 0.08) 46%,
+    transparent 76%
+  );
   --page-gradient: linear-gradient(180deg, #08111f 0%, #091425 45%, #08101c 100%);
   --grid-line: rgba(148, 163, 184, 0.05);
   --grid-pattern: linear-gradient(var(--grid-line) 1px, transparent 1px),
@@ -192,6 +222,29 @@ html[data-theme="light"] {
   --feature-card-shadow: 0 18px 34px rgba(15, 23, 42, 0.08);
   --feature-card-hover-shadow: 0 24px 40px rgba(15, 23, 42, 0.12);
   --feature-icon-ring: rgba(226, 232, 240, 0.95);
+  --how-step-card-bg: rgba(255, 255, 255, 0.9);
+  --how-step-card-bg-hover: rgba(255, 255, 255, 0.97);
+  --how-step-card-border: rgba(226, 232, 240, 0.96);
+  --how-step-card-shadow: 0 20px 42px rgba(15, 23, 42, 0.08);
+  --how-step-card-hover-shadow: 0 26px 50px rgba(15, 23, 42, 0.11);
+  --how-step-card-sheen: radial-gradient(
+    circle at top left,
+    rgba(255, 255, 255, 0.92),
+    rgba(255, 255, 255, 0.18) 44%,
+    transparent 70%
+  );
+  --how-it-works-glow-left: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.22) 0%,
+    rgba(251, 146, 60, 0.08) 46%,
+    transparent 74%
+  );
+  --how-it-works-glow-right: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.18) 0%,
+    rgba(192, 132, 252, 0.06) 50%,
+    transparent 78%
+  );
   --background-grid-opacity: 0.62;
   --glow-left-size: clamp(42rem, 56vw, 60rem);
   --glow-right-size: clamp(44rem, 58vw, 62rem);

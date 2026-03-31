@@ -1,5 +1,6 @@
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { HeroSection } from "@/components/HeroSection";
+import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { Navbar } from "@/components/Navbar";
 
 export default function Home() {
@@ -10,6 +11,7 @@ export default function Home() {
       <main className="relative">
         <HeroSection />
         <FeaturesSection />
+        <HowItWorksSection />
       </main>
     </div>
   );
