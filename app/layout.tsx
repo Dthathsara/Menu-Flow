@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { GlobalBackground } from "@/components/GlobalBackground";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,8 +30,9 @@ export default function RootLayout({
       data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth`}
     >
-      <body className="min-h-full overflow-x-clip bg-[var(--background)] font-sans text-[var(--text-primary)] antialiased transition-colors duration-300">
-        {children}
+      <body className="relative isolate min-h-full bg-[var(--background)] font-sans text-[var(--text-primary)] antialiased transition-colors duration-300">
+        <GlobalBackground />
+        <div className="relative z-10 overflow-x-clip">{children}</div>
       </body>
     </html>
   );
