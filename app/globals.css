@@ -135,6 +135,18 @@
     rgba(168, 85, 247, 0.08) 48%,
     transparent 78%
   );
+  --solutions-glow-left: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.16) 0%,
+    rgba(249, 115, 22, 0.08) 44%,
+    transparent 76%
+  );
+  --solutions-glow-right: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.15) 0%,
+    rgba(168, 85, 247, 0.07) 48%,
+    transparent 80%
+  );
   --page-gradient: linear-gradient(180deg, #08111f 0%, #091425 45%, #08101c 100%);
   --grid-line: rgba(148, 163, 184, 0.05);
   --grid-pattern: linear-gradient(var(--grid-line) 1px, transparent 1px),
@@ -293,6 +305,18 @@ html[data-theme="light"] {
     rgba(168, 85, 247, 0.15) 0%,
     rgba(192, 132, 252, 0.06) 50%,
     transparent 80%
+  );
+  --solutions-glow-left: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.17) 0%,
+    rgba(251, 146, 60, 0.06) 46%,
+    transparent 78%
+  );
+  --solutions-glow-right: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.14) 0%,
+    rgba(192, 132, 252, 0.05) 48%,
+    transparent 82%
   );
   --background-grid-opacity: 0.62;
   --glow-left-size: clamp(42rem, 56vw, 60rem);
