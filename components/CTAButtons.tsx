@@ -6,10 +6,7 @@ const secondaryButtonClassName =
 
 export function CTAButtons() {
   return (
-    <div
-      id="pricing"
-      className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
-    >
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
       <a href="#contact" className={primaryButtonClassName}>
         Start Free Trial
       </a>

@@ -30,7 +30,7 @@ export default function RootLayout({
       data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth`}
     >
-      <body className="relative isolate min-h-full bg-[var(--background)] font-sans text-[var(--text-primary)] antialiased transition-colors duration-300">
+      <body className="relative min-h-full bg-[var(--background)] font-sans text-[var(--text-primary)] antialiased transition-colors duration-300">
         <GlobalBackground />
         <div className="relative z-10 overflow-x-clip">{children}</div>
       </body>

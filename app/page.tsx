@@ -3,6 +3,7 @@ import { FeaturesSection } from "@/components/FeaturesSection";
 import { HeroSection } from "@/components/HeroSection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { Navbar } from "@/components/Navbar";
+import { PricingSection } from "@/components/PricingSection";
 import { SolutionsSection } from "@/components/SolutionsSection";
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
         <HowItWorksSection />
         <BenefitsSection />
         <SolutionsSection />
+        <PricingSection />
       </main>
     </div>
   );

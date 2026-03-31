@@ -51,19 +51,21 @@
   --dish-hover-border: rgba(255, 255, 255, 0.15);
   --glow-left: radial-gradient(
     circle at center,
-    rgba(249, 115, 22, 0.34) 0%,
-    rgba(249, 115, 22, 0.22) 20%,
-    rgba(249, 115, 22, 0.1) 44%,
-    rgba(249, 115, 22, 0.045) 62%,
-    transparent 84%
+    rgba(249, 115, 22, 0.46) 0%,
+    rgba(249, 115, 22, 0.28) 18%,
+    rgba(249, 115, 22, 0.16) 38%,
+    rgba(249, 115, 22, 0.07) 58%,
+    rgba(249, 115, 22, 0.02) 72%,
+    transparent 86%
   );
   --glow-right: radial-gradient(
     circle at center,
-    rgba(168, 85, 247, 0.3) 0%,
-    rgba(168, 85, 247, 0.18) 22%,
-    rgba(168, 85, 247, 0.09) 46%,
-    rgba(168, 85, 247, 0.04) 64%,
-    transparent 86%
+    rgba(168, 85, 247, 0.42) 0%,
+    rgba(168, 85, 247, 0.24) 18%,
+    rgba(168, 85, 247, 0.13) 40%,
+    rgba(168, 85, 247, 0.055) 60%,
+    rgba(168, 85, 247, 0.018) 74%,
+    transparent 88%
   );
   --dashboard-halo: linear-gradient(
     90deg,
@@ -147,18 +149,54 @@
     rgba(168, 85, 247, 0.07) 48%,
     transparent 80%
   );
+  --pricing-card-bg: linear-gradient(
+    180deg,
+    rgba(20, 29, 50, 0.86),
+    rgba(17, 25, 44, 0.8)
+  );
+  --pricing-card-bg-hover: linear-gradient(
+    180deg,
+    rgba(24, 34, 58, 0.9),
+    rgba(20, 29, 50, 0.84)
+  );
+  --pricing-card-border: rgba(148, 163, 184, 0.15);
+  --pricing-card-border-hover: rgba(148, 163, 184, 0.24);
+  --pricing-card-shadow: 0 24px 60px rgba(2, 6, 23, 0.24);
+  --pricing-card-hover-shadow: 0 28px 74px rgba(15, 23, 42, 0.3);
+  --pricing-card-featured-bg: linear-gradient(
+    180deg,
+    rgba(39, 31, 43, 0.94),
+    rgba(29, 34, 54, 0.88)
+  );
+  --pricing-card-featured-border: rgba(249, 115, 22, 0.5);
+  --pricing-card-featured-shadow: 0 0 0 1px rgba(249, 115, 22, 0.14),
+    0 34px 84px rgba(249, 115, 22, 0.14);
+  --pricing-button-border: rgba(148, 163, 184, 0.16);
+  --pricing-button-hover: rgba(255, 255, 255, 0.03);
+  --pricing-glow-left: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.16) 0%,
+    rgba(249, 115, 22, 0.08) 44%,
+    transparent 76%
+  );
+  --pricing-glow-right: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.15) 0%,
+    rgba(168, 85, 247, 0.07) 48%,
+    transparent 80%
+  );
   --page-gradient: linear-gradient(180deg, #08111f 0%, #091425 45%, #08101c 100%);
   --grid-line: rgba(148, 163, 184, 0.05);
   --grid-pattern: linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   --top-wash: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
   --background-grid-opacity: 0.88;
-  --glow-left-size: clamp(44rem, 56vw, 64rem);
-  --glow-right-size: clamp(46rem, 58vw, 68rem);
-  --glow-left-blur: 220px;
-  --glow-right-blur: 240px;
-  --glow-left-opacity: 0.98;
-  --glow-right-opacity: 0.94;
+  --glow-left-size: clamp(64rem, 82vw, 94rem);
+  --glow-right-size: clamp(66rem, 84vw, 98rem);
+  --glow-left-blur: 320px;
+  --glow-right-blur: 340px;
+  --glow-left-opacity: 1;
+  --glow-right-opacity: 1;
 }
 
 @theme inline {
@@ -233,18 +271,20 @@ html[data-theme="light"] {
   );
   --glow-left: radial-gradient(
     circle at center,
-    rgba(249, 115, 22, 0.28) 0%,
-    rgba(249, 115, 22, 0.18) 22%,
-    rgba(251, 146, 60, 0.085) 48%,
-    rgba(251, 146, 60, 0.035) 68%,
+    rgba(249, 115, 22, 0.34) 0%,
+    rgba(249, 115, 22, 0.2) 20%,
+    rgba(251, 146, 60, 0.1) 42%,
+    rgba(251, 146, 60, 0.04) 62%,
+    rgba(251, 146, 60, 0.015) 74%,
     transparent 88%
   );
   --glow-right: radial-gradient(
     circle at center,
-    rgba(168, 85, 247, 0.25) 0%,
-    rgba(168, 85, 247, 0.15) 24%,
-    rgba(192, 132, 252, 0.075) 50%,
-    rgba(192, 132, 252, 0.032) 70%,
+    rgba(168, 85, 247, 0.3) 0%,
+    rgba(168, 85, 247, 0.16) 22%,
+    rgba(192, 132, 252, 0.08) 44%,
+    rgba(192, 132, 252, 0.03) 64%,
+    rgba(192, 132, 252, 0.012) 76%,
     transparent 90%
   );
   --dashboard-halo: linear-gradient(
@@ -318,13 +358,41 @@ html[data-theme="light"] {
     rgba(192, 132, 252, 0.05) 48%,
     transparent 82%
   );
+  --pricing-card-bg: rgba(255, 255, 255, 0.86);
+  --pricing-card-bg-hover: rgba(255, 255, 255, 0.95);
+  --pricing-card-border: rgba(226, 232, 240, 0.96);
+  --pricing-card-border-hover: rgba(203, 213, 225, 0.96);
+  --pricing-card-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+  --pricing-card-hover-shadow: 0 24px 44px rgba(15, 23, 42, 0.12);
+  --pricing-card-featured-bg: linear-gradient(
+    180deg,
+    rgba(255, 247, 237, 0.96),
+    rgba(255, 255, 255, 0.98)
+  );
+  --pricing-card-featured-border: rgba(249, 115, 22, 0.34);
+  --pricing-card-featured-shadow: 0 0 0 1px rgba(249, 115, 22, 0.12),
+    0 28px 56px rgba(249, 115, 22, 0.12);
+  --pricing-button-border: rgba(226, 232, 240, 0.96);
+  --pricing-button-hover: rgba(248, 250, 252, 0.92);
+  --pricing-glow-left: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.18) 0%,
+    rgba(251, 146, 60, 0.07) 46%,
+    transparent 78%
+  );
+  --pricing-glow-right: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.14) 0%,
+    rgba(192, 132, 252, 0.05) 48%,
+    transparent 82%
+  );
   --background-grid-opacity: 0.62;
-  --glow-left-size: clamp(42rem, 56vw, 60rem);
-  --glow-right-size: clamp(44rem, 58vw, 62rem);
-  --glow-left-blur: 260px;
-  --glow-right-blur: 290px;
-  --glow-left-opacity: 0.9;
-  --glow-right-opacity: 0.84;
+  --glow-left-size: clamp(60rem, 78vw, 88rem);
+  --glow-right-size: clamp(62rem, 80vw, 92rem);
+  --glow-left-blur: 340px;
+  --glow-right-blur: 360px;
+  --glow-left-opacity: 0.96;
+  --glow-right-opacity: 0.92;
 }
 
 * {
@@ -337,11 +405,23 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
 }
 
+.global-background-base {
+  background: var(--page-gradient);
+}
+
+.global-background-glow-layer {
+  overflow: visible;
+}
+
+.global-background-grid-layer {
+  overflow: hidden;
+}
+
 .global-background-grid {
   opacity: var(--background-grid-opacity);
 }
 
-.global-glow {
+.global-glow-orb {
   position: absolute;
   border-radius: 9999px;
   transform: translate3d(0, 0, 0);
@@ -349,8 +429,8 @@ body {
 }
 
 .global-glow-left {
-  left: clamp(-24rem, -16vw, -8rem);
-  top: clamp(1rem, 8vh, 7rem);
+  left: clamp(-34rem, -26vw, -14rem);
+  top: clamp(-8rem, -10vh, 1rem);
   width: var(--glow-left-size);
   height: var(--glow-left-size);
   opacity: var(--glow-left-opacity);
@@ -359,8 +439,8 @@ body {
 }
 
 .global-glow-right {
-  top: clamp(1rem, 7vh, 6rem);
-  right: clamp(-26rem, -18vw, -9rem);
+  top: clamp(-10rem, -11vh, 0rem);
+  right: clamp(-36rem, -28vw, -15rem);
   width: var(--glow-right-size);
   height: var(--glow-right-size);
   opacity: var(--glow-right-opacity);
