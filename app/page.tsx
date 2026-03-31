@@ -1,3 +1,4 @@
+import { BenefitsSection } from "@/components/BenefitsSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { HeroSection } from "@/components/HeroSection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
@@ -12,6 +13,7 @@ export default function Home() {
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
+        <BenefitsSection />
       </main>
     </div>
   );
