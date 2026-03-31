@@ -29,7 +29,7 @@ export function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="relative isolate overflow-hidden pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-8"
+      className="relative isolate overflow-hidden scroll-mt-24 pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-8"
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -left-24 top-16 h-72 w-72 rounded-full blur-3xl [background:var(--how-it-works-glow-left)] sm:h-80 sm:w-80 lg:-left-10 lg:top-28 lg:h-[26rem] lg:w-[26rem]" />
@@ -37,7 +37,7 @@ export function HowItWorksSection() {
       </div>
 
       <div className="relative mx-auto grid w-full max-w-[1560px] grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:gap-18 lg:px-8 xl:gap-24">
-        <div className="max-w-2xl pt-4 sm:pt-8 lg:pt-20">
+        <div className="max-w-2xl pt-4 sm:pt-8 lg:pt-24 xl:pt-28">
           <span className="inline-flex items-center rounded-full border bg-[var(--surface-soft)] px-4 py-1.5 text-sm font-semibold tracking-wide text-[var(--text-primary)] shadow-[0_0_28px_rgba(249,115,22,0.12)] [border-color:var(--border-soft)]">
             How it works
           </span>

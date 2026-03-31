@@ -132,7 +132,6 @@
 html {
   color-scheme: dark;
   scroll-behavior: smooth;
-  scroll-padding-top: 6rem;
 }
 
 html[data-theme="light"] {

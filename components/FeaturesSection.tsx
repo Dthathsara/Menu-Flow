@@ -61,7 +61,7 @@ export function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative isolate overflow-hidden pt-10 pb-24 sm:pt-1 sm:pb-28"
+      className="relative isolate overflow-hidden scroll-mt-24 pt-10 pb-24 sm:pt-1 sm:pb-28"
     >
       <div className="relative mx-auto w-full max-w-[1560px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
