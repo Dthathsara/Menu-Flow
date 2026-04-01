@@ -73,10 +73,7 @@ export function DashboardPreview() {
             ))}
           </div>
 
-          <div
-            id="testimonials"
-            className="mt-6 rounded-[1.75rem] border bg-[var(--preview-section)] p-5 shadow-[var(--card-shadow)] [border-color:var(--border-soft)] sm:p-6"
-          >
+          <div className="mt-6 rounded-[1.75rem] border bg-[var(--preview-section)] p-5 shadow-[var(--card-shadow)] [border-color:var(--border-soft)] sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-lg text-[var(--text-secondary)]">
