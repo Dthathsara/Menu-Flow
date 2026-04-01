@@ -1,3 +1,5 @@
+import { SectionLink } from "@/components/SectionLink";
+
 const plans = [
   {
     name: "Starter",
@@ -48,7 +50,7 @@ export function PricingSection() {
   return (
     <section
       id="pricing"
-      className="relative isolate overflow-hidden scroll-mt-24 pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-10"
+      className="relative isolate overflow-hidden scroll-mt-[calc(var(--header-height,5.75rem)+1rem)] pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-10"
     >
       <div
         aria-hidden="true"
@@ -125,7 +127,7 @@ export function PricingSection() {
               </ul>
 
               <div className="mt-auto pt-10">
-                <a
+                <SectionLink
                   href="#contact"
                   className={`inline-flex w-full items-center justify-center rounded-[1.35rem] border px-6 py-4 text-xl font-semibold transition duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/60 ${
                     plan.featured
@@ -134,7 +136,7 @@ export function PricingSection() {
                   }`}
                 >
                   {plan.cta}
-                </a>
+                </SectionLink>
               </div>
             </article>
           ))}

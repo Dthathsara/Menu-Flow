@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --header-height: 5.75rem;
   --background: #06101d;
   --foreground: #f8fafc;
   --text-primary: #f8fafc;

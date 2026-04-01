@@ -29,7 +29,7 @@ export function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="relative isolate overflow-hidden scroll-mt-24 pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-8"
+      className="relative isolate overflow-hidden scroll-mt-[calc(var(--header-height,5.75rem)+1rem)] pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-8"
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -left-24 top-16 h-72 w-72 rounded-full blur-3xl [background:var(--how-it-works-glow-left)] sm:h-80 sm:w-80 lg:-left-10 lg:top-28 lg:h-[26rem] lg:w-[26rem]" />

@@ -1,18 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Benefits", href: "#benefits" },
-  { label: "Solutions", href: "#solutions" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Testimonials", href: "#testimonials" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Contact", href: "#contact" },
-];
+import { scrollToSection, SectionLink } from "@/components/SectionLink";
+import { primaryNavLinks } from "@/components/siteNavigation";
 
 function LogoMark() {
   return (
@@ -26,6 +17,7 @@ function LogoMark() {
 type Theme = "dark" | "light";
 
 export function Navbar() {
+  const headerRef = useRef<HTMLElement | null>(null);
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof document !== "undefined") {
       return document.documentElement.dataset.theme === "light"
@@ -49,14 +41,57 @@ export function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    const header = headerRef.current;
+
+    if (!header) {
+      return;
+    }
+
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        "--header-height",
+        `${header.getBoundingClientRect().height}px`,
+      );
+    };
+
+    updateHeaderHeight();
+
+    const resizeObserver = new ResizeObserver(updateHeaderHeight);
+    resizeObserver.observe(header);
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateHeaderHeight);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!window.location.hash) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      scrollToSection(window.location.hash);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   const toggleTheme = () => {
     setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-[var(--nav-surface)] backdrop-blur-md transition-colors duration-300 [border-color:var(--border-soft)]">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-50 border-b bg-[var(--nav-surface)] backdrop-blur-md transition-colors duration-300 [border-color:var(--border-soft)]"
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <a href="#home" className="flex min-w-0 items-center gap-3">
+        <SectionLink href="#home" className="flex min-w-0 items-center gap-3">
           <LogoMark />
           <span className="min-w-0">
             <span className="block truncate text-xl font-semibold tracking-tight text-[var(--text-primary)]">
@@ -66,21 +101,21 @@ export function Navbar() {
               Smart menus. Faster service.
             </span>
           </span>
-        </a>
+        </SectionLink>
 
         <nav
           aria-label="Primary"
           className="hidden items-center gap-7 lg:flex"
         >
           <div className="hidden gap-6 md:flex">
-            {navLinks.map((link) => (
-              <a
+            {primaryNavLinks.map((link) => (
+              <SectionLink
                 key={link.label}
                 href={link.href}
                 className="relative text-sm font-medium text-[var(--nav-link)] transition-colors duration-300 hover:text-orange-500 after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-orange-500 after:transition-all after:duration-300 hover:after:w-full"
               >
                 {link.label}
-              </a>
+              </SectionLink>
             ))}
           </div>
         </nav>
@@ -113,12 +148,12 @@ export function Navbar() {
             </span>
           </button>
 
-          <a
+          <SectionLink
             href="#contact"
             className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-3 text-sm font-semibold text-white shadow-[var(--button-primary-shadow)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--button-primary-hover-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/60"
           >
             Book a Demo
-          </a>
+          </SectionLink>
         </div>
 
         <button
@@ -154,15 +189,16 @@ export function Navbar() {
       >
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6">
           <nav aria-label="Mobile" className="grid gap-2">
-            {navLinks.map((link) => (
-              <a
+            {primaryNavLinks.map((link) => (
+              <SectionLink
                 key={link.label}
                 href={link.href}
+                navigationDelay={50}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="rounded-2xl border bg-[var(--button-secondary-bg)] px-4 py-3 text-sm font-medium text-[var(--button-secondary-text)] shadow-[var(--button-secondary-shadow)] transition duration-300 hover:bg-[var(--button-secondary-hover)] [border-color:var(--border-soft)]"
               >
                 {link.label}
-              </a>
+              </SectionLink>
             ))}
           </nav>
 
@@ -174,13 +210,14 @@ export function Navbar() {
             Toggle Theme
           </button>
 
-          <a
+          <SectionLink
             href="#contact"
+            navigationDelay={50}
             onClick={() => setIsMobileMenuOpen(false)}
             className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-[var(--button-primary-shadow)] transition-all duration-300 hover:shadow-[var(--button-primary-hover-shadow)]"
           >
             Book a Demo
-          </a>
+          </SectionLink>
         </div>
       </div>
     </header>

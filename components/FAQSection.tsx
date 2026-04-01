@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { SectionLink } from "@/components/SectionLink";
+
 const faqItems = [
   {
     question: "How quickly can I launch my menu?",
@@ -35,7 +37,7 @@ export function FAQSection() {
   return (
     <section
       id="faq"
-      className="relative isolate overflow-hidden scroll-mt-24 pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-10"
+      className="relative isolate overflow-hidden scroll-mt-[calc(var(--header-height,5.75rem)+1rem)] pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-10"
     >
       <div
         aria-hidden="true"
@@ -136,19 +138,19 @@ export function FAQSection() {
               </div>
 
               <div className="flex flex-col gap-4 lg:justify-self-end lg:min-w-[27rem]">
-                <a
+                <SectionLink
                   href="#contact"
                   className="inline-flex min-h-16 items-center justify-center rounded-[1.35rem] bg-white px-6 py-4 text-lg font-semibold text-slate-900 shadow-[0_18px_45px_rgba(255,255,255,0.18)] transition duration-300 hover:-translate-y-0.5 hover:bg-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                 >
                   Start Free Trial
-                </a>
+                </SectionLink>
 
-                <a
+                <SectionLink
                   href="#contact"
                   className="inline-flex min-h-16 items-center justify-center rounded-[1.35rem] border border-white/25 bg-white/10 px-6 py-4 text-lg font-semibold text-white backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                 >
                   Schedule Demo
-                </a>
+                </SectionLink>
               </div>
             </div>
           </div>

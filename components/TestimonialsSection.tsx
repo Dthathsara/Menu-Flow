@@ -46,7 +46,7 @@ export function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      className="relative isolate overflow-hidden scroll-mt-24 pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-10"
+      className="relative isolate overflow-hidden scroll-mt-[calc(var(--header-height,5.75rem)+1rem)] pt-4 pb-24 sm:pt-6 sm:pb-28 lg:pt-10"
     >
       <div
         aria-hidden="true"

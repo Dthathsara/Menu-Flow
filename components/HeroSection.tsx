@@ -12,7 +12,7 @@ export function HeroSection() {
   return (
     <section
       id="home"
-      className="relative flex min-h-[90vh] scroll-mt-24 items-center justify-center"
+      className="relative flex min-h-[90vh] scroll-mt-[calc(var(--header-height,5.75rem)+1rem)] items-center justify-center"
     >
       <div className="mx-auto grid min-h-[90vh] w-full max-w-[1560px] grid-cols-1 items-center gap-12 px-4 pb-20 pt-14 sm:px-6 md:pb-20 lg:grid-cols-2 lg:gap-20 lg:px-8 lg:pb-1 lg:pt-1 xl:gap-24">
         <div className="relative mx-auto flex w-full max-w-2xl flex-col justify-center text-center lg:mx-auto lg:max-w-[44rem] lg:justify-self-center lg:text-left">

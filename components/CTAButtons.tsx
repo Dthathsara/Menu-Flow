@@ -1,3 +1,5 @@
+import { SectionLink } from "@/components/SectionLink";
+
 const primaryButtonClassName =
   "inline-flex items-center justify-center rounded-full bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500 px-6 py-3.5 text-base font-semibold text-white shadow-[var(--button-primary-shadow)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[var(--button-primary-hover-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70";
 
@@ -7,12 +9,12 @@ const secondaryButtonClassName =
 export function CTAButtons() {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-      <a href="#contact" className={primaryButtonClassName}>
+      <SectionLink href="#contact" className={primaryButtonClassName}>
         Start Free Trial
-      </a>
-      <a href="#contact" className={secondaryButtonClassName}>
+      </SectionLink>
+      <SectionLink href="#contact" className={secondaryButtonClassName}>
         Book a Demo
-      </a>
+      </SectionLink>
     </div>
   );
 }

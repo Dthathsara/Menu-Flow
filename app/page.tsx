@@ -1,6 +1,7 @@
 import { BenefitsSection } from "@/components/BenefitsSection";
 import { ContactSection } from "@/components/ContactSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
+import { Footer } from "@/components/Footer";
 import { FAQSection } from "@/components/FAQSection";
 import { HeroSection } from "@/components/HeroSection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
@@ -11,10 +12,10 @@ import { TestimonialsSection } from "@/components/TestimonialsSection";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen">
+    <div className="relative flex min-h-screen flex-col">
       <Navbar />
 
-      <main className="relative">
+      <main className="relative flex-1">
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
@@ -25,6 +26,8 @@ export default function Home() {
         <FAQSection />
         <ContactSection />
       </main>
+
+      <Footer />
     </div>
   );
 }
