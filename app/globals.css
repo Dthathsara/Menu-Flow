@@ -255,6 +255,31 @@
   );
   --faq-cta-border: rgba(255, 255, 255, 0.58);
   --faq-cta-shadow: 0 34px 90px rgba(249, 115, 22, 0.22);
+  --contact-glow-left: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.14) 0%,
+    rgba(249, 115, 22, 0.06) 42%,
+    transparent 78%
+  );
+  --contact-glow-right: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.14) 0%,
+    rgba(236, 72, 153, 0.06) 48%,
+    transparent 82%
+  );
+  --contact-form-shell-bg: linear-gradient(
+    180deg,
+    rgba(27, 31, 50, 0.84),
+    rgba(21, 28, 45, 0.92)
+  );
+  --contact-form-shell-border: rgba(148, 163, 184, 0.16);
+  --contact-form-shell-shadow: 0 28px 72px rgba(2, 6, 23, 0.24);
+  --contact-input-bg: rgba(16, 24, 44, 0.88);
+  --contact-input-border: rgba(148, 163, 184, 0.14);
+  --contact-input-border-focus: rgba(249, 115, 22, 0.34);
+  --contact-input-text: #f8fafc;
+  --contact-input-placeholder: #8d98af;
+  --contact-input-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
   --page-gradient: linear-gradient(180deg, #08111f 0%, #091425 45%, #08101c 100%);
   --grid-line: rgba(148, 163, 184, 0.05);
   --grid-pattern: linear-gradient(var(--grid-line) 1px, transparent 1px),
@@ -514,6 +539,31 @@ html[data-theme="light"] {
   );
   --faq-cta-border: rgba(255, 255, 255, 0.68);
   --faq-cta-shadow: 0 28px 56px rgba(249, 115, 22, 0.16);
+  --contact-glow-left: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.16) 0%,
+    rgba(251, 146, 60, 0.06) 46%,
+    transparent 80%
+  );
+  --contact-glow-right: radial-gradient(
+    circle,
+    rgba(168, 85, 247, 0.12) 0%,
+    rgba(236, 72, 153, 0.05) 48%,
+    transparent 82%
+  );
+  --contact-form-shell-bg: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.96)
+  );
+  --contact-form-shell-border: rgba(226, 232, 240, 0.96);
+  --contact-form-shell-shadow: 0 20px 46px rgba(15, 23, 42, 0.08);
+  --contact-input-bg: rgba(248, 250, 252, 0.92);
+  --contact-input-border: rgba(226, 232, 240, 0.98);
+  --contact-input-border-focus: rgba(249, 115, 22, 0.3);
+  --contact-input-text: #0f172a;
+  --contact-input-placeholder: #64748b;
+  --contact-input-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
   --background-grid-opacity: 0.62;
   --glow-left-size: clamp(60rem, 78vw, 88rem);
   --glow-right-size: clamp(62rem, 80vw, 92rem);
