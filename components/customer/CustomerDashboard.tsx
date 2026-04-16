@@ -1,0 +1,343 @@
+"use client";
+
+import { useState } from "react";
+import { BottomTabBar } from "@/components/customer/BottomTabBar";
+import { CategoryTabs } from "@/components/customer/CategoryTabs";
+import { ContactPanel } from "@/components/customer/ContactPanel";
+import { CustomerHeader } from "@/components/customer/CustomerHeader";
+import { ItemDetailsModal } from "@/components/customer/ItemDetailsModal";
+import { OrdersPanel } from "@/components/customer/OrdersPanel";
+import { SubcategorySection } from "@/components/customer/SubcategorySection";
+import { formatPrice, getSectionKey } from "@/components/customer/customerUtils";
+import type {
+  CartItem,
+  CustomerMenuData,
+  MenuCategory,
+  MenuItem,
+  ServingSize,
+  TabId,
+} from "@/types/customer";
+
+interface CustomerDashboardProps {
+  data: CustomerMenuData;
+}
+
+interface ModalState {
+  categoryId: string;
+  subcategoryId: string;
+  itemId: string;
+}
+
+function buildExpandedState(categories: MenuCategory[]) {
+  return Object.fromEntries(
+    categories.flatMap((category) =>
+      category.subcategories.map((subcategory) => [
+        getSectionKey(category.id, subcategory.id),
+        true,
+      ]),
+    ),
+  ) as Record<string, boolean>;
+}
+
+export function CustomerDashboard({ data }: CustomerDashboardProps) {
+  const firstCategory = data.categories[0];
+  const [activeTab, setActiveTab] = useState<TabId>("menu");
+  const [activeCategoryId, setActiveCategoryId] = useState(firstCategory?.id ?? "");
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
+    () => buildExpandedState(data.categories),
+  );
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [modalState, setModalState] = useState<ModalState | null>(null);
+
+  if (!firstCategory) {
+    return null;
+  }
+
+  const activeCategory =
+    data.categories.find((category) => category.id === activeCategoryId) ??
+    firstCategory;
+
+  const modalCategory = modalState
+    ? data.categories.find((category) => category.id === modalState.categoryId) ??
+      null
+    : null;
+  const modalSubcategory = modalCategory
+    ? modalCategory.subcategories.find(
+        (subcategory) => subcategory.id === modalState?.subcategoryId,
+      ) ?? null
+    : null;
+  const modalItems = modalSubcategory?.items ?? [];
+  const activeModalItem =
+    modalItems.find((item) => item.id === modalState?.itemId) ?? null;
+
+  const orderCount = cartItems.reduce((count, item) => count + item.quantity, 0);
+  const orderTotal = cartItems.reduce(
+    (total, item) => total + item.unitPrice * item.quantity,
+    0,
+  );
+  const activeCategoryItemCount = activeCategory.subcategories.reduce(
+    (count, subcategory) => count + subcategory.items.length,
+    0,
+  );
+
+  function handleCategoryChange(categoryId: string) {
+    setActiveCategoryId(categoryId);
+    setActiveTab("menu");
+  }
+
+  function toggleSection(categoryId: string, subcategoryId: string) {
+    const key = getSectionKey(categoryId, subcategoryId);
+
+    setExpandedSections((current) => ({
+      ...current,
+      [key]: !current[key],
+    }));
+  }
+
+  function openItemModal(categoryId: string, subcategoryId: string, itemId: string) {
+    setModalState({ categoryId, subcategoryId, itemId });
+  }
+
+  function moveModalSelection(direction: -1 | 1) {
+    if (!modalState || modalItems.length < 2 || !activeModalItem) {
+      return;
+    }
+
+    const currentIndex = modalItems.findIndex((item) => item.id === activeModalItem.id);
+    const nextIndex = (currentIndex + direction + modalItems.length) % modalItems.length;
+    const nextItem = modalItems[nextIndex];
+
+    setModalState({
+      ...modalState,
+      itemId: nextItem.id,
+    });
+  }
+
+  function addToOrder(
+    item: MenuItem,
+    serving: ServingSize,
+    quantity: number,
+    crust?: string,
+  ) {
+    const unitPrice = item.servingPrices[serving];
+    const key = `${item.id}:${serving}:${crust ?? "default"}`;
+
+    setCartItems((current) => {
+      const existingItem = current.find((entry) => entry.key === key);
+
+      if (existingItem) {
+        return current.map((entry) =>
+          entry.key === key
+            ? { ...entry, quantity: entry.quantity + quantity }
+            : entry,
+        );
+      }
+
+      return [
+        ...current,
+        {
+          key,
+          itemId: item.id,
+          name: item.name,
+          crust,
+          serving,
+          quantity,
+          unitPrice,
+          image: item.image,
+        },
+      ];
+    });
+
+    setModalState(null);
+  }
+
+  function removeCartItem(key: string) {
+    setCartItems((current) => current.filter((item) => item.key !== key));
+  }
+
+  function handleQuickAdd(item: MenuItem, serving: ServingSize) {
+    addToOrder(item, serving, 1);
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f3f0eb] px-4 pb-28 pt-4 text-[#7a2a24] sm:px-6 sm:pb-32 sm:pt-6 md:px-8 lg:px-6 xl:px-8 2xl:px-10">
+      <div className="mx-auto w-full max-w-[1680px] space-y-4">
+        <CustomerHeader restaurant={data.restaurant} />
+
+        {activeTab === "menu" ? (
+          <section className="rounded-[2rem] border border-[#dfd5c7] bg-[#fffaf4] p-4 shadow-[0_18px_48px_rgba(108,79,55,0.08)] sm:p-6 lg:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[0.78rem] font-bold uppercase tracking-[0.24em] text-[#3d9238]">
+                  Menu
+                </p>
+                <h1 className="mt-2 text-2xl font-black text-[#7a2a24] sm:text-3xl">
+                  Explore today&apos;s customer menu
+                </h1>
+                <p className="mt-3 text-sm leading-6 text-[#8e7364] lg:max-w-4xl">
+                  Switch categories, collapse sections, and open any dish to view
+                  servings and add it to your order.
+                </p>
+              </div>
+              <div className="hidden rounded-[1.3rem] bg-[#f3ecdf] px-4 py-3 text-right text-sm text-[#816557] sm:block">
+                <div className="font-bold text-[#2b8a38]">
+                  {activeCategory.accentLabel}
+                </div>
+                <div>{activeCategoryItemCount} dishes</div>
+              </div>
+            </div>
+
+            <div className="mt-5 w-full">
+              <CategoryTabs
+                categories={data.categories}
+                activeCategoryId={activeCategory.id}
+                onSelect={handleCategoryChange}
+              />
+            </div>
+
+            <div className="mt-5 2xl:grid 2xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)] 2xl:gap-6">
+              <div className="space-y-5">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
+                  <div className="rounded-[1.6rem] bg-[#f4ede3] p-4 lg:p-5">
+                    <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#3d9238]">
+                      {activeCategory.name}
+                    </div>
+                    <div className="mt-2 text-base leading-7 text-[#7a6050]">
+                      {activeCategory.description}
+                    </div>
+                  </div>
+
+                  <div className="hidden rounded-[1.6rem] bg-[#fcf7f1] p-4 lg:block lg:p-5 2xl:hidden">
+                    <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#3d9238]">
+                      Current cart
+                    </div>
+                    <div className="mt-2 text-3xl font-black text-[#2b8a38]">
+                      {formatPrice(orderTotal)}
+                    </div>
+                    <div className="mt-2 text-sm leading-6 text-[#7a6050]">
+                      {orderCount === 0
+                        ? "No selections yet."
+                        : `${orderCount} portion${orderCount === 1 ? "" : "s"} currently added.`}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("orders")}
+                      className="mt-4 w-full rounded-[1.1rem] border border-[#d8cab8] bg-white px-4 py-3 text-sm font-bold uppercase tracking-[0.18em] text-[#7a2a24] transition hover:bg-[#fffdfa]"
+                    >
+                      View Orders
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  {activeCategory.subcategories.map((subcategory) => {
+                    const sectionKey = getSectionKey(
+                      activeCategory.id,
+                      subcategory.id,
+                    );
+
+                    return (
+                      <SubcategorySection
+                        key={subcategory.id}
+                        name={subcategory.name}
+                        description={subcategory.description}
+                        expanded={expandedSections[sectionKey]}
+                        items={subcategory.items}
+                        onToggle={() =>
+                          toggleSection(activeCategory.id, subcategory.id)
+                        }
+                        onSelectItem={(itemId) =>
+                          openItemModal(activeCategory.id, subcategory.id, itemId)
+                        }
+                        onQuickAdd={handleQuickAdd}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              <aside className="mt-5 hidden 2xl:block">
+                <div className="sticky top-6 space-y-4">
+                  <div className="rounded-[1.6rem] bg-[#f4ede3] p-5">
+                    <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#3d9238]">
+                      {activeCategory.name}
+                    </div>
+                    <div className="mt-2 text-3xl font-black text-[#7a2a24]">
+                      {activeCategoryItemCount}
+                    </div>
+                    <div className="mt-2 text-sm leading-6 text-[#7a6050]">
+                      dishes across {activeCategory.subcategories.length} open
+                      sections.
+                    </div>
+                  </div>
+
+                  <div className="rounded-[1.6rem] bg-[#fcf7f1] p-5">
+                    <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#3d9238]">
+                      Section count
+                    </div>
+                    <div className="mt-2 text-3xl font-black text-[#7a2a24]">
+                      {activeCategory.subcategories.length}
+                    </div>
+                    <div className="mt-2 text-sm leading-6 text-[#7a6050]">
+                      All subcategories open by default and can still be
+                      collapsed manually.
+                    </div>
+                  </div>
+
+                  <div className="rounded-[1.6rem] bg-[#6c2a20] p-5 text-[#fff7f2]">
+                    <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#f1d2c2]">
+                      Current cart
+                    </div>
+                    <div className="mt-2 text-3xl font-black">
+                      {formatPrice(orderTotal)}
+                    </div>
+                    <div className="mt-2 text-sm leading-6 text-[#f9e4db]">
+                      {orderCount === 0
+                        ? "No selections yet."
+                        : `${orderCount} portion${orderCount === 1 ? "" : "s"} currently added.`}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("orders")}
+                      className="mt-4 w-full rounded-[1.1rem] bg-white px-4 py-3 text-sm font-bold uppercase tracking-[0.18em] text-[#7a2a24] transition hover:bg-[#fff2eb]"
+                    >
+                      View Orders
+                    </button>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        ) : null}
+
+        {activeTab === "orders" ? (
+          <OrdersPanel
+            items={cartItems}
+            total={orderTotal}
+            onRemove={removeCartItem}
+          />
+        ) : null}
+
+        {activeTab === "contact" ? (
+          <ContactPanel restaurant={data.restaurant} contact={data.contact} />
+        ) : null}
+      </div>
+
+      <BottomTabBar
+        activeTab={activeTab}
+        orderCount={orderCount}
+        onChange={setActiveTab}
+      />
+
+      <ItemDetailsModal
+        item={activeModalItem}
+        itemsInSection={modalItems}
+        isOpen={modalState !== null}
+        onClose={() => setModalState(null)}
+        onPrevious={() => moveModalSelection(-1)}
+        onNext={() => moveModalSelection(1)}
+        onAddToOrder={addToOrder}
+      />
+    </div>
+  );
+}
