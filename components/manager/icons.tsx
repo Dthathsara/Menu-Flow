@@ -212,3 +212,71 @@ export function LogoutIcon({ className }: IconProps) {
     </BaseIcon>
   );
 }
+
+export function PencilIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <path d="m4 20 4.2-1 9.5-9.5a2.1 2.1 0 0 0-3-3L5.2 16 4 20Z" />
+      <path d="m13.5 7.5 3 3" />
+    </BaseIcon>
+  );
+}
+
+export function TrashIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <path d="M4 7h16" />
+      <path d="M9 7V4h6v3" />
+      <path d="M7 7l1 13h8l1-13" />
+      <path d="M10 11v5" />
+      <path d="M14 11v5" />
+    </BaseIcon>
+  );
+}
+
+export function PlusIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </BaseIcon>
+  );
+}
+
+export function UploadIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <path d="M12 16V6" />
+      <path d="m7.5 10.5 4.5-4.5 4.5 4.5" />
+      <path d="M5 18.5h14" />
+    </BaseIcon>
+  );
+}
+
+export function ImageIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="9" cy="10" r="1.5" />
+      <path d="m21 16-4.5-4.5L8 20" />
+    </BaseIcon>
+  );
+}
+
+export function TagIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <path d="M20 10 10 20l-7-7L13 3h5a2 2 0 0 1 2 2v5Z" />
+      <circle cx="16.5" cy="7.5" r="1" />
+    </BaseIcon>
+  );
+}
+
+export function ClockIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7.5V12l3 2" />
+    </BaseIcon>
+  );
+}

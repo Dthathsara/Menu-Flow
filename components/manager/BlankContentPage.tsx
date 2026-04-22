@@ -1,4 +1,5 @@
 import { DashboardContent } from "./DashboardContent";
+import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
 import { cn, getContentSurfaceClasses, getMutedTextClasses, getSecondarySurfaceClasses } from "./managerUtils";
 import type { ManagerNavItem, ManagerSettings } from "./managerTypes";
 
@@ -13,6 +14,10 @@ export function BlankContentPage({
 }: BlankContentPageProps) {
   if (activeItem.key === "dashboard") {
     return <DashboardContent settings={settings} />;
+  }
+
+  if (activeItem.key === "manage-menu") {
+    return <ManageMenuPage settings={settings} />;
   }
 
   return (
