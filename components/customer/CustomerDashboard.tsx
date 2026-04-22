@@ -26,6 +26,10 @@ interface ModalState {
   categoryId: string;
   subcategoryId: string;
   itemId: string;
+  editKey?: string;
+  crust?: string;
+  initialServing?: ServingSize;
+  initialQuantity?: number;
 }
 
 function buildExpandedState(categories: MenuCategory[]) {
@@ -71,14 +75,34 @@ export function CustomerDashboard({ data }: CustomerDashboardProps) {
     modalItems.find((item) => item.id === modalState?.itemId) ?? null;
 
   const orderCount = cartItems.reduce((count, item) => count + item.quantity, 0);
-  const orderTotal = cartItems.reduce(
+  const orderSubtotal = cartItems.reduce(
     (total, item) => total + item.unitPrice * item.quantity,
     0,
   );
+  const orderTax = orderSubtotal * 0.05;
+  const orderServiceCharge = orderSubtotal * 0.03;
+  const orderTotal = orderSubtotal + orderTax + orderServiceCharge;
   const activeCategoryItemCount = activeCategory.subcategories.reduce(
     (count, subcategory) => count + subcategory.items.length,
     0,
   );
+
+  function findItemLocation(itemId: string) {
+    for (const category of data.categories) {
+      for (const subcategory of category.subcategories) {
+        const foundItem = subcategory.items.find((entry) => entry.id === itemId);
+
+        if (foundItem) {
+          return {
+            categoryId: category.id,
+            subcategoryId: subcategory.id,
+          };
+        }
+      }
+    }
+
+    return null;
+  }
 
   function handleCategoryChange(categoryId: string) {
     setActiveCategoryId(categoryId);
@@ -118,11 +142,43 @@ export function CustomerDashboard({ data }: CustomerDashboardProps) {
     serving: ServingSize,
     quantity: number,
     crust?: string,
+    editKey?: string,
   ) {
     const unitPrice = item.servingPrices[serving];
     const key = `${item.id}:${serving}:${crust ?? "default"}`;
 
     setCartItems((current) => {
+      if (editKey) {
+        const itemBeingEdited = current.find((entry) => entry.key === editKey);
+        const remainingItems = current.filter((entry) => entry.key !== editKey);
+        const matchingItem = remainingItems.find((entry) => entry.key === key);
+
+        if (matchingItem) {
+          return remainingItems.map((entry) =>
+            entry.key === key
+              ? {
+                  ...entry,
+                  quantity: entry.quantity + quantity,
+                }
+              : entry,
+          );
+        }
+
+        return [
+          ...remainingItems,
+          {
+            key,
+            itemId: item.id,
+            name: item.name,
+            crust: crust ?? itemBeingEdited?.crust,
+            serving,
+            quantity,
+            unitPrice,
+            image: item.image,
+          },
+        ];
+      }
+
       const existingItem = current.find((entry) => entry.key === key);
 
       if (existingItem) {
@@ -157,6 +213,23 @@ export function CustomerDashboard({ data }: CustomerDashboardProps) {
 
   function handleQuickAdd(item: MenuItem, serving: ServingSize) {
     addToOrder(item, serving, 1);
+  }
+
+  function handleEditItem(item: CartItem) {
+    const location = findItemLocation(item.itemId);
+
+    if (!location) {
+      return;
+    }
+
+    setModalState({
+      ...location,
+      itemId: item.itemId,
+      editKey: item.key,
+      crust: item.crust,
+      initialServing: item.serving,
+      initialQuantity: item.quantity,
+    });
   }
 
   return (
@@ -212,7 +285,7 @@ export function CustomerDashboard({ data }: CustomerDashboardProps) {
                       Current cart
                     </div>
                     <div className="mt-2 text-3xl font-black text-[#2b8a38]">
-                      {formatPrice(orderTotal)}
+                      {formatPrice(orderSubtotal)}
                     </div>
                     <div className="mt-2 text-sm leading-6 text-[#7a6050]">
                       {orderCount === 0
@@ -289,7 +362,7 @@ export function CustomerDashboard({ data }: CustomerDashboardProps) {
                       Current cart
                     </div>
                     <div className="mt-2 text-3xl font-black">
-                      {formatPrice(orderTotal)}
+                      {formatPrice(orderSubtotal)}
                     </div>
                     <div className="mt-2 text-sm leading-6 text-[#f9e4db]">
                       {orderCount === 0
@@ -313,7 +386,11 @@ export function CustomerDashboard({ data }: CustomerDashboardProps) {
         {activeTab === "orders" ? (
           <OrdersPanel
             items={cartItems}
+            subtotal={orderSubtotal}
+            tax={orderTax}
+            serviceCharge={orderServiceCharge}
             total={orderTotal}
+            onEdit={handleEditItem}
             onRemove={removeCartItem}
           />
         ) : null}
@@ -333,10 +410,21 @@ export function CustomerDashboard({ data }: CustomerDashboardProps) {
         item={activeModalItem}
         itemsInSection={modalItems}
         isOpen={modalState !== null}
+        initialServing={modalState?.initialServing}
+        initialQuantity={modalState?.initialQuantity}
+        submitLabel={modalState?.editKey ? "Update Order" : "Add To Order"}
         onClose={() => setModalState(null)}
         onPrevious={() => moveModalSelection(-1)}
         onNext={() => moveModalSelection(1)}
-        onAddToOrder={addToOrder}
+        onAddToOrder={(item, serving, quantity) =>
+          addToOrder(
+            item,
+            serving,
+            quantity,
+            modalState?.crust,
+            modalState?.editKey,
+          )
+        }
       />
     </div>
   );
