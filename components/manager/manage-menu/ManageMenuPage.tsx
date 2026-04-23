@@ -86,18 +86,18 @@ export function ManageMenuPage({ settings }: ManageMenuPageProps) {
       <section className="relative z-0 space-y-6">
         <ManageMenuToolbar
           settings={settings}
-          searchValue={searchValue}
-          category={category}
-          categories={FILTER_CATEGORIES}
-          resultCount={filteredItems.length}
-          onSearchChange={setSearchValue}
-          onCategoryChange={setCategory}
           onAddItem={openAddModal}
         />
 
         <ManageMenuTable
           items={filteredItems}
           settings={settings}
+          searchValue={searchValue}
+          category={category}
+          categories={FILTER_CATEGORIES}
+          resultCount={filteredItems.length}
+          onSearchChange={setSearchValue}
+          onCategoryChange={setCategory}
           onEdit={openEditModal}
           onRemove={setItemPendingDelete}
         />

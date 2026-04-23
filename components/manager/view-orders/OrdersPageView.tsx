@@ -1,0 +1,153 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { cn, getMutedTextClasses } from "../managerUtils";
+import type { ManagerSettings } from "../managerTypes";
+import {
+  getFilteredAndSortedOrders,
+  getOrdersSummaryCards,
+  ORDER_RECORDS,
+} from "./order-data";
+import { OrderDetailsModal } from "./OrderDetailsModal";
+import { OrdersTable } from "./OrdersTable";
+import { OrdersToolbar } from "./OrdersToolbar";
+import { SecondaryPanel, SectionPill, SurfaceCard } from "./shared";
+import type { OrderRecord, OrderStatusFilter, PaymentStatusFilter } from "./types";
+
+interface OrdersPageViewProps {
+  settings: ManagerSettings;
+}
+
+const DEFAULT_FILTERS = {
+  query: "",
+  paymentStatus: "All Payments",
+  orderStatus: "All Statuses",
+} as const;
+
+export function OrdersPageView({ settings }: OrdersPageViewProps) {
+  const [query, setQuery] = useState<string>(DEFAULT_FILTERS.query);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatusFilter>(
+    DEFAULT_FILTERS.paymentStatus,
+  );
+  const [orderStatus, setOrderStatus] = useState<OrderStatusFilter>(
+    DEFAULT_FILTERS.orderStatus,
+  );
+  const [selectedOrder, setSelectedOrder] = useState<OrderRecord | null>(null);
+
+  const filters = useMemo(
+    () => ({
+      query,
+      paymentStatus,
+      orderStatus,
+    }),
+    [query, paymentStatus, orderStatus],
+  );
+
+  const summaryCards = useMemo(() => getOrdersSummaryCards(ORDER_RECORDS), []);
+  const orders = useMemo(() => getFilteredAndSortedOrders(ORDER_RECORDS, filters), [filters]);
+  const hasActiveFilters = Boolean(
+    query || paymentStatus !== "All Payments" || orderStatus !== "All Statuses",
+  );
+
+  return (
+    <>
+      <section className="relative z-0 space-y-6">
+        <SurfaceCard settings={settings} className="overflow-hidden p-5 sm:p-6">
+          <div className="relative">
+            <div className="pointer-events-none absolute -right-16 top-0 h-40 w-40 rounded-full bg-blue-500/12 blur-3xl" />
+            <SectionPill settings={settings}>Operations</SectionPill>
+            <h2 className="mt-5 text-2xl font-bold tracking-tight sm:text-[2rem]">Orders</h2>
+            <p
+              className={cn(
+                "mt-3 max-w-3xl text-sm leading-7 sm:text-[15px]",
+                getMutedTextClasses(settings.scheme),
+              )}
+            >
+              Track active orders, delivery progress, and payment collection across
+              every table in real time.
+            </p>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {summaryCards.map((card) => (
+                <SecondaryPanel
+                  key={card.title}
+                  settings={settings}
+                  className="relative overflow-hidden p-4 sm:p-5"
+                >
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r",
+                      card.accentClassName,
+                    )}
+                  />
+                  <div
+                    className={cn(
+                      "relative text-[11px] font-semibold uppercase tracking-[0.22em]",
+                      getMutedTextClasses(settings.scheme),
+                    )}
+                  >
+                    {card.title}
+                  </div>
+                  <div className="relative mt-4 text-[1.8rem] font-bold tracking-tight">
+                    {card.value}
+                  </div>
+                  <div
+                    className={cn(
+                      "relative mt-3 text-sm leading-6",
+                      getMutedTextClasses(settings.scheme),
+                    )}
+                  >
+                    {card.note}
+                  </div>
+                </SecondaryPanel>
+              ))}
+            </div>
+          </div>
+        </SurfaceCard>
+
+        <SurfaceCard settings={settings} className="overflow-hidden">
+          <div className="border-b border-black/5 px-5 py-5 sm:px-6">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold sm:text-xl">Orders Queue</h3>
+                <p className={cn("mt-1 text-sm leading-6", getMutedTextClasses(settings.scheme))}>
+                  Priority-sorted order records with payment tracking and full ticket
+                  details.
+                </p>
+              </div>
+              <SectionPill settings={settings}>Sorted by urgency and recency</SectionPill>
+            </div>
+
+            <div className="mt-5">
+              <OrdersToolbar
+                settings={settings}
+                query={query}
+                paymentStatus={paymentStatus}
+                orderStatus={orderStatus}
+                resultCount={orders.length}
+                hasActiveFilters={hasActiveFilters}
+                onQueryChange={setQuery}
+                onPaymentStatusChange={setPaymentStatus}
+                onOrderStatusChange={setOrderStatus}
+                onClearFilters={() => {
+                  setQuery(DEFAULT_FILTERS.query);
+                  setPaymentStatus(DEFAULT_FILTERS.paymentStatus);
+                  setOrderStatus(DEFAULT_FILTERS.orderStatus);
+                }}
+              />
+            </div>
+          </div>
+
+          <OrdersTable settings={settings} orders={orders} onViewDetails={setSelectedOrder} />
+        </SurfaceCard>
+      </section>
+
+      <OrderDetailsModal
+        open={Boolean(selectedOrder)}
+        order={selectedOrder}
+        settings={settings}
+        onClose={() => setSelectedOrder(null)}
+      />
+    </>
+  );
+}

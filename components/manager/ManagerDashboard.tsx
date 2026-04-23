@@ -8,8 +8,14 @@ import { cn, getShellBackgroundClasses } from "./managerUtils";
 import { useManagerSettings } from "./useManagerSettings";
 import type { LanguageOption, ManagerNavKey } from "./managerTypes";
 
-export function ManagerDashboard() {
-  const [activeNav, setActiveNav] = useState<ManagerNavKey>("dashboard");
+interface ManagerDashboardProps {
+  initialActiveNav?: ManagerNavKey;
+}
+
+export function ManagerDashboard({
+  initialActiveNav = "dashboard",
+}: ManagerDashboardProps) {
+  const [activeNav, setActiveNav] = useState<ManagerNavKey>(initialActiveNav);
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
     LANGUAGE_OPTIONS[0],
   );

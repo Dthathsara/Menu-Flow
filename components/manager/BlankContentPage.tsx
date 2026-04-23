@@ -1,5 +1,6 @@
 import { DashboardContent } from "./DashboardContent";
 import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
+import { OrdersPageView } from "./view-orders";
 import { cn, getContentSurfaceClasses, getMutedTextClasses, getSecondarySurfaceClasses } from "./managerUtils";
 import type { ManagerNavItem, ManagerSettings } from "./managerTypes";
 
@@ -18,6 +19,10 @@ export function BlankContentPage({
 
   if (activeItem.key === "manage-menu") {
     return <ManageMenuPage settings={settings} />;
+  }
+
+  if (activeItem.key === "orders") {
+    return <OrdersPageView settings={settings} />;
   }
 
   return (
