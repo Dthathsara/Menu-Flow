@@ -1,6 +1,7 @@
 import { DashboardContent } from "./DashboardContent";
 import { GenerateQrPage } from "./generate-qr/GenerateQrPage";
 import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
+import { ReportsPageView } from "./reports";
 import { UsersPageView } from "./view-users";
 import { OrdersPageView } from "./view-orders";
 import {
@@ -43,6 +44,10 @@ export function BlankContentPage({
 
   if (activeItem.key === "users") {
     return <UsersPageView settings={settings} />;
+  }
+
+  if (activeItem.key === "reports") {
+    return <ReportsPageView settings={settings} />;
   }
 
   return (
