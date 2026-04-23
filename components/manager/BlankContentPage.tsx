@@ -1,6 +1,7 @@
 import { DashboardContent } from "./DashboardContent";
 import { GenerateQrPage } from "./generate-qr/GenerateQrPage";
 import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
+import { UsersPageView } from "./view-users";
 import { OrdersPageView } from "./view-orders";
 import {
   cn,
@@ -38,6 +39,10 @@ export function BlankContentPage({
 
   if (activeItem.key === "generate-qr") {
     return <GenerateQrPage settings={settings} />;
+  }
+
+  if (activeItem.key === "users") {
+    return <UsersPageView settings={settings} />;
   }
 
   return (
