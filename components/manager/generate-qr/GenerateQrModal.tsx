@@ -2,10 +2,25 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { XIcon } from "../icons";
-import { cn } from "../managerUtils";
+import {
+  cn,
+  getManagerEyebrowClasses,
+  getManagerIconButtonClasses,
+  getManagerModalBodyClasses,
+  getManagerModalFooterClasses,
+  getManagerModalHeaderClasses,
+  getManagerModalSurfaceClasses,
+  getManagerModalTitleClasses,
+  getManagerPrimaryButtonClasses,
+  getManagerSecondaryButtonClasses,
+  getManagerStrongTextClasses,
+  getManagerTextInputClasses,
+} from "../managerUtils";
+import type { ManagerSettings } from "../managerTypes";
 import type { GenerateQrFormValues } from "./types";
 
 interface GenerateQrModalProps {
+  settings: ManagerSettings;
   onClose: () => void;
   onSubmit: (values: GenerateQrFormValues) => void;
 }
@@ -21,6 +36,7 @@ function createEmptyFormValues(): GenerateQrFormValues {
 }
 
 export function GenerateQrModal({
+  settings,
   onClose,
   onSubmit,
 }: GenerateQrModalProps) {
@@ -121,8 +137,7 @@ export function GenerateQrModal({
     requestClose();
   }
 
-  const inputClassName =
-    "h-12 w-full rounded-[14px] border border-[#1d3150] bg-[#0a1325] px-4 text-[14px] text-white outline-none transition-all duration-200 ease-out placeholder:text-[#6f7f9d] hover:border-[#28456c] focus:border-[#3f75dd] focus:ring-2 focus:ring-[#3f75dd]/35";
+  const inputClassName = cn(getManagerTextInputClasses(settings.scheme), "h-12 rounded-[14px] text-[14px]");
 
   return (
     <div
@@ -142,22 +157,23 @@ export function GenerateQrModal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "w-full max-w-[560px] overflow-hidden rounded-[26px] border border-[#183058] bg-[linear-gradient(180deg,#091427_0%,#07101f_100%)] shadow-[0_40px_100px_rgba(2,8,23,0.42)] transition-all duration-200 ease-out",
+          "max-w-[560px] transition-all duration-200 ease-out",
+          getManagerModalSurfaceClasses(settings.scheme),
           isVisible
             ? "translate-y-0 scale-100 opacity-100"
             : "translate-y-3 scale-[0.985] opacity-0",
         )}
-      >
+        >
         <form onSubmit={handleSubmit}>
-          <div className="flex items-start justify-between gap-4 border-b border-[#142847] px-6 py-5">
+          <div className={getManagerModalHeaderClasses(settings.scheme)}>
             <div className="min-w-0">
               <h2
                 id={titleId}
-                className="text-[1.2rem] font-bold tracking-[-0.03em] text-white sm:text-[1.45rem]"
+                className={cn(getManagerModalTitleClasses(), getManagerStrongTextClasses(settings.scheme))}
               >
                 Generate New QR Code
               </h2>
-              <p className="mt-2 text-[14px] leading-6 text-[#9eb1d1]">
+              <p className={cn("mt-2 text-[14px] leading-6", settings.scheme === "dark" ? "text-slate-400" : "text-slate-500")}>
                 Create a new QR code for a restaurant table or dining area.
               </p>
             </div>
@@ -165,19 +181,19 @@ export function GenerateQrModal({
             <button
               type="button"
               onClick={requestClose}
-              className="inline-flex size-10 items-center justify-center rounded-[14px] border border-[#20385f] bg-[#13223f] text-[#d7e6ff] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#32527f] hover:bg-[#182b4d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#081225]"
+              className={cn(getManagerIconButtonClasses(settings.scheme, true), "rounded-[14px]")}
               aria-label="Close generate QR modal"
             >
               <XIcon className="size-4" />
             </button>
           </div>
 
-          <div className="px-6 py-6">
+          <div className={getManagerModalBodyClasses(settings.scheme)}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2.5">
                 <label
                   htmlFor="table-number"
-                  className="block text-[11px] font-bold uppercase tracking-[0.24em] text-[#9fb0cf]"
+                  className={getManagerEyebrowClasses(settings.scheme)}
                 >
                   Table Number
                 </label>
@@ -200,7 +216,7 @@ export function GenerateQrModal({
               <div className="space-y-2.5">
                 <label
                   htmlFor="section"
-                  className="block text-[11px] font-bold uppercase tracking-[0.24em] text-[#9fb0cf]"
+                  className={getManagerEyebrowClasses(settings.scheme)}
                 >
                   Section
                 </label>
@@ -221,18 +237,18 @@ export function GenerateQrModal({
             </div>
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-[#142847] px-6 py-5 sm:flex-row sm:justify-end">
+          <div className={getManagerModalFooterClasses(settings.scheme)}>
             <button
               type="button"
               onClick={requestClose}
-              className="inline-flex h-11 items-center justify-center rounded-[14px] border border-[#23395d] bg-[#13223f] px-5 text-[14px] font-semibold text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#31507b] hover:bg-[#17294a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#081225]"
+              className={cn(getManagerSecondaryButtonClasses(settings.scheme), "h-11 rounded-[14px] px-5 text-[14px]")}
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="inline-flex h-11 items-center justify-center rounded-[14px] bg-[linear-gradient(180deg,#4b8dff_0%,#3478f6_100%)] px-5 text-[14px] font-semibold text-white shadow-[0_18px_34px_rgba(52,120,246,0.28)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_40px_rgba(52,120,246,0.34)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#081225]"
+              className={cn(getManagerPrimaryButtonClasses(settings.scheme), "h-11 rounded-[14px] px-5 text-[14px]")}
             >
               Generate QR Code
             </button>

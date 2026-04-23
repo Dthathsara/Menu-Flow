@@ -1,4 +1,4 @@
-import { cn } from "../managerUtils";
+import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { ORDER_STATUS_MIX } from "./reports.data";
 import { getProgressToneClasses, getTrackClasses } from "./reports.helpers";
@@ -21,7 +21,12 @@ export function OrderStatusMixCard({ settings }: OrderStatusMixCardProps) {
       <div className="space-y-4">
         {ORDER_STATUS_MIX.map((item) => (
           <div key={item.label}>
-            <div className="mb-2 flex items-center justify-between gap-3 text-[14px] font-medium text-white">
+            <div
+              className={cn(
+                "mb-2 flex items-center justify-between gap-3 text-[14px] font-medium",
+                getManagerStrongTextClasses(settings.scheme),
+              )}
+            >
               <span>{item.label}</span>
               <span className="font-semibold">{item.valueLabel}</span>
             </div>

@@ -3,10 +3,15 @@
 import { useEffect } from "react";
 import {
   cn,
+  getManagerAccentPillClasses,
   getManagerIconButtonClasses,
   getManagerModalSurfaceClasses,
+  getManagerModalBodyClasses,
+  getManagerModalFooterClasses,
+  getManagerModalHeaderClasses,
   getManagerPageSubtitleClasses,
   getManagerPageTitleClasses,
+  getManagerStrongTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { SearchIcon, XIcon } from "../icons";
@@ -67,10 +72,7 @@ export function UsersSectionBadge({
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]",
-        settings.scheme === "dark"
-          ? "bg-[#14325E] text-[#90B9FF]"
-          : "bg-blue-50 text-blue-700",
+        getManagerAccentPillClasses(settings.scheme, "brand"),
         className,
       )}
     >
@@ -191,7 +193,7 @@ export function UsersSearchField({
       <SearchIcon
         className={cn(
           "size-4 shrink-0",
-          settings.scheme === "dark" ? "text-[#8CA1CA]" : "text-slate-400",
+          settings.scheme === "dark" ? "text-slate-400" : "text-slate-400",
         )}
       />
       <input
@@ -201,7 +203,7 @@ export function UsersSearchField({
         className={cn(
           "h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none",
           settings.scheme === "dark"
-            ? "text-white placeholder:text-[#68789D]"
+            ? "text-slate-100 placeholder:text-slate-400"
             : "text-slate-900 placeholder:text-slate-400",
         )}
         aria-label={placeholder}
@@ -306,24 +308,21 @@ export function UsersModalFrame({
       }}
     >
       <div
-        className={cn(maxWidthClassName, getManagerModalSurfaceClasses(settings.scheme))}
+        className={cn(maxWidthClassName, "w-full", getManagerModalSurfaceClasses(settings.scheme))}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
-          <div
-            className={cn(
-              "flex items-start justify-between gap-4 border-b px-5 py-4 sm:px-6 sm:py-5",
-              settings.scheme === "dark"
-                ? "border-[#173056] bg-[#09172D]"
-                : "border-slate-200 bg-slate-50",
-            )}
-          >
+        <div className={cn("flex max-h-[calc(100vh-2rem)] flex-col", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>
+          <div className={getManagerModalHeaderClasses(settings.scheme)}>
             <div>
               <h3
                 id={titleId}
-                className={cn(getManagerPageTitleClasses(), "text-[1.45rem] sm:text-[1.55rem]")}
+                className={cn(
+                  getManagerPageTitleClasses(),
+                  "text-[1.45rem] sm:text-[1.55rem]",
+                  getManagerStrongTextClasses(settings.scheme),
+                )}
               >
                 {title}
               </h3>
@@ -342,24 +341,12 @@ export function UsersModalFrame({
             </button>
           </div>
 
-          <div
-            className={cn(
-              "overflow-y-auto px-5 py-5 sm:px-6 sm:py-6",
-              settings.scheme === "dark" ? "bg-[#071426]" : "bg-white",
-            )}
-          >
+          <div className={getManagerModalBodyClasses(settings.scheme)}>
             {children}
           </div>
 
           {footer ? (
-            <div
-              className={cn(
-                "flex flex-col-reverse gap-3 border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6 sm:py-5",
-                settings.scheme === "dark"
-                  ? "border-[#173056] bg-[#071426]"
-                  : "border-slate-200 bg-white",
-              )}
-            >
+            <div className={getManagerModalFooterClasses(settings.scheme)}>
               {footer}
             </div>
           ) : null}

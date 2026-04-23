@@ -1,4 +1,4 @@
-import { cn } from "../managerUtils";
+import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { PEAK_HOURS_METRICS } from "./reports.data";
 import { getProgressToneClasses, getTrackClasses } from "./reports.helpers";
@@ -20,7 +20,12 @@ export function PeakHoursCard({ settings }: PeakHoursCardProps) {
       <div className="space-y-5">
         {PEAK_HOURS_METRICS.map((item) => (
           <div key={item.label}>
-            <div className="mb-2 flex items-center justify-between gap-3 text-[14px] font-semibold text-white">
+            <div
+              className={cn(
+                "mb-2 flex items-center justify-between gap-3 text-[14px] font-semibold",
+                getManagerStrongTextClasses(settings.scheme),
+              )}
+            >
               <span>{item.label}</span>
               <span>{item.valueLabel}</span>
             </div>

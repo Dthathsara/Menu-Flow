@@ -1,6 +1,8 @@
 import {
   cn,
+  getManagerStrongTextClasses,
   getManagerTableCellPaddingClasses,
+  getManagerTableHeadSurfaceClasses,
   getManagerTableHeaderClasses,
   getManagerTableHeaderPaddingClasses,
 } from "../managerUtils";
@@ -26,7 +28,12 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
       <div className="overflow-x-auto px-5 pb-4 pt-2 sm:px-6 sm:pb-5">
         <table className="min-w-[640px] w-full border-collapse">
           <thead>
-            <tr className={cn("border-b border-black/5", getManagerTableHeaderClasses(settings.scheme))}>
+            <tr
+              className={cn(
+                getManagerTableHeadSurfaceClasses(settings.scheme),
+                getManagerTableHeaderClasses(settings.scheme),
+              )}
+            >
               <th className={getManagerTableHeaderPaddingClasses()}>Staff</th>
               <th className={getManagerTableHeaderPaddingClasses()}>Role</th>
               <th className={getManagerTableHeaderPaddingClasses()}>Orders</th>
@@ -37,7 +44,13 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
           <tbody>
             {WAITER_PERFORMANCE_ROWS.map((row) => (
               <tr key={row.staff} className="border-b border-black/5 last:border-b-0">
-                <td className={cn(getManagerTableCellPaddingClasses(), "text-[14px] font-medium text-white")}>
+                <td
+                  className={cn(
+                    getManagerTableCellPaddingClasses(),
+                    "text-[14px] font-medium",
+                    getManagerStrongTextClasses(settings.scheme),
+                  )}
+                >
                   {row.staff}
                 </td>
                 <td className={getManagerTableCellPaddingClasses()}>
@@ -50,13 +63,31 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
                     {row.role}
                   </span>
                 </td>
-                <td className={cn(getManagerTableCellPaddingClasses(), "text-[14px] font-semibold text-white")}>
+                <td
+                  className={cn(
+                    getManagerTableCellPaddingClasses(),
+                    "text-[14px] font-semibold",
+                    getManagerStrongTextClasses(settings.scheme),
+                  )}
+                >
                   {row.orders}
                 </td>
-                <td className={cn(getManagerTableCellPaddingClasses(), "text-[14px] font-semibold text-white")}>
+                <td
+                  className={cn(
+                    getManagerTableCellPaddingClasses(),
+                    "text-[14px] font-semibold",
+                    getManagerStrongTextClasses(settings.scheme),
+                  )}
+                >
                   {row.revenue}
                 </td>
-                <td className={cn(getManagerTableCellPaddingClasses(), "text-[14px] font-medium text-white")}>
+                <td
+                  className={cn(
+                    getManagerTableCellPaddingClasses(),
+                    "text-[14px] font-medium",
+                    getManagerStrongTextClasses(settings.scheme),
+                  )}
+                >
                   {row.tables}
                 </td>
               </tr>

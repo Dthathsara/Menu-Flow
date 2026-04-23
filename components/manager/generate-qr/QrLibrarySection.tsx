@@ -1,7 +1,19 @@
+import { SearchIcon } from "../icons";
+import {
+  cn,
+  getManagerAccentPillClasses,
+  getManagerCardShellClasses,
+  getManagerControlShellClasses,
+  getManagerPanelShellClasses,
+  getManagerSectionSubtitleClasses,
+  getMutedTextClasses,
+} from "../managerUtils";
+import type { ManagerSettings } from "../managerTypes";
 import { QrCard } from "./QrCard";
 import type { QrCodeRecord } from "./types";
 
 interface QrLibrarySectionProps {
+  settings: ManagerSettings;
   items: QrCodeRecord[];
   totalCount: number;
   searchValue: string;
@@ -11,6 +23,7 @@ interface QrLibrarySectionProps {
 }
 
 export function QrLibrarySection({
+  settings,
   items,
   totalCount,
   searchValue,
@@ -19,32 +32,38 @@ export function QrLibrarySection({
   onDelete,
 }: QrLibrarySectionProps) {
   return (
-    <section className="rounded-[28px] border border-[#152845] bg-[linear-gradient(180deg,#071325_0%,#050d1c_100%)] p-4 shadow-[0_30px_74px_rgba(2,8,23,0.24)] sm:p-5">
+    <section className={cn("p-4 sm:p-5", getManagerCardShellClasses(settings.scheme, { interactive: true }))}>
       <div className="px-1">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h2 className="text-[2.1rem] font-bold tracking-[-0.04em] text-white">
+            <h2 className={cn("text-[1.95rem] font-bold tracking-tight sm:text-[2.1rem]", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>
               Table QR Library
             </h2>
-            <p className="mt-2 text-[14px] leading-7 text-[#adc0de]">
+            <p className={cn("mt-2 text-[14px] leading-7", getManagerSectionSubtitleClasses(settings.scheme))}>
               Search, filter, generate, preview, print, download, and delete QR
               codes from one place.
             </p>
           </div>
 
-          <span className="inline-flex h-8 w-fit items-center rounded-full bg-[#243d71] px-4 text-[11px] font-bold uppercase tracking-[0.24em] text-white">
+          <span className={cn(getManagerAccentPillClasses(settings.scheme, "brand"), "h-8 w-fit items-center px-4")}>
             {totalCount} QR CODES
           </span>
         </div>
 
         <div className="mt-5">
-          <input
-            value={searchValue}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search by Table Number, Section, or Branch"
-            className="h-12 w-full rounded-[14px] border border-[#1b3152] bg-[#091528] px-4 text-[14px] text-white outline-none transition-all duration-200 ease-out placeholder:text-[#7487a8] hover:border-[#28436c] focus:border-[#3f75dd] focus:ring-2 focus:ring-[#3f75dd]/35"
-            aria-label="Search QR codes"
-          />
+          <label className="block">
+            <span className="sr-only">Search QR codes</span>
+            <div className={cn(getManagerControlShellClasses(settings.scheme), "h-12 rounded-[14px]")}>
+              <SearchIcon className="size-4 text-slate-400" />
+              <input
+                value={searchValue}
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder="Search by Table Number, Section, or Branch"
+                className="w-full bg-transparent text-[14px] outline-none placeholder:text-inherit"
+                aria-label="Search QR codes"
+              />
+            </div>
+          </label>
         </div>
       </div>
 
@@ -53,6 +72,7 @@ export function QrLibrarySection({
           {items.map((item) => (
             <QrCard
               key={item.id}
+              settings={settings}
               item={item}
               onDownload={onDownload}
               onDelete={onDelete}
@@ -60,9 +80,9 @@ export function QrLibrarySection({
           ))}
         </div>
       ) : (
-        <div className="mt-5 rounded-[22px] border border-dashed border-[#253a5c] bg-[#081225] px-5 py-14 text-center">
-          <div className="text-[1.2rem] font-semibold text-white">No QR codes found</div>
-          <p className="mt-2 text-[14px] text-[#97abcb]">
+        <div className={cn("mt-5 border-dashed px-5 py-14 text-center", getManagerPanelShellClasses(settings.scheme))}>
+          <div className={cn("text-[1.2rem] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>No QR codes found</div>
+          <p className={cn("mt-2 text-[14px]", getMutedTextClasses(settings.scheme))}>
             Adjust the search term or generate a new table QR code.
           </p>
         </div>

@@ -1,4 +1,4 @@
-import { cn } from "../managerUtils";
+import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { PAYMENT_SUMMARY_METRICS } from "./reports.data";
 import { getReportsMicroLabelClasses, getReportsMutedTextClasses, getReportsPanelClasses } from "./reports.helpers";
@@ -24,7 +24,7 @@ export function PaymentSummaryCard({ settings }: PaymentSummaryCardProps) {
             <div
               className={cn(
                 "mt-3 text-[2rem] font-bold tracking-tight",
-                settings.scheme === "dark" ? "text-white" : "text-slate-900",
+                getManagerStrongTextClasses(settings.scheme),
               )}
             >
               {metric.value}

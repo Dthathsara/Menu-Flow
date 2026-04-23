@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "../managerUtils";
+import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import {
   getOperationalAccessLabel,
@@ -63,7 +63,7 @@ export function StaffProfileModal({
             <div
               className={cn(
                 "text-[1.05rem] font-semibold sm:text-[1.15rem]",
-                settings.scheme === "dark" ? "text-white" : "text-slate-900",
+                getManagerStrongTextClasses(settings.scheme),
               )}
             >
               {staff.fullName}
@@ -108,7 +108,7 @@ function ProfileInfoCard({
       <div
         className={cn(
           "mt-3 text-[15px] font-semibold leading-7",
-          settings.scheme === "dark" ? "text-white" : "text-slate-900",
+          getManagerStrongTextClasses(settings.scheme),
         )}
       >
         {value}

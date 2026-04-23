@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "../managerUtils";
+import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { getUsersFieldLabelClasses, getUsersMutedTextClasses } from "./helpers";
 import { UsersActionButton, UsersModalFrame, UsersPanel } from "./shared";
@@ -57,7 +57,7 @@ export function DeleteStaffModal({
         <div
           className={cn(
             "text-[1.05rem] font-semibold",
-            settings.scheme === "dark" ? "text-white" : "text-slate-900",
+            getManagerStrongTextClasses(settings.scheme),
           )}
         >
           Delete {staff.fullName}?

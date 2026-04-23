@@ -6,6 +6,18 @@ import type {
   TopbarTone,
 } from "./managerTypes";
 
+export type ManagerBadgeTone =
+  | "neutral"
+  | "brand"
+  | "info"
+  | "success"
+  | "warning"
+  | "danger"
+  | "cyan"
+  | "amber"
+  | "violet"
+  | "teal";
+
 export function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
@@ -123,6 +135,16 @@ export function getManagerPillClasses(scheme: Scheme) {
   );
 }
 
+export function getManagerAccentPillClasses(
+  scheme: Scheme,
+  tone: Exclude<ManagerBadgeTone, "neutral"> = "brand",
+) {
+  return cn(
+    "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]",
+    getManagerBadgeClasses(tone, scheme),
+  );
+}
+
 export function getManagerCardShellClasses(
   scheme: Scheme,
   options?: { interactive?: boolean; padded?: boolean },
@@ -204,6 +226,17 @@ export function getManagerBodyTextClasses(scheme: Scheme) {
   return cn("text-[15px] leading-6", getMutedTextClasses(scheme));
 }
 
+export function getManagerStrongTextClasses(scheme: Scheme) {
+  return scheme === "dark" ? "text-slate-100" : "text-slate-900";
+}
+
+export function getManagerEyebrowClasses(scheme: Scheme) {
+  return cn(
+    "text-[11px] font-semibold uppercase tracking-[0.22em]",
+    getMutedTextClasses(scheme),
+  );
+}
+
 export function getManagerTableHeaderClasses(scheme: Scheme) {
   return cn(
     "text-left text-[11px] font-semibold uppercase tracking-[0.22em]",
@@ -221,6 +254,21 @@ export function getManagerTableHeaderPaddingClasses() {
 
 export function getManagerTableCellPaddingClasses() {
   return "px-5 py-4";
+}
+
+export function getManagerTableHeadSurfaceClasses(scheme: Scheme) {
+  return cn(
+    "border-y border-black/5 backdrop-blur",
+    scheme === "dark" ? "bg-slate-950/92" : "bg-white/92",
+  );
+}
+
+export function getManagerTableRowClasses(scheme: Scheme) {
+  return cn(
+    "border-b border-black/5 transition-all duration-200 ease-out",
+    getManagerTableRowTextClasses(),
+    scheme === "dark" ? "hover:bg-white/[0.045]" : "hover:bg-slate-50/90",
+  );
 }
 
 export function getManagerModalSurfaceClasses(scheme: Scheme) {
@@ -256,6 +304,41 @@ export function getManagerModalFooterClasses(scheme: Scheme) {
 
 export function getManagerModalTitleClasses() {
   return "text-[1.35rem] font-semibold sm:text-[1.55rem]";
+}
+
+export function getManagerTextInputClasses(
+  scheme: Scheme,
+  options?: { multiline?: boolean },
+) {
+  const multiline = options?.multiline ?? false;
+
+  return cn(
+    "box-border w-full min-w-0 rounded-lg border text-[15px] outline-none transition-all duration-200 ease-out",
+    multiline ? "min-h-[120px] px-4 py-3.5" : "h-11 px-4",
+    scheme === "dark"
+      ? "border-white/10 bg-slate-950/44 text-slate-100 placeholder:text-slate-400 hover:border-white/18 focus:border-blue-400/50"
+      : "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500",
+    getFocusRingClasses(scheme),
+  );
+}
+
+export function getManagerProgressTrackClasses(scheme: Scheme) {
+  return cn(
+    "rounded-full",
+    scheme === "dark"
+      ? "bg-white/8 ring-1 ring-inset ring-white/8"
+      : "bg-slate-100 ring-1 ring-inset ring-slate-200/80",
+  );
+}
+
+export function getManagerDangerButtonClasses(scheme: Scheme) {
+  return cn(
+    "inline-flex h-11 items-center justify-center rounded-lg border px-5 text-[15px] font-semibold",
+    scheme === "dark"
+      ? "border-rose-400/20 bg-rose-500/12 text-rose-100 hover:bg-rose-500/18"
+      : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100",
+    getInteractiveSecondaryButtonClasses(scheme),
+  );
 }
 
 export function getToolbarControlClasses(tone: TopbarTone, scheme: Scheme) {
@@ -317,6 +400,48 @@ export function getPopoverClasses(scheme: Scheme) {
   return scheme === "dark"
     ? "border-white/10 bg-slate-950/96 text-slate-100 shadow-[0_20px_44px_rgba(2,6,23,0.42)]"
     : "border-slate-200 bg-white/98 text-slate-900 shadow-[0_20px_44px_rgba(15,23,42,0.14)]";
+}
+
+export function getManagerBadgeClasses(tone: ManagerBadgeTone, scheme: Scheme) {
+  if (tone === "neutral") {
+    return scheme === "dark"
+      ? "border-white/10 bg-white/8 text-slate-300"
+      : "border-slate-200 bg-slate-100 text-slate-600";
+  }
+
+  if (tone === "brand" || tone === "info") {
+    return scheme === "dark"
+      ? "border-blue-400/24 bg-blue-500/14 text-blue-100"
+      : "border-blue-200 bg-blue-50 text-blue-700";
+  }
+
+  if (tone === "success" || tone === "teal") {
+    return scheme === "dark"
+      ? "border-emerald-400/24 bg-emerald-500/14 text-emerald-100"
+      : "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+
+  if (tone === "warning" || tone === "amber") {
+    return scheme === "dark"
+      ? "border-amber-400/24 bg-amber-500/14 text-amber-100"
+      : "border-amber-200 bg-amber-50 text-amber-700";
+  }
+
+  if (tone === "danger") {
+    return scheme === "dark"
+      ? "border-rose-400/24 bg-rose-500/14 text-rose-100"
+      : "border-rose-200 bg-rose-50 text-rose-700";
+  }
+
+  if (tone === "cyan") {
+    return scheme === "dark"
+      ? "border-cyan-400/24 bg-cyan-500/14 text-cyan-100"
+      : "border-cyan-200 bg-cyan-50 text-cyan-700";
+  }
+
+  return scheme === "dark"
+    ? "border-violet-400/24 bg-violet-500/14 text-violet-100"
+    : "border-violet-200 bg-violet-50 text-violet-700";
 }
 
 export function getMutedTextClasses(scheme: Scheme) {

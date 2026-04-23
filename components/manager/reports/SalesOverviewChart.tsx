@@ -1,4 +1,4 @@
-import { cn } from "../managerUtils";
+import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { SALES_TREND_POINTS } from "./reports.data";
 import { getReportsMutedTextClasses, getTrackClasses } from "./reports.helpers";
@@ -26,7 +26,12 @@ export function SalesOverviewChart({ settings }: SalesOverviewChartProps) {
 
           return (
             <div key={point.month} className="flex min-w-0 flex-col items-center justify-end">
-              <div className="mb-3 text-center text-[13px] font-semibold text-white">
+              <div
+                className={cn(
+                  "mb-3 text-center text-[13px] font-semibold",
+                  getManagerStrongTextClasses(settings.scheme),
+                )}
+              >
                 {point.amountLabel}
               </div>
               <div

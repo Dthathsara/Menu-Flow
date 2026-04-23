@@ -1,5 +1,8 @@
 import {
   cn,
+  getManagerCardShellClasses,
+  getManagerStrongTextClasses,
+  getManagerTableHeadSurfaceClasses,
   getManagerTableHeaderClasses,
   getManagerTableHeaderPaddingClasses,
 } from "../managerUtils";
@@ -48,8 +51,7 @@ export function StaffTable({
             <thead className="sticky top-0 z-10">
               <tr
                 className={cn(
-                  "border-y border-black/5 backdrop-blur",
-                  settings.scheme === "dark" ? "bg-[#071426]/95" : "bg-white/95",
+                  getManagerTableHeadSurfaceClasses(settings.scheme),
                   getManagerTableHeaderClasses(settings.scheme),
                 )}
               >
@@ -83,16 +85,16 @@ export function StaffTable({
           <article
             key={staff.id}
             className={cn(
-              "rounded-[20px] border p-4",
-              settings.scheme === "dark"
-                ? "border-[#18305C] bg-[#081425]"
-                : "border-slate-200 bg-white",
+              "p-4",
+              getManagerCardShellClasses(settings.scheme, { interactive: false }),
             )}
           >
             <div className="flex items-start gap-3">
               <StaffInitialAvatar staff={staff} className="size-12 shrink-0 text-[18px]" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[16px] font-semibold">{staff.fullName}</div>
+                <div className={cn("truncate text-[16px] font-semibold", getManagerStrongTextClasses(settings.scheme))}>
+                  {staff.fullName}
+                </div>
                 <div className={cn("mt-1 text-[14px] leading-6", getUsersMutedTextClasses(settings.scheme))}>
                   {staff.address}
                 </div>

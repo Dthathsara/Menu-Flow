@@ -1,4 +1,9 @@
-import { cn, getManagerTableCellPaddingClasses, getManagerTableRowTextClasses } from "../managerUtils";
+import {
+  cn,
+  getManagerStrongTextClasses,
+  getManagerTableCellPaddingClasses,
+  getManagerTableRowClasses,
+} from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { formatLastActiveLabel, getUsersMutedTextClasses } from "./helpers";
 import {
@@ -21,9 +26,7 @@ export function StaffRow({ settings, staff, onView, onEdit, onDelete }: StaffRow
   return (
     <tr
       className={cn(
-        "border-b border-black/5 transition-all duration-200 ease-out",
-        getManagerTableRowTextClasses(),
-        settings.scheme === "dark" ? "hover:bg-white/[0.035]" : "hover:bg-slate-50/90",
+        getManagerTableRowClasses(settings.scheme),
       )}
     >
       <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
@@ -33,7 +36,7 @@ export function StaffRow({ settings, staff, onView, onEdit, onDelete }: StaffRow
             <div
               className={cn(
                 "truncate text-[15px] font-semibold",
-                settings.scheme === "dark" ? "text-white" : "text-slate-900",
+                getManagerStrongTextClasses(settings.scheme),
               )}
             >
               {staff.fullName}

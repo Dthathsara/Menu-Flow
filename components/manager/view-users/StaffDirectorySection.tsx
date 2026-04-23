@@ -1,6 +1,9 @@
 "use client";
 
-import { getManagerSectionSubtitleClasses, getManagerSectionTitleClasses } from "../managerUtils";
+import {
+  getManagerSectionSubtitleClasses,
+  getManagerSectionTitleClasses,
+} from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { FilterDropdown } from "../view-orders/FilterDropdown";
 import { formatStaffCountLabel } from "./helpers";
@@ -56,11 +59,7 @@ export function StaffDirectorySection({
           </div>
           <UsersSectionBadge
             settings={settings}
-            className={
-              settings.scheme === "dark"
-                ? "self-start bg-[#1E345E] text-white"
-                : "self-start bg-blue-50 text-blue-700"
-            }
+            className="self-start"
           >
             {formatStaffCountLabel(staffRecords.length)}
           </UsersSectionBadge>

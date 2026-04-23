@@ -58,11 +58,13 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
         data-manager-scheme={settings.scheme}
       >
         <GenerateQrHero
+          settings={settings}
           onDownloadAll={handleDownloadAll}
           onGenerate={() => setIsModalOpen(true)}
         />
 
         <QrLibrarySection
+          settings={settings}
           items={filteredItems}
           totalCount={items.length}
           searchValue={searchValue}
@@ -78,6 +80,7 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
 
       {isModalOpen ? (
         <GenerateQrModal
+          settings={settings}
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleGenerate}
         />

@@ -4,7 +4,7 @@ export const MANAGER_STORAGE_KEY = "managerDbTheme";
 
 export const DEFAULT_MANAGER_SETTINGS: ManagerSettings = {
   layoutType: "vertical",
-  scheme: "light",
+  scheme: "dark",
   layoutMode: "fluid",
   topbar: "light",
   menu: "dark",

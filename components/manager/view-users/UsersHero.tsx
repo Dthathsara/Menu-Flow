@@ -1,4 +1,9 @@
-import { cn, getManagerPageSubtitleClasses, getManagerPageTitleClasses } from "../managerUtils";
+import {
+  cn,
+  getManagerPageSubtitleClasses,
+  getManagerPageTitleClasses,
+  getManagerStrongTextClasses,
+} from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { PlusIcon } from "../icons";
 import { getUsersFieldLabelClasses, getUsersMutedTextClasses } from "./helpers";
@@ -52,7 +57,7 @@ export function UsersHero({ settings, summaryCards, onAddStaff }: UsersHeroProps
               <div
                 className={cn(
                   "mt-4 text-[2.15rem] font-bold tracking-tight",
-                  settings.scheme === "dark" ? "text-white" : "text-slate-900",
+                  getManagerStrongTextClasses(settings.scheme),
                 )}
               >
                 {card.value}

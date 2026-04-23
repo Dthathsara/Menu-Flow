@@ -1,4 +1,4 @@
-import { cn } from "../managerUtils";
+import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { getReportsMicroLabelClasses, getReportsMutedTextClasses, getReportsPanelClasses } from "./reports.helpers";
 import type { ReportStat } from "./reports.types";
@@ -16,7 +16,7 @@ export function ReportStatCard({ settings, stat }: ReportStatCardProps) {
       <div
         className={cn(
           "mt-5 text-[2.15rem] font-bold tracking-tight",
-          settings.scheme === "dark" ? "text-white" : "text-slate-900",
+          getManagerStrongTextClasses(settings.scheme),
         )}
       >
         {stat.value}
