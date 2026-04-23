@@ -1,10 +1,11 @@
 import { TrashIcon, XIcon } from "../icons";
 import {
   cn,
-  getContentSurfaceClasses,
-  getFocusRingClasses,
-  getInteractiveSecondaryButtonClasses,
-  getMutedTextClasses,
+  getManagerBodyTextClasses,
+  getManagerIconButtonClasses,
+  getManagerModalSurfaceClasses,
+  getManagerPrimaryButtonClasses,
+  getManagerSecondaryButtonClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 
@@ -37,10 +38,7 @@ export function DeleteMenuItemDialog({
       }}
     >
       <div
-        className={cn(
-          "w-full max-w-md rounded-[20px] border p-5 sm:p-6",
-          getContentSurfaceClasses(settings.scheme),
-        )}
+        className={cn("max-w-md p-5 sm:p-6", getManagerModalSurfaceClasses(settings.scheme))}
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-menu-item-title"
@@ -52,23 +50,17 @@ export function DeleteMenuItemDialog({
           <button
             type="button"
             onClick={onClose}
-            className={cn(
-              "inline-flex size-10 items-center justify-center rounded-md border transition-all duration-200 ease-out hover:-translate-y-0.5",
-              settings.scheme === "dark"
-                ? "border-white/10 bg-slate-950/34 text-slate-200 hover:border-white/16 hover:bg-slate-950/48"
-                : "border-slate-200 bg-slate-50/90 text-slate-600 hover:border-slate-300 hover:bg-white",
-              getFocusRingClasses(settings.scheme),
-            )}
+            className={getManagerIconButtonClasses(settings.scheme, true)}
             aria-label="Close delete dialog"
           >
             <XIcon className="size-4" />
           </button>
         </div>
 
-        <h3 id="delete-menu-item-title" className="mt-4 text-xl font-semibold">
+        <h3 id="delete-menu-item-title" className="mt-4 text-[1.35rem] font-semibold">
           Remove menu item?
         </h3>
-        <p className={cn("mt-2 text-sm leading-6", getMutedTextClasses(settings.scheme))}>
+        <p className={cn("mt-2", getManagerBodyTextClasses(settings.scheme))}>
           <span className="font-semibold text-current">{itemName}</span> will be removed from the
           current menu list. This action only affects local state for now.
         </p>
@@ -77,13 +69,7 @@ export function DeleteMenuItemDialog({
           <button
             type="button"
             onClick={onClose}
-            className={cn(
-              "inline-flex h-11 items-center justify-center rounded-md border px-5 text-sm font-semibold",
-              settings.scheme === "dark"
-                ? "border-white/10 bg-white/6 text-slate-100 hover:bg-white/10"
-                : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white",
-              getInteractiveSecondaryButtonClasses(settings.scheme),
-            )}
+            className={getManagerSecondaryButtonClasses(settings.scheme)}
           >
             Cancel
           </button>
@@ -92,8 +78,8 @@ export function DeleteMenuItemDialog({
             type="button"
             onClick={onConfirm}
             className={cn(
-              "inline-flex h-11 items-center justify-center rounded-md bg-rose-500 px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(244,63,94,0.24)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-rose-600 active:translate-y-0 active:scale-[0.99]",
-              getFocusRingClasses(settings.scheme),
+              getManagerPrimaryButtonClasses(settings.scheme),
+              "bg-rose-500 shadow-[0_16px_34px_rgba(244,63,94,0.24)] hover:bg-rose-600 hover:shadow-[0_22px_40px_rgba(244,63,94,0.28)]",
             )}
           >
             Remove Item

@@ -3,7 +3,10 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon } from "../icons";
 import { useOnClickOutside } from "../useOnClickOutside";
-import { cn, getFocusRingClasses } from "../managerUtils";
+import {
+  cn,
+  getManagerControlShellClasses,
+} from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 
 export interface FilterDropdownOption<T extends string> {
@@ -155,12 +158,11 @@ export function FilterDropdown<T extends string>({
         }}
         onKeyDown={handleTriggerKeyDown}
         className={cn(
-          "flex h-11 w-full items-center justify-between gap-3 rounded-lg border px-4 text-left text-sm transition-all duration-200 ease-out",
-          "hover:-translate-y-0.5",
+          "w-full justify-between text-left font-medium",
+          getManagerControlShellClasses(settings.scheme),
           isDark
             ? "border-[#1f2a44] bg-[#0B1A2B] text-white hover:border-blue-500/70 hover:bg-[#102032]"
-            : "border-slate-200 bg-slate-50/90 text-slate-700 hover:border-slate-300 hover:bg-white",
-          getFocusRingClasses(settings.scheme),
+            : "text-slate-700",
         )}
       >
         <span className="min-w-0 truncate">
@@ -188,7 +190,7 @@ export function FilterDropdown<T extends string>({
           role="listbox"
           aria-labelledby={triggerId}
           className={cn(
-            "overflow-hidden rounded-lg border shadow-lg",
+            "overflow-hidden rounded-[18px] border shadow-lg",
             isDark
               ? "border-[#1f2a44] bg-[#0B1A2B] shadow-[0_24px_52px_rgba(2,6,23,0.42)]"
               : "border-slate-200 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.12)]",
@@ -212,7 +214,7 @@ export function FilterDropdown<T extends string>({
                   onKeyDown={(event) => handleOptionKeyDown(event, index, option.value)}
                   onMouseEnter={() => setActiveIndex(index)}
                   className={cn(
-                    "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-sm transition-colors duration-150 ease-out",
+                    "flex w-full items-center justify-between gap-3 rounded-lg px-3.5 py-3 text-[15px] transition-colors duration-150 ease-out",
                     isDark
                       ? "text-white hover:bg-[#13243a] focus:bg-[#13243a]"
                       : "text-slate-700 hover:bg-slate-100 focus:bg-slate-100",

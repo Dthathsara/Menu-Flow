@@ -96,6 +96,168 @@ export function getSecondarySurfaceClasses(scheme: Scheme) {
     : "border-slate-200/80 bg-slate-50/90";
 }
 
+export function getManagerPageSectionClasses() {
+  return "relative z-0 space-y-6 lg:space-y-7";
+}
+
+export function getManagerPageTitleClasses() {
+  return "text-[2.05rem] font-bold tracking-tight sm:text-[2.2rem]";
+}
+
+export function getManagerPageSubtitleClasses(scheme: Scheme) {
+  return cn("mt-2 max-w-2xl text-[15px] leading-7", getMutedTextClasses(scheme));
+}
+
+export function getManagerSectionTitleClasses() {
+  return "text-[1.15rem] font-semibold sm:text-[1.25rem]";
+}
+
+export function getManagerSectionSubtitleClasses(scheme: Scheme) {
+  return cn("mt-1 text-[15px] leading-6", getMutedTextClasses(scheme));
+}
+
+export function getManagerPillClasses(scheme: Scheme) {
+  return cn(
+    "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]",
+    scheme === "dark" ? "bg-white/8 text-slate-300" : "bg-slate-100 text-slate-500",
+  );
+}
+
+export function getManagerCardShellClasses(
+  scheme: Scheme,
+  options?: { interactive?: boolean; padded?: boolean },
+) {
+  const interactive = options?.interactive ?? true;
+  const padded = options?.padded ?? false;
+
+  return cn(
+    "rounded-[22px] border",
+    padded && "p-5 sm:p-6",
+    getContentSurfaceClasses(scheme),
+    interactive && getInteractiveCardClasses(scheme),
+  );
+}
+
+export function getManagerPanelShellClasses(scheme: Scheme) {
+  return cn("rounded-[18px] border", getSecondarySurfaceClasses(scheme));
+}
+
+export function getManagerControlShellClasses(scheme: Scheme) {
+  return cn(
+    "flex h-11 items-center gap-2 rounded-lg border px-4 text-[15px] transition-all duration-200 ease-out",
+    scheme === "dark"
+      ? "border-white/10 bg-slate-950/36 text-slate-100 hover:border-white/16 hover:bg-slate-950/48"
+      : "border-slate-200 bg-slate-50/90 text-slate-700 hover:border-slate-300 hover:bg-white",
+    "hover:-translate-y-0.5 focus-within:-translate-y-0.5",
+    getFocusRingClasses(scheme),
+  );
+}
+
+export function getManagerPrimaryButtonClasses(scheme: Scheme) {
+  return cn(
+    "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-[15px] font-semibold text-white",
+    "bg-[linear-gradient(135deg,#2563eb,#1d4ed8)] shadow-[0_18px_40px_rgba(37,99,235,0.24)]",
+    "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(37,99,235,0.3)] active:translate-y-0 active:scale-[0.99]",
+    getFocusRingClasses(scheme),
+  );
+}
+
+export function getManagerSecondaryButtonClasses(scheme: Scheme) {
+  return cn(
+    "inline-flex h-11 items-center justify-center rounded-lg border px-5 text-[15px] font-semibold",
+    scheme === "dark"
+      ? "border-white/10 bg-white/6 text-slate-100 hover:bg-white/10"
+      : "border-slate-200 bg-slate-50/90 text-slate-700 hover:bg-white",
+    getInteractiveSecondaryButtonClasses(scheme),
+  );
+}
+
+export function getManagerTableActionButtonClasses(scheme: Scheme) {
+  return cn(
+    "inline-flex h-10 items-center justify-center rounded-lg border px-4 text-[14px] font-semibold",
+    scheme === "dark"
+      ? "border-white/10 bg-white/6 text-slate-100 hover:bg-white/10"
+      : "border-slate-200 bg-slate-50/90 text-slate-700 hover:bg-white",
+    getInteractiveSecondaryButtonClasses(scheme),
+  );
+}
+
+export function getManagerIconButtonClasses(scheme: Scheme, dense = false) {
+  return cn(
+    `inline-flex ${dense ? "size-10" : "size-11"} items-center justify-center rounded-lg border`,
+    "transition-all duration-200 ease-out hover:-translate-y-0.5",
+    scheme === "dark"
+      ? "border-white/10 bg-white/6 text-slate-300 hover:border-white/18 hover:bg-white/10 hover:text-white"
+      : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900",
+    getFocusRingClasses(scheme),
+  );
+}
+
+export function getManagerLabelClasses(scheme: Scheme) {
+  return cn(
+    "text-[13px] font-semibold",
+    scheme === "dark" ? "text-slate-300" : "text-slate-600",
+  );
+}
+
+export function getManagerBodyTextClasses(scheme: Scheme) {
+  return cn("text-[15px] leading-6", getMutedTextClasses(scheme));
+}
+
+export function getManagerTableHeaderClasses(scheme: Scheme) {
+  return cn(
+    "text-left text-[11px] font-semibold uppercase tracking-[0.22em]",
+    getMutedTextClasses(scheme),
+  );
+}
+
+export function getManagerTableRowTextClasses() {
+  return "text-[15px]";
+}
+
+export function getManagerTableHeaderPaddingClasses() {
+  return "px-5 py-4";
+}
+
+export function getManagerTableCellPaddingClasses() {
+  return "px-5 py-4";
+}
+
+export function getManagerModalSurfaceClasses(scheme: Scheme) {
+  return cn(
+    "w-full overflow-hidden rounded-[24px] border shadow-[0_34px_90px_rgba(2,6,23,0.42)]",
+    scheme === "dark"
+      ? "border-white/10 bg-slate-950/98 text-slate-100"
+      : "border-slate-200 bg-white/98 text-slate-900",
+  );
+}
+
+export function getManagerModalHeaderClasses(scheme: Scheme) {
+  return cn(
+    "flex items-start justify-between gap-4 border-b px-5 py-4 sm:px-6",
+    scheme === "dark"
+      ? "border-white/10 bg-slate-900/72"
+      : "border-slate-200 bg-slate-50/85",
+  );
+}
+
+export function getManagerModalBodyClasses(scheme: Scheme) {
+  return cn("overflow-y-auto px-5 py-5 sm:px-6", scheme === "dark" ? "bg-slate-950/98" : "bg-white/98");
+}
+
+export function getManagerModalFooterClasses(scheme: Scheme) {
+  return cn(
+    "flex flex-col-reverse gap-3 border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6",
+    scheme === "dark"
+      ? "border-white/10 bg-slate-900/72"
+      : "border-slate-200 bg-slate-50/85",
+  );
+}
+
+export function getManagerModalTitleClasses() {
+  return "text-[1.35rem] font-semibold sm:text-[1.55rem]";
+}
+
 export function getToolbarControlClasses(tone: TopbarTone, scheme: Scheme) {
   if (tone === "brand" || tone === "dark") {
     return cn(

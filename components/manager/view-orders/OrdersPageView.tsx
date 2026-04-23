@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { cn, getMutedTextClasses } from "../managerUtils";
+import {
+  cn,
+  getManagerPageSectionClasses,
+  getManagerPageSubtitleClasses,
+  getManagerPageTitleClasses,
+  getManagerSectionSubtitleClasses,
+  getManagerSectionTitleClasses,
+  getMutedTextClasses,
+} from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import {
   getFilteredAndSortedOrders,
@@ -51,18 +59,13 @@ export function OrdersPageView({ settings }: OrdersPageViewProps) {
 
   return (
     <>
-      <section className="relative z-0 space-y-6">
+      <section className={getManagerPageSectionClasses()}>
         <SurfaceCard settings={settings} className="overflow-hidden p-5 sm:p-6">
           <div className="relative">
             <div className="pointer-events-none absolute -right-16 top-0 h-40 w-40 rounded-full bg-blue-500/12 blur-3xl" />
             <SectionPill settings={settings}>Operations</SectionPill>
-            <h2 className="mt-5 text-2xl font-bold tracking-tight sm:text-[2rem]">Orders</h2>
-            <p
-              className={cn(
-                "mt-3 max-w-3xl text-sm leading-7 sm:text-[15px]",
-                getMutedTextClasses(settings.scheme),
-              )}
-            >
+            <h2 className={cn("mt-5", getManagerPageTitleClasses())}>Orders</h2>
+            <p className={cn("mt-3 max-w-3xl", getManagerPageSubtitleClasses(settings.scheme))}>
               Track active orders, delivery progress, and payment collection across
               every table in real time.
             </p>
@@ -88,14 +91,11 @@ export function OrdersPageView({ settings }: OrdersPageViewProps) {
                   >
                     {card.title}
                   </div>
-                  <div className="relative mt-4 text-[1.8rem] font-bold tracking-tight">
+                  <div className="relative mt-4 text-[2rem] font-bold tracking-tight">
                     {card.value}
                   </div>
                   <div
-                    className={cn(
-                      "relative mt-3 text-sm leading-6",
-                      getMutedTextClasses(settings.scheme),
-                    )}
+                    className={cn("relative mt-3", getManagerSectionSubtitleClasses(settings.scheme))}
                   >
                     {card.note}
                   </div>
@@ -109,8 +109,8 @@ export function OrdersPageView({ settings }: OrdersPageViewProps) {
           <div className="border-b border-black/5 px-5 py-5 sm:px-6">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <h3 className="text-lg font-semibold sm:text-xl">Orders Queue</h3>
-                <p className={cn("mt-1 text-sm leading-6", getMutedTextClasses(settings.scheme))}>
+                <h3 className={getManagerSectionTitleClasses()}>Orders Queue</h3>
+                <p className={getManagerSectionSubtitleClasses(settings.scheme)}>
                   Priority-sorted order records with payment tracking and full ticket
                   details.
                 </p>

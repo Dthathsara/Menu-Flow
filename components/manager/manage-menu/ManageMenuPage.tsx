@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getManagerPageSectionClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { DeleteMenuItemDialog } from "./DeleteMenuItemDialog";
 import { ManageMenuTable } from "./ManageMenuTable";
@@ -83,7 +84,7 @@ export function ManageMenuPage({ settings }: ManageMenuPageProps) {
 
   return (
     <>
-      <section className="relative z-0 space-y-6">
+      <section className={getManagerPageSectionClasses()}>
         <ManageMenuToolbar
           settings={settings}
           onAddItem={openAddModal}

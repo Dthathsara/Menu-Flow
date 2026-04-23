@@ -1,5 +1,5 @@
 import { SearchIcon, XIcon } from "../icons";
-import { cn, getMutedTextClasses } from "../managerUtils";
+import { cn, getManagerBodyTextClasses, getMutedTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { ORDER_STATUS_OPTIONS, PAYMENT_STATUS_OPTIONS } from "./order-data";
 import { FilterDropdown } from "./FilterDropdown";
@@ -50,7 +50,7 @@ export function OrdersToolbar({
                 value={query}
                 onChange={(event) => onQueryChange(event.target.value)}
                 placeholder="Search by Order ID, Table Number, or Customer Name"
-                className="w-full bg-transparent text-sm outline-none placeholder:text-inherit"
+                className="w-full bg-transparent text-[15px] outline-none placeholder:text-inherit"
                 aria-label="Search by order ID, table number, or customer name"
               />
             </ControlShell>
@@ -86,7 +86,7 @@ export function OrdersToolbar({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className={cn("text-sm font-medium", getMutedTextClasses(settings.scheme))}>
+          <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
             {resultCount} result{resultCount === 1 ? "" : "s"}
           </div>
           {hasActiveFilters ? (

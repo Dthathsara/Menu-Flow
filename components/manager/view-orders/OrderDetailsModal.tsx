@@ -2,7 +2,20 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { XIcon } from "../icons";
-import { cn, getFocusRingClasses, getMutedTextClasses } from "../managerUtils";
+import {
+  cn,
+  getManagerIconButtonClasses,
+  getManagerModalBodyClasses,
+  getManagerModalFooterClasses,
+  getManagerModalHeaderClasses,
+  getManagerModalSurfaceClasses,
+  getManagerModalTitleClasses,
+  getManagerSecondaryButtonClasses,
+  getManagerSectionSubtitleClasses,
+  getManagerSectionTitleClasses,
+  getManagerTableHeaderClasses,
+  getMutedTextClasses,
+} from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import {
   calculateOrderGrandTotal,
@@ -151,28 +164,19 @@ export function OrderDetailsModal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "flex max-h-[calc(100vh-2rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[24px] border shadow-[0_34px_90px_rgba(2,6,23,0.42)] transition-all duration-200 ease-out",
-          settings.scheme === "dark"
-            ? "border-white/10 bg-slate-950/98 text-slate-100"
-            : "border-slate-200 bg-white/98 text-slate-900",
+          "flex max-h-[calc(100vh-2rem)] max-w-5xl flex-col transition-all duration-200 ease-out",
+          getManagerModalSurfaceClasses(settings.scheme),
           isVisible
             ? "translate-y-0 scale-100 opacity-100"
             : "translate-y-3 scale-[0.985] opacity-0",
         )}
       >
-        <div
-          className={cn(
-            "flex items-start justify-between gap-4 border-b px-5 py-4 sm:px-6",
-            settings.scheme === "dark"
-              ? "border-white/10 bg-slate-900/72"
-              : "border-slate-200 bg-slate-50/85",
-          )}
-        >
+        <div className={getManagerModalHeaderClasses(settings.scheme)}>
           <div className="min-w-0">
-            <h2 id={titleId} className="text-xl font-semibold sm:text-2xl">
+            <h2 id={titleId} className={getManagerModalTitleClasses()}>
               {order.orderId}
             </h2>
-            <p className={cn("mt-1 text-sm leading-6", getMutedTextClasses(settings.scheme))}>
+            <p className={getManagerSectionSubtitleClasses(settings.scheme)}>
               Full order breakdown, itemized billing, and payment progress.
             </p>
           </div>
@@ -181,32 +185,21 @@ export function OrderDetailsModal({
             ref={closeButtonRef}
             type="button"
             onClick={requestClose}
-            className={cn(
-              "inline-flex size-10 items-center justify-center rounded-md border transition-all duration-200 ease-out hover:-translate-y-0.5",
-              settings.scheme === "dark"
-                ? "border-white/10 bg-white/6 text-slate-300 hover:border-white/18 hover:bg-white/10 hover:text-white"
-                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900",
-              getFocusRingClasses(settings.scheme),
-            )}
+            className={getManagerIconButtonClasses(settings.scheme, true)}
             aria-label={`Close details for ${order.orderId}`}
           >
             <XIcon className="size-4" />
           </button>
         </div>
 
-        <div className="overflow-y-auto px-5 py-5 sm:px-6">
+        <div className={getManagerModalBodyClasses(settings.scheme)}>
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
             <div className="space-y-5">
               <SecondaryPanel settings={settings} className="p-4 sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <div className="text-lg font-semibold">General Details</div>
-                    <div
-                      className={cn(
-                        "mt-1 text-sm leading-6",
-                        getMutedTextClasses(settings.scheme),
-                      )}
-                    >
+                    <div className={getManagerSectionTitleClasses()}>General Details</div>
+                    <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
                       Staff assignment, timestamps, and customer metadata.
                     </div>
                   </div>
@@ -289,13 +282,8 @@ export function OrderDetailsModal({
               <SecondaryPanel settings={settings} className="p-4 sm:p-5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <div className="text-lg font-semibold">Items</div>
-                    <div
-                      className={cn(
-                        "mt-1 text-sm leading-6",
-                        getMutedTextClasses(settings.scheme),
-                      )}
-                    >
+                    <div className={getManagerSectionTitleClasses()}>Items</div>
+                    <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
                       {totalItems} item{totalItems === 1 ? "" : "s"} ordered across the ticket.
                     </div>
                   </div>
@@ -305,10 +293,7 @@ export function OrderDetailsModal({
                   <table className="min-w-full border-collapse">
                     <thead>
                       <tr
-                        className={cn(
-                          "border-b border-black/5 text-left text-[11px] font-semibold uppercase tracking-[0.22em]",
-                          getMutedTextClasses(settings.scheme),
-                        )}
+                        className={cn("border-b border-black/5", getManagerTableHeaderClasses(settings.scheme))}
                       >
                         <th className="py-3 pr-4">Item Name</th>
                         <th className="py-3 pr-4">Quantity</th>
@@ -343,7 +328,7 @@ export function OrderDetailsModal({
                       )}
                     >
                       <div className="font-medium">{item.name}</div>
-                      <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                      <div className="mt-2 flex items-center justify-between gap-3 text-[15px]">
                         <span className={getMutedTextClasses(settings.scheme)}>
                           {item.quantity} x {formatCurrency(item.unitPrice)}
                         </span>
@@ -359,8 +344,8 @@ export function OrderDetailsModal({
 
             <div className="space-y-5">
               <SecondaryPanel settings={settings} className="p-4 sm:p-5">
-                <div className="text-lg font-semibold">Billing Summary</div>
-                <div className={cn("mt-1 text-sm leading-6", getMutedTextClasses(settings.scheme))}>
+                <div className={getManagerSectionTitleClasses()}>Billing Summary</div>
+                <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
                   Breakdown of the final bill including tax and service.
                 </div>
 
@@ -379,15 +364,15 @@ export function OrderDetailsModal({
                         : "border-blue-100 bg-blue-50/70",
                     )}
                   >
-                    <span className="text-sm font-semibold">Grand Total</span>
-                    <span className="text-lg font-bold">{formatCurrency(grandTotal)}</span>
+                    <span className="text-[15px] font-semibold">Grand Total</span>
+                    <span className="text-[1.2rem] font-bold">{formatCurrency(grandTotal)}</span>
                   </div>
                 </div>
               </SecondaryPanel>
 
               <SecondaryPanel settings={settings} className="p-4 sm:p-5">
-                <div className="text-lg font-semibold">Service Contact</div>
-                <div className={cn("mt-1 text-sm leading-6", getMutedTextClasses(settings.scheme))}>
+                <div className={getManagerSectionTitleClasses()}>Service Contact</div>
+                <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
                   Assigned floor support for this order.
                 </div>
 
@@ -415,24 +400,11 @@ export function OrderDetailsModal({
           </div>
         </div>
 
-        <div
-          className={cn(
-            "flex flex-col-reverse gap-3 border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6",
-            settings.scheme === "dark"
-              ? "border-white/10 bg-slate-900/72"
-              : "border-slate-200 bg-slate-50/85",
-          )}
-        >
+        <div className={getManagerModalFooterClasses(settings.scheme)}>
           <button
             type="button"
             onClick={requestClose}
-            className={cn(
-              "inline-flex h-11 items-center justify-center rounded-md border px-5 text-sm font-semibold",
-              settings.scheme === "dark"
-                ? "border-white/10 bg-white/6 text-slate-100 hover:bg-white/10"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100",
-              getFocusRingClasses(settings.scheme),
-            )}
+            className={getManagerSecondaryButtonClasses(settings.scheme)}
           >
             Close
           </button>
@@ -444,7 +416,7 @@ export function OrderDetailsModal({
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 text-sm">
+    <div className="flex items-center justify-between gap-3 text-[15px]">
       <span>{label}</span>
       <span className="font-semibold">{value}</span>
     </div>

@@ -1,4 +1,12 @@
-import { cn, getMutedTextClasses } from "../managerUtils";
+import {
+  cn,
+  getManagerBodyTextClasses,
+  getManagerTableCellPaddingClasses,
+  getManagerTableHeaderClasses,
+  getManagerTableHeaderPaddingClasses,
+  getManagerTableRowTextClasses,
+  getMutedTextClasses,
+} from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { EyeIcon } from "./order-icons";
 import { calculateOrderGrandTotal, getOrderItemCount } from "./order-data";
@@ -21,8 +29,8 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
   if (!orders.length) {
     return (
       <div className="px-5 py-16 text-center sm:px-6">
-        <div className="text-base font-semibold">No orders match the current filters.</div>
-        <div className={cn("mt-2 text-sm", getMutedTextClasses(settings.scheme))}>
+        <div className="text-lg font-semibold">No orders match the current filters.</div>
+        <div className={cn("mt-2", getManagerBodyTextClasses(settings.scheme))}>
           Try broadening the search or clearing filters to see more orders.
         </div>
       </div>
@@ -37,19 +45,19 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
             <thead className="sticky top-0 z-10">
               <tr
                 className={cn(
-                  "border-y border-black/5 text-left text-[11px] font-semibold uppercase tracking-[0.22em] backdrop-blur",
+                  "border-y border-black/5 backdrop-blur",
                   settings.scheme === "dark" ? "bg-slate-950/92" : "bg-white/92",
-                  getMutedTextClasses(settings.scheme),
+                  getManagerTableHeaderClasses(settings.scheme),
                 )}
               >
-                <th className="px-5 py-4">Order ID</th>
-                <th className="px-5 py-4">Table Number</th>
-                <th className="px-5 py-4">Customer Name</th>
-                <th className="px-5 py-4">Order Date</th>
-                <th className="px-5 py-4">Order Status</th>
-                <th className="px-5 py-4">Grand Total</th>
-                <th className="px-5 py-4">Payment Status</th>
-                <th className="px-5 py-4 text-right">Actions</th>
+                <th className={getManagerTableHeaderPaddingClasses()}>Order ID</th>
+                <th className={getManagerTableHeaderPaddingClasses()}>Table Number</th>
+                <th className={getManagerTableHeaderPaddingClasses()}>Customer Name</th>
+                <th className={getManagerTableHeaderPaddingClasses()}>Order Date</th>
+                <th className={getManagerTableHeaderPaddingClasses()}>Order Status</th>
+                <th className={getManagerTableHeaderPaddingClasses()}>Grand Total</th>
+                <th className={getManagerTableHeaderPaddingClasses()}>Payment Status</th>
+                <th className={cn(getManagerTableHeaderPaddingClasses(), "text-right")}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -61,48 +69,51 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
                     key={order.id}
                     className={cn(
                       "group/row border-b border-black/5 transition-all duration-200 ease-out",
+                      getManagerTableRowTextClasses(),
                       settings.scheme === "dark"
                         ? "hover:bg-white/[0.045]"
                         : "hover:bg-slate-50/90",
                     )}
                   >
-                    <td className="px-5 py-4 align-top">
+                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
                       <div className="font-semibold">{order.orderId}</div>
-                      <div className={cn("mt-1 text-sm", getMutedTextClasses(settings.scheme))}>
+                      <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
                         {itemCount} item{itemCount === 1 ? "" : "s"}
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top font-medium">{order.tableNumber}</td>
-                    <td className="px-5 py-4 align-top">
+                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top font-medium")}>
+                      {order.tableNumber}
+                    </td>
+                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
                       <div className="font-medium">{order.customerName}</div>
-                      <div className={cn("mt-1 text-sm", getMutedTextClasses(settings.scheme))}>
+                      <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
                         {order.waiterName}
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top">
+                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
                       <div className="font-medium">{getRelativeDateLabel(order.createdAt)}</div>
-                      <div className={cn("mt-1 text-sm", getMutedTextClasses(settings.scheme))}>
+                      <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
                         {formatDisplayDate(order.createdAt)}
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-top">
+                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
                       <StatusBadge settings={settings} type="order" value={order.orderStatus} />
                     </td>
-                    <td className="px-5 py-4 align-top font-semibold">
+                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top font-semibold")}>
                       {formatCurrency(calculateOrderGrandTotal(order))}
                     </td>
-                    <td className="px-5 py-4 align-top">
+                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
                       <StatusBadge
                         settings={settings}
                         type="payment"
                         value={order.paymentStatus}
                       />
                     </td>
-                    <td className="px-5 py-4 align-top text-right">
+                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top text-right")}>
                       <button
                         type="button"
                         onClick={() => onViewDetails(order)}
-                        className={cn(secondaryButtonClassName(settings), "h-10 px-4")}
+                        className={secondaryButtonClassName(settings)}
                         aria-label={`View details for ${order.orderId}`}
                       >
                         <EyeIcon className="mr-2 size-4" />
@@ -125,7 +136,7 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
             <article
               key={order.id}
               className={cn(
-                "rounded-[18px] border p-4 transition-all duration-200 ease-out",
+                "rounded-[18px] border p-5 transition-all duration-200 ease-out",
                 settings.scheme === "dark"
                   ? "border-white/10 bg-slate-900/72 hover:border-white/16 hover:bg-slate-900/86"
                   : "border-slate-200/80 bg-slate-50/90 hover:border-slate-300 hover:bg-white",
@@ -133,8 +144,8 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-base font-semibold">{order.orderId}</div>
-                  <div className={cn("mt-1 text-sm", getMutedTextClasses(settings.scheme))}>
+                  <div className="text-[1.05rem] font-semibold">{order.orderId}</div>
+                  <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
                     {order.customerName}
                   </div>
                 </div>
@@ -167,13 +178,13 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
               </div>
 
               <div className="mt-4 flex items-center justify-between gap-3">
-                <div className={cn("text-sm", getMutedTextClasses(settings.scheme))}>
+                <div className={getManagerBodyTextClasses(settings.scheme)}>
                   {itemCount} item{itemCount === 1 ? "" : "s"}
                 </div>
                 <button
                   type="button"
                   onClick={() => onViewDetails(order)}
-                  className={cn(secondaryButtonClassName(settings), "h-10 px-4")}
+                  className={secondaryButtonClassName(settings)}
                   aria-label={`View details for ${order.orderId}`}
                 >
                   <EyeIcon className="mr-2 size-4" />
@@ -207,7 +218,7 @@ function MobileMeta({
       >
         {label}
       </div>
-      <div className="text-sm font-medium">{value}</div>
+      <div className="text-[15px] font-medium">{value}</div>
     </div>
   );
 }

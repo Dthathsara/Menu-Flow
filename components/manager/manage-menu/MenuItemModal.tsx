@@ -2,7 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { ClockIcon, XIcon } from "../icons";
-import { cn } from "../managerUtils";
+import {
+  cn,
+  getManagerBodyTextClasses,
+  getManagerIconButtonClasses,
+  getManagerLabelClasses,
+  getManagerModalBodyClasses,
+  getManagerModalFooterClasses,
+  getManagerModalHeaderClasses,
+  getManagerModalSurfaceClasses,
+  getManagerModalTitleClasses,
+  getManagerPanelShellClasses,
+  getManagerPrimaryButtonClasses,
+  getManagerSecondaryButtonClasses,
+} from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { ImageUploadField } from "./ImageUploadField";
 import type { MenuCategory, MenuItemFormValues, MenuItemRecord } from "./types";
@@ -93,7 +106,7 @@ export function MenuItemModal({
   }, [onClose]);
 
   const inputClasses = cn(
-    "box-border h-11 w-full min-w-0 max-w-full appearance-none rounded-md border px-3 text-sm outline-none transition-all duration-200 ease-out",
+    "box-border h-11 w-full min-w-0 max-w-full appearance-none rounded-lg border px-4 text-[15px] outline-none transition-all duration-200 ease-out",
     isDark
       ? "border-white/10 bg-[#0B1A3A] text-white placeholder:text-slate-400 hover:border-white/20 focus:border-blue-400"
       : "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500",
@@ -101,7 +114,7 @@ export function MenuItemModal({
   );
 
   const textAreaClasses = cn(
-    "box-border min-h-[120px] w-full min-w-0 max-w-full rounded-md border px-3 py-3 text-sm outline-none transition-all duration-200 ease-out",
+    "box-border min-h-[120px] w-full min-w-0 max-w-full rounded-lg border px-4 py-3.5 text-[15px] outline-none transition-all duration-200 ease-out",
     isDark
       ? "border-white/10 bg-[#0B1A3A] text-white placeholder:text-slate-400 hover:border-white/20 focus:border-blue-400"
       : "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500",
@@ -129,31 +142,21 @@ export function MenuItemModal({
       }}
     >
       <div
-        className={cn(
-          "w-full max-w-4xl overflow-hidden rounded-[20px] border shadow-xl",
-          isDark
-            ? "border-white/10 bg-[#061533] text-white"
-            : "border-slate-200 bg-[#F8FAFC] text-slate-900",
-        )}
+        className={cn("max-w-4xl", getManagerModalSurfaceClasses(settings.scheme))}
         role="dialog"
         aria-modal="true"
         aria-labelledby="menu-item-modal-title"
       >
         <form onSubmit={handleSubmit} className="flex max-h-[calc(100vh-2rem)] flex-col">
-          <div
-            className={cn(
-              "flex items-start justify-between gap-4 border-b px-5 py-4 sm:px-6",
-              isDark ? "border-white/10 bg-[#0B1A3A]" : "border-slate-200 bg-white/80",
-            )}
-          >
+          <div className={getManagerModalHeaderClasses(settings.scheme)}>
             <div>
               <h3
                 id="menu-item-modal-title"
-                className={cn("text-xl font-semibold", isDark ? "text-white" : "text-slate-900")}
+                className={cn(getManagerModalTitleClasses(), isDark ? "text-white" : "text-slate-900")}
               >
                 {mode === "add" ? "Add Menu Item" : "Edit Menu Item"}
               </h3>
-              <p className={cn("mt-1 text-sm leading-6", isDark ? "text-slate-300" : "text-slate-500")}>
+              <p className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
                 Configure pricing, imagery, and availability for this menu item.
               </p>
             </div>
@@ -161,31 +164,26 @@ export function MenuItemModal({
             <button
               type="button"
               onClick={onClose}
-              className={cn(
-                "inline-flex size-10 items-center justify-center rounded-md border transition-all duration-200 ease-out hover:-translate-y-0.5",
-                isDark
-                  ? "border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:bg-white/10 hover:text-white"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-800",
-                modalFocusClasses,
-              )}
+              className={cn(getManagerIconButtonClasses(settings.scheme, true), modalFocusClasses)}
               aria-label="Close menu item modal"
             >
               <XIcon className="size-4" />
             </button>
           </div>
 
-          <div className={cn("overflow-y-auto px-5 py-5 sm:px-6", isDark ? "bg-[#061533]" : "bg-[#F8FAFC]")}>
+          <div className={getManagerModalBodyClasses(settings.scheme)}>
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
               <div className="space-y-5">
                 <div
                   className={cn(
-                    "rounded-md border p-4 sm:p-5",
+                    "p-5",
+                    getManagerPanelShellClasses(settings.scheme),
                     isDark ? "border-white/10 bg-[#0B1A3A]" : "border-slate-200 bg-white",
                   )}
                 >
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="min-w-0 space-y-2 sm:col-span-2">
-                      <label htmlFor="menu-item-name" className={cn("text-sm font-semibold", isDark ? "text-slate-300" : "text-slate-600")}>
+                      <label htmlFor="menu-item-name" className={getManagerLabelClasses(settings.scheme)}>
                         Food Name
                       </label>
                       <input
@@ -201,7 +199,7 @@ export function MenuItemModal({
                     </div>
 
                     <div className="min-w-0 space-y-2">
-                      <label htmlFor="menu-item-category" className={cn("text-sm font-semibold", isDark ? "text-slate-300" : "text-slate-600")}>
+                      <label htmlFor="menu-item-category" className={getManagerLabelClasses(settings.scheme)}>
                         Category
                       </label>
                       <select
@@ -224,7 +222,7 @@ export function MenuItemModal({
                     </div>
 
                     <div className="min-w-0 space-y-2 sm:col-span-2">
-                      <label htmlFor="menu-item-description" className={cn("text-sm font-semibold", isDark ? "text-slate-300" : "text-slate-600")}>
+                      <label htmlFor="menu-item-description" className={getManagerLabelClasses(settings.scheme)}>
                         Description
                       </label>
                       <textarea
@@ -243,7 +241,7 @@ export function MenuItemModal({
                     </div>
 
                     <div className="min-w-0 space-y-2">
-                      <label htmlFor="menu-item-price-small" className={cn("text-sm font-semibold", isDark ? "text-slate-300" : "text-slate-600")}>
+                      <label htmlFor="menu-item-price-small" className={getManagerLabelClasses(settings.scheme)}>
                         Small Price
                       </label>
                       <input
@@ -265,7 +263,7 @@ export function MenuItemModal({
                     </div>
 
                     <div className="min-w-0 space-y-2">
-                      <label htmlFor="menu-item-price-medium" className={cn("text-sm font-semibold", isDark ? "text-slate-300" : "text-slate-600")}>
+                      <label htmlFor="menu-item-price-medium" className={getManagerLabelClasses(settings.scheme)}>
                         Medium Price
                       </label>
                       <input
@@ -287,7 +285,7 @@ export function MenuItemModal({
                     </div>
 
                     <div className="min-w-0 space-y-2">
-                      <label htmlFor="menu-item-price-large" className={cn("text-sm font-semibold", isDark ? "text-slate-300" : "text-slate-600")}>
+                      <label htmlFor="menu-item-price-large" className={getManagerLabelClasses(settings.scheme)}>
                         Large Price
                       </label>
                       <input
@@ -309,7 +307,7 @@ export function MenuItemModal({
                     </div>
 
                     <div className="min-w-0 space-y-2">
-                      <label htmlFor="menu-item-prep-time" className={cn("text-sm font-semibold", isDark ? "text-slate-300" : "text-slate-600")}>
+                      <label htmlFor="menu-item-prep-time" className={getManagerLabelClasses(settings.scheme)}>
                         Preparation Time
                       </label>
                       <div className="relative w-full min-w-0">
@@ -358,12 +356,13 @@ export function MenuItemModal({
 
                 <div
                   className={cn(
-                    "rounded-md border p-4",
+                    "p-5",
+                    getManagerPanelShellClasses(settings.scheme),
                     isDark ? "border-white/10 bg-[#0B1A3A]" : "border-slate-200 bg-white",
                   )}
                 >
-                  <div className={cn("text-sm font-semibold", isDark ? "text-white" : "text-slate-900")}>Availability</div>
-                  <p className={cn("mt-1 text-sm leading-6", isDark ? "text-slate-300" : "text-slate-500")}>
+                  <div className={cn("text-[15px] font-semibold", isDark ? "text-white" : "text-slate-900")}>Availability</div>
+                  <p className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
                     Mark unavailable items so staff can keep them listed without allowing orders.
                   </p>
 
@@ -392,7 +391,7 @@ export function MenuItemModal({
                       />
                     </button>
                     <div>
-                      <div className={cn("text-sm font-semibold", isDark ? "text-white" : "text-slate-900")}>
+                      <div className={cn("text-[15px] font-semibold", isDark ? "text-white" : "text-slate-900")}>
                         {values.available ? "Available" : "Unavailable"}
                       </div>
                       <div className={cn("text-xs", isDark ? "text-slate-300" : "text-slate-500")}>
@@ -405,32 +404,18 @@ export function MenuItemModal({
             </div>
           </div>
 
-          <div
-            className={cn(
-              "flex flex-col-reverse items-stretch gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-6",
-              isDark ? "border-white/10 bg-[#0B1A3A]" : "border-slate-200 bg-white/80",
-            )}
-          >
+          <div className={cn(getManagerModalFooterClasses(settings.scheme), "items-stretch sm:items-center")}>
             <button
               type="button"
               onClick={onClose}
-              className={cn(
-                "inline-flex h-11 items-center justify-center rounded-md border px-5 text-sm font-semibold transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]",
-                isDark
-                  ? "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
-                  : "border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200",
-                modalFocusClasses,
-              )}
+              className={cn(getManagerSecondaryButtonClasses(settings.scheme), modalFocusClasses)}
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className={cn(
-                "inline-flex h-11 items-center justify-center rounded-md bg-blue-600 px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(37,99,235,0.22)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_22px_44px_rgba(37,99,235,0.28)] active:translate-y-0 active:scale-[0.99]",
-                modalFocusClasses,
-              )}
+              className={cn(getManagerPrimaryButtonClasses(settings.scheme), modalFocusClasses)}
             >
               Save Item
             </button>

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useId } from "react";
 import { ImageIcon, UploadIcon } from "../icons";
+import { getManagerBodyTextClasses, getManagerLabelClasses } from "../managerUtils";
 import type { Scheme } from "../managerTypes";
 interface ImageUploadFieldProps {
   preview: string;
@@ -23,7 +24,7 @@ export function ImageUploadField({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={inputId} className="text-sm font-semibold text-slate-600">
+      <label htmlFor={inputId} className={getManagerLabelClasses(scheme)}>
         Item Image
       </label>
 
@@ -66,7 +67,7 @@ export function ImageUploadField({
 
           <div className="flex-1">
             <div
-              className={`flex items-center gap-2 text-sm font-semibold ${
+              className={`flex items-center gap-2 text-[15px] font-semibold ${
                 scheme === "dark" ? "text-white" : "text-slate-900"
               }`}
             >
@@ -76,9 +77,7 @@ export function ImageUploadField({
               Upload a replacement image
             </div>
             <p
-              className={`mt-2 text-sm leading-6 ${
-                scheme === "dark" ? "text-slate-300" : "text-slate-500"
-              }`}
+              className={`${scheme === "dark" ? "mt-2 text-slate-300" : "mt-2 text-slate-500"} ${getManagerBodyTextClasses(scheme)}`}
             >
               PNG or JPG up to 10MB. The existing preview stays until you save a new file.
             </p>

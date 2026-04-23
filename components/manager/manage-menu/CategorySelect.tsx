@@ -2,7 +2,13 @@
 
 import { useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon } from "../icons";
-import { cn, getFocusRingClasses, getMutedTextClasses, getPopoverClasses } from "../managerUtils";
+import {
+  cn,
+  getFocusRingClasses,
+  getManagerControlShellClasses,
+  getMutedTextClasses,
+  getPopoverClasses,
+} from "../managerUtils";
 import { useOnClickOutside } from "../useOnClickOutside";
 import type { Scheme } from "../managerTypes";
 import type { MenuFilterCategory } from "./types";
@@ -31,12 +37,8 @@ export function CategorySelect({
         type="button"
         onClick={() => setOpen((current) => !current)}
         className={cn(
-          "inline-flex h-11 w-full items-center justify-between gap-3 rounded-md border px-3 text-sm font-medium transition-all duration-200 ease-out",
-          scheme === "dark"
-            ? "border-white/10 bg-slate-950/40 text-slate-100 hover:border-white/16 hover:bg-slate-950/56"
-            : "border-slate-200 bg-slate-50/90 text-slate-700 hover:border-slate-300 hover:bg-white",
-          "hover:-translate-y-0.5",
-          getFocusRingClasses(scheme),
+          "w-full justify-between font-medium",
+          getManagerControlShellClasses(scheme),
         )}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -48,7 +50,7 @@ export function CategorySelect({
       {open ? (
         <div
           className={cn(
-            "absolute left-0 top-full z-50 mt-2 max-h-72 w-full overflow-y-auto rounded-md border p-2",
+            "absolute left-0 top-full z-50 mt-2 max-h-72 w-full overflow-y-auto rounded-[18px] border p-2",
             getPopoverClasses(scheme),
           )}
           role="listbox"
@@ -70,7 +72,7 @@ export function CategorySelect({
                     setOpen(false);
                   }}
                   className={cn(
-                    "flex w-full items-center justify-between rounded-md px-3 py-2.5 text-left text-sm transition-all duration-200 ease-out",
+                    "flex w-full items-center justify-between rounded-lg px-3.5 py-3 text-left text-[15px] transition-all duration-200 ease-out",
                     selected
                       ? scheme === "dark"
                         ? "bg-blue-500/16 text-blue-200"

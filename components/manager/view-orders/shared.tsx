@@ -1,11 +1,11 @@
 import {
   cn,
-  getContentSurfaceClasses,
-  getFocusRingClasses,
-  getInteractiveCardClasses,
-  getInteractiveSecondaryButtonClasses,
+  getManagerCardShellClasses,
+  getManagerControlShellClasses,
   getMutedTextClasses,
-  getSecondarySurfaceClasses,
+  getManagerPanelShellClasses,
+  getManagerPillClasses,
+  getManagerTableActionButtonClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import type { OrderStatus, PaymentStatus } from "./types";
@@ -65,9 +65,7 @@ export function SurfaceCard({
   return (
     <section
       className={cn(
-        "rounded-[20px] border",
-        getContentSurfaceClasses(settings.scheme),
-        interactive && getInteractiveCardClasses(settings.scheme),
+        getManagerCardShellClasses(settings.scheme, { interactive }),
         className,
       )}
     >
@@ -88,8 +86,7 @@ export function SecondaryPanel({
   return (
     <div
       className={cn(
-        "rounded-[16px] border",
-        getSecondarySurfaceClasses(settings.scheme),
+        getManagerPanelShellClasses(settings.scheme),
         className,
       )}
     >
@@ -107,12 +104,7 @@ export function SectionPill({
 }) {
   return (
     <span
-      className={cn(
-        "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em]",
-        settings.scheme === "dark"
-          ? "bg-white/8 text-slate-300"
-          : "bg-slate-100 text-slate-500",
-      )}
+      className={getManagerPillClasses(settings.scheme)}
     >
       {children}
     </span>
@@ -164,7 +156,7 @@ export function DetailKeyValue({
       >
         {label}
       </div>
-      <div className="text-sm font-medium sm:text-[15px]">{value}</div>
+      <div className="text-[15px] font-medium sm:text-base">{value}</div>
     </div>
   );
 }
@@ -181,12 +173,7 @@ export function ControlShell({
   return (
     <div
       className={cn(
-        "flex h-11 items-center gap-2 rounded-md border px-3 text-sm transition-all duration-200 ease-out",
-        settings.scheme === "dark"
-          ? "border-white/10 bg-slate-950/36 text-slate-100 hover:border-white/16 hover:bg-slate-950/48"
-          : "border-slate-200 bg-slate-50/90 text-slate-700 hover:border-slate-300 hover:bg-white",
-        "hover:-translate-y-0.5 focus-within:-translate-y-0.5",
-        getFocusRingClasses(settings.scheme),
+        getManagerControlShellClasses(settings.scheme),
         className,
       )}
     >
@@ -196,13 +183,7 @@ export function ControlShell({
 }
 
 export function secondaryButtonClassName(settings: ManagerSettings) {
-  return cn(
-    "inline-flex h-11 items-center justify-center rounded-md border px-4 text-sm font-semibold",
-    settings.scheme === "dark"
-      ? "border-white/10 bg-white/6 text-slate-100 hover:bg-white/10"
-      : "border-slate-200 bg-slate-50/90 text-slate-700 hover:bg-white",
-    getInteractiveSecondaryButtonClasses(settings.scheme),
-  );
+  return getManagerTableActionButtonClasses(settings.scheme);
 }
 
 function getOrderStatusBadgeClasses(status: OrderStatus, scheme: ManagerSettings["scheme"]) {

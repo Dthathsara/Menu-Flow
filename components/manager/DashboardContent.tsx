@@ -15,6 +15,13 @@ import {
   getInteractiveCardClasses,
   getInteractiveRowClasses,
   getInteractiveSecondaryButtonClasses,
+  getManagerBodyTextClasses,
+  getManagerPageSectionClasses,
+  getManagerPageTitleClasses,
+  getManagerPrimaryButtonClasses,
+  getManagerSecondaryButtonClasses,
+  getManagerSectionSubtitleClasses,
+  getManagerSectionTitleClasses,
   getMutedTextClasses,
   getSecondarySurfaceClasses,
 } from "./managerUtils";
@@ -309,7 +316,7 @@ function SectionPill({
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold tracking-[0.18em] uppercase",
+        "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.18em] uppercase",
         scheme === "dark"
           ? "bg-white/8 text-slate-300"
           : "bg-slate-100 text-slate-500",
@@ -334,7 +341,7 @@ function SurfaceCard({
   return (
     <div
       className={cn(
-        "rounded-[20px] border p-4 sm:p-5 lg:p-6",
+        "rounded-[22px] border p-5 sm:p-6",
         getContentSurfaceClasses(settings.scheme),
         interactive && getInteractiveCardClasses(settings.scheme),
         className,
@@ -359,10 +366,8 @@ function CardHeader({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h3 className="text-lg font-semibold sm:text-[1.15rem]">{title}</h3>
-        <p className={cn("mt-1 text-sm leading-6", getMutedTextClasses(scheme))}>
-          {subtitle}
-        </p>
+        <h3 className={getManagerSectionTitleClasses()}>{title}</h3>
+        <p className={getManagerSectionSubtitleClasses(scheme)}>{subtitle}</p>
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -379,10 +384,10 @@ function HeroOverviewCard({ settings }: { settings: ManagerSettings }) {
         <div className="relative rounded-[18px] border border-transparent bg-[linear-gradient(135deg,rgba(59,130,246,0.16),rgba(14,165,233,0.08),transparent)] p-5 sm:p-6">
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-52 rounded-l-[48px] bg-gradient-to-l from-blue-500/10 to-transparent lg:block" />
           <SectionPill scheme={settings.scheme}>Dashboard</SectionPill>
-          <h2 className="mt-5 max-w-2xl text-2xl font-bold leading-tight sm:text-[2rem]">
+          <h2 className={cn("mt-5 max-w-2xl leading-tight", getManagerPageTitleClasses())}>
             Good afternoon, Maxine. Downtown Branch is running smoothly.
           </h2>
-          <p className={cn("mt-4 max-w-2xl text-sm leading-7 sm:text-[15px]", mutedText)}>
+          <p className={cn("mt-4 max-w-2xl", getManagerBodyTextClasses(settings.scheme))}>
             Lunch traffic is trending above target, kitchen throughput remains
             stable, and QR engagement is holding strong across active tables.
             Today&apos;s operational snapshot is ready for quick review.
@@ -391,23 +396,13 @@ function HeroOverviewCard({ settings }: { settings: ManagerSettings }) {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              className={cn(
-                "rounded-md bg-[linear-gradient(135deg,#2563eb,#1d4ed8)] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(37,99,235,0.26)]",
-                "cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:brightness-[1.04] hover:shadow-[0_22px_44px_rgba(37,99,235,0.32)] active:translate-y-0 active:scale-[0.99]",
-                getFocusRingClasses(settings.scheme),
-              )}
+              className={getManagerPrimaryButtonClasses(settings.scheme)}
             >
               View Today&apos;s Performance
             </button>
             <button
               type="button"
-              className={cn(
-                "rounded-md border px-5 py-3 text-sm font-semibold",
-                settings.scheme === "dark"
-                  ? "border-white/10 bg-white/6 text-slate-100 hover:bg-white/9"
-                  : "border-slate-200 bg-white/80 text-slate-700 hover:bg-white",
-                getInteractiveSecondaryButtonClasses(settings.scheme),
-              )}
+              className={getManagerSecondaryButtonClasses(settings.scheme)}
             >
               Manage Menu
             </button>
@@ -424,9 +419,9 @@ function HeroOverviewCard({ settings }: { settings: ManagerSettings }) {
                 getInteractiveCardClasses(settings.scheme),
               )}
             >
-              <div className={cn("text-sm font-medium", mutedText)}>{item.title}</div>
-              <div className="mt-4 text-3xl font-bold tracking-tight">{item.value}</div>
-              <div className={cn("mt-3 text-sm leading-6", mutedText)}>{item.note}</div>
+              <div className={cn("text-[15px] font-medium", mutedText)}>{item.title}</div>
+              <div className="mt-4 text-[2rem] font-bold tracking-tight">{item.value}</div>
+              <div className={cn("mt-3", getManagerBodyTextClasses(settings.scheme))}>{item.note}</div>
             </div>
           ))}
         </div>
@@ -475,13 +470,7 @@ function OrderStatusCard({ settings }: { settings: ManagerSettings }) {
           <button
             key={action}
             type="button"
-            className={cn(
-              "rounded-md border px-4 py-3 text-sm font-semibold",
-              settings.scheme === "dark"
-                ? "border-white/10 bg-white/6 text-slate-100 hover:bg-white/9"
-                : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white",
-              getInteractiveSecondaryButtonClasses(settings.scheme),
-            )}
+            className={cn(getManagerSecondaryButtonClasses(settings.scheme), "px-4")}
           >
             {action}
           </button>
@@ -518,7 +507,7 @@ function KpiCard({
           {item.title}
         </div>
         <div className="mt-2 text-[1.85rem] font-bold tracking-tight">{item.value}</div>
-        <div className={cn("mt-3 text-sm leading-6", getMutedTextClasses(settings.scheme))}>
+        <div className={cn("mt-3", getManagerBodyTextClasses(settings.scheme))}>
           {item.note}
         </div>
       </div>
@@ -547,7 +536,7 @@ function TrendChartCard({ settings }: { settings: ManagerSettings }) {
 
       <div
         className={cn(
-          "mt-6 rounded-[16px] border p-4 sm:p-5",
+          "mt-6 rounded-[18px] border p-5",
           getSecondarySurfaceClasses(settings.scheme),
           "transition-all duration-200 ease-out",
         )}
@@ -672,7 +661,7 @@ function TopSellingCard({ settings }: { settings: ManagerSettings }) {
             key={item.rank}
             type="button"
             className={cn(
-              "group/sell flex w-full items-center gap-4 rounded-[14px] border p-4 text-left",
+              "group/sell flex w-full items-center gap-4 rounded-[18px] border p-4 text-left",
               getSecondarySurfaceClasses(settings.scheme),
               getInteractiveRowClasses(settings.scheme),
               "hover:translate-x-1",
@@ -773,7 +762,7 @@ function QrPerformanceCard({ settings }: { settings: ManagerSettings }) {
             key={row.label}
             type="button"
             className={cn(
-              "w-full rounded-[14px] border p-4 text-left",
+              "w-full rounded-[18px] border p-4 text-left",
               getSecondarySurfaceClasses(settings.scheme),
               getInteractiveRowClasses(settings.scheme),
             )}
@@ -807,7 +796,7 @@ function NotificationsCard({ settings }: { settings: ManagerSettings }) {
             key={item.title}
             type="button"
             className={cn(
-              "group/notice w-full rounded-[14px] border p-4 text-left",
+              "group/notice w-full rounded-[18px] border p-4 text-left",
               getSecondarySurfaceClasses(settings.scheme),
               getInteractiveRowClasses(settings.scheme),
             )}
@@ -848,7 +837,7 @@ function BranchSnapshotCard({ settings }: { settings: ManagerSettings }) {
             key={row.label}
             type="button"
             className={cn(
-              "group/snapshot flex w-full items-center justify-between rounded-[14px] border p-4 text-left",
+              "group/snapshot flex w-full items-center justify-between rounded-[18px] border p-4 text-left",
               getSecondarySurfaceClasses(settings.scheme),
               getInteractiveRowClasses(settings.scheme),
             )}
@@ -884,7 +873,7 @@ function QuickActionsCard({ settings }: { settings: ManagerSettings }) {
               key={action}
               type="button"
               className={cn(
-                "group/action flex items-center gap-3 rounded-[14px] border px-4 py-4 text-left text-sm font-semibold",
+                "group/action flex items-center gap-3 rounded-[18px] border px-4 py-4 text-left text-[15px] font-semibold",
                 settings.scheme === "dark"
                   ? "border-white/10 bg-white/6 hover:bg-white/9"
                   : "border-slate-200 bg-slate-50 hover:bg-white",
@@ -905,7 +894,7 @@ function QuickActionsCard({ settings }: { settings: ManagerSettings }) {
 
 export function DashboardContent({ settings }: DashboardContentProps) {
   return (
-    <section className="relative z-0 space-y-6">
+    <section className={getManagerPageSectionClasses()}>
       <HeroOverviewCard settings={settings} />
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.7fr)]">
