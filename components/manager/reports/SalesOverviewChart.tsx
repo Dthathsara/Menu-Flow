@@ -17,40 +17,57 @@ export function SalesOverviewChart({ settings }: SalesOverviewChartProps) {
       title="Sales Overview"
       description="Monthly order and revenue trend for the selected period."
       tag="MONTHLY TREND"
-      className="h-full"
-      bodyClassName="pb-6"
+      className="flex h-full flex-col"
+      bodyClassName="flex flex-1 flex-col pb-5 pt-5 sm:pb-6 sm:pt-6"
     >
-      <div className="grid min-h-[290px] grid-cols-6 gap-3 sm:gap-4">
-        {SALES_TREND_POINTS.map((point) => {
-          const height = `${Math.max((point.value / MAX_SALES_VALUE) * 100, 22)}%`;
+      <div className="-mx-1 h-full overflow-x-auto px-1">
+        <div className="grid h-full min-h-[320px] min-w-[620px] grid-cols-6 gap-4 sm:gap-[18px]">
+          {SALES_TREND_POINTS.map((point) => {
+            const height = `${(point.value / MAX_SALES_VALUE) * 100}%`;
 
-          return (
-            <div key={point.month} className="flex min-w-0 flex-col items-center justify-end">
-              <div
-                className={cn(
-                  "mb-3 text-center text-[13px] font-semibold",
-                  getManagerStrongTextClasses(settings.scheme),
-                )}
-              >
-                {point.amountLabel}
-              </div>
-              <div
-                className={cn(
-                  "flex h-[172px] w-full items-end rounded-[16px] p-2 sm:p-3",
-                  getTrackClasses(settings.scheme),
-                )}
-              >
+            return (
+              <div key={point.month} className="flex h-full min-w-0 flex-col items-center">
                 <div
-                  className="w-full rounded-[12px] bg-[linear-gradient(180deg,#4D8BFF_0%,#3A72EB_55%,#2C58CC_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]"
-                  style={{ height }}
-                />
+                  className={cn(
+                    "mb-2.5 text-center text-[12px] font-semibold tracking-[-0.01em] sm:text-[13px]",
+                    getManagerStrongTextClasses(settings.scheme),
+                  )}
+                >
+                  {point.amountLabel}
+                </div>
+                <div
+                  className={cn(
+                    "relative flex min-h-0 flex-1 w-full items-end overflow-hidden rounded-[20px] p-[10px]",
+                    settings.scheme === "dark"
+                      ? "bg-[linear-gradient(180deg,#0d1730_0%,#091325_100%)] ring-1 ring-inset ring-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.03),inset_0_-18px_30px_rgba(2,8,23,0.48)]"
+                      : getTrackClasses(settings.scheme),
+                  )}
+                >
+                  {settings.scheme === "dark" ? (
+                    <div className="pointer-events-none absolute inset-x-[1px] top-[1px] h-10 rounded-t-[20px] bg-[linear-gradient(180deg,rgba(21,39,74,0.4),rgba(21,39,74,0))]" />
+                  ) : null}
+
+                  <div className="relative flex h-full w-full items-end">
+                    <div
+                      className="relative w-full overflow-hidden rounded-[14px] bg-[linear-gradient(180deg,#5d98ff_0%,#4178ef_36%,#3467e2_72%,#2f63df_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_10px_22px_rgba(37,99,235,0.18)]"
+                      style={{ height }}
+                    >
+                      <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0))]" />
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className={cn(
+                    "mt-2.5 text-[12px] font-medium tracking-[-0.01em] sm:text-[13px]",
+                    settings.scheme === "dark" ? "text-[#7D8FB7]" : getReportsMutedTextClasses(settings.scheme),
+                  )}
+                >
+                  {point.month}
+                </div>
               </div>
-              <div className={cn("mt-3 text-[13px] font-medium", getReportsMutedTextClasses(settings.scheme))}>
-                {point.month}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </ReportsSectionCard>
   );
