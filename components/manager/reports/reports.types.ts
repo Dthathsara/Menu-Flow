@@ -4,6 +4,8 @@ export interface ReportStat {
   helperText: string;
 }
 
+export type ReportTab = "users" | "orders";
+
 export interface SalesTrendPoint {
   month: string;
   amountLabel: string;
@@ -24,6 +26,20 @@ export interface WaiterPerformanceRow {
   orders: string;
   revenue: string;
   tables: string;
+}
+
+export interface StaffRoleBreakdownMetric {
+  role: Exclude<ReportStaffRole, "Counter"> | "Counter";
+  count: string;
+  value: number;
+  max: number;
+  tone: ProgressMetric["tone"];
+}
+
+export interface StaffActivitySummaryItem {
+  label: string;
+  value: string;
+  helperText: string;
 }
 
 export interface ProgressMetric {

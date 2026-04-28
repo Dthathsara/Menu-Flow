@@ -64,3 +64,24 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: "es", label: "Spanish" },
   { code: "ru", label: "Russian" },
 ];
+
+export function getManagerNavHref(
+  key: ManagerNavItem["key"],
+  reportsTab: "users" | "orders" = "users",
+) {
+  switch (key) {
+    case "dashboard":
+      return "/manager";
+    case "orders":
+      return "/manager/orders";
+    case "generate-qr":
+      return "/manager/qr-codes";
+    case "users":
+      return "/manager/users";
+    case "reports":
+      return `/manager/reports?tab=${reportsTab}`;
+    case "manage-menu":
+    default:
+      return null;
+  }
+}

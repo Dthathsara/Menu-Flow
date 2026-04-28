@@ -1,8 +1,8 @@
-import { cn, getManagerStrongTextClasses } from "../managerUtils";
-import type { ManagerSettings } from "../managerTypes";
-import { ORDER_STATUS_MIX } from "./reports.data";
-import { getProgressToneClasses, getTrackClasses } from "./reports.helpers";
-import { ReportsSectionCard } from "./ReportsSectionCard";
+import { cn, getManagerStrongTextClasses } from "../../managerUtils";
+import type { ManagerSettings } from "../../managerTypes";
+import { orderStatusMix } from "../reports.data";
+import { getProgressToneClasses, getTrackClasses } from "../reports.helpers";
+import { ReportsSectionCard } from "../ReportsSectionCard";
 
 interface OrderStatusMixCardProps {
   settings: ManagerSettings;
@@ -19,7 +19,7 @@ export function OrderStatusMixCard({ settings }: OrderStatusMixCardProps) {
       className="h-full"
     >
       <div className="space-y-4">
-        {ORDER_STATUS_MIX.map((item) => (
+        {orderStatusMix.map((item) => (
           <div key={item.label}>
             <div
               className={cn(

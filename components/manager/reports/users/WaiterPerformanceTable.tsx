@@ -5,11 +5,11 @@ import {
   getManagerTableHeadSurfaceClasses,
   getManagerTableHeaderClasses,
   getManagerTableHeaderPaddingClasses,
-} from "../managerUtils";
-import type { ManagerSettings } from "../managerTypes";
-import { WAITER_PERFORMANCE_ROWS } from "./reports.data";
-import { getReportsRoleBadgeClasses } from "./reports.helpers";
-import { ReportsSectionCard } from "./ReportsSectionCard";
+} from "../../managerUtils";
+import type { ManagerSettings } from "../../managerTypes";
+import { waiterPerformanceRows } from "../reports.data";
+import { getReportsRoleBadgeClasses } from "../reports.helpers";
+import { ReportsSectionCard } from "../ReportsSectionCard";
 
 interface WaiterPerformanceTableProps {
   settings: ManagerSettings;
@@ -42,7 +42,7 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
             </tr>
           </thead>
           <tbody>
-            {WAITER_PERFORMANCE_ROWS.map((row) => (
+            {waiterPerformanceRows.map((row) => (
               <tr key={row.staff} className="border-b border-black/5 last:border-b-0">
                 <td
                   className={cn(

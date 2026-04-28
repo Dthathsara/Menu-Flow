@@ -1,3 +1,5 @@
+import { useRouter, useSearchParams } from "next/navigation";
+import { getManagerNavHref } from "./managerConfig";
 import {
   DashboardIcon,
   MenuBookIcon,
@@ -40,6 +42,9 @@ export function HorizontalNav({
   activeKey,
   onSelect,
 }: HorizontalNavProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeReportTab = searchParams.get("tab") === "orders" ? "orders" : "users";
   const navClasses = getHorizontalNavToneClasses(settings.menu, settings.scheme);
   const activeClasses =
     settings.menu === "brand"
@@ -73,7 +78,17 @@ export function HorizontalNav({
             <button
               key={item.key}
               type="button"
-              onClick={() => onSelect(item.key)}
+              onClick={() => {
+                onSelect(item.key);
+                const href =
+                  item.key === "reports"
+                    ? getManagerNavHref("reports", activeReportTab)
+                    : getManagerNavHref(item.key);
+
+                if (href) {
+                  router.push(href);
+                }
+              }}
               className={cn(
                 "inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-[13px] font-semibold transition sm:px-4 sm:text-sm",
                 active ? activeClasses : idleClasses,

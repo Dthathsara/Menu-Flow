@@ -2,6 +2,7 @@ import { BlankContentPage } from "./BlankContentPage";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { cn, getContentAreaClasses, getDetachedFrameClasses, hasPersistentSidebar } from "./managerUtils";
+import type { ReportTab } from "./reports/reports.types";
 import type {
   LanguageOption,
   ManagerNavItem,
@@ -14,6 +15,7 @@ interface VerticalShellProps {
   navItems: ManagerNavItem[];
   activeItem: ManagerNavItem;
   activeKey: ManagerNavKey;
+  initialReportTab: ReportTab;
   selectedLanguage: LanguageOption;
   languages: LanguageOption[];
   activeDropdown: "language" | "profile" | null;
@@ -32,6 +34,7 @@ export function VerticalShell({
   navItems,
   activeItem,
   activeKey,
+  initialReportTab,
   selectedLanguage,
   languages,
   activeDropdown,
@@ -87,7 +90,11 @@ export function VerticalShell({
                   getContentAreaClasses(settings.layoutMode, settings.sidebarSize),
                 )}
               >
-                <BlankContentPage activeItem={activeItem} settings={settings} />
+                <BlankContentPage
+                  activeItem={activeItem}
+                  settings={settings}
+                  initialReportTab={initialReportTab}
+                />
               </main>
             </div>
           </div>
@@ -139,7 +146,11 @@ export function VerticalShell({
               getContentAreaClasses(settings.layoutMode, settings.sidebarSize),
             )}
           >
-            <BlankContentPage activeItem={activeItem} settings={settings} />
+            <BlankContentPage
+              activeItem={activeItem}
+              settings={settings}
+              initialReportTab={initialReportTab}
+            />
           </main>
         </div>
       </div>

@@ -1,14 +1,14 @@
-import { cn, getManagerStrongTextClasses } from "../managerUtils";
-import type { ManagerSettings } from "../managerTypes";
-import { SALES_TREND_POINTS } from "./reports.data";
-import { getReportsMutedTextClasses, getTrackClasses } from "./reports.helpers";
-import { ReportsSectionCard } from "./ReportsSectionCard";
+import { cn, getManagerStrongTextClasses } from "../../managerUtils";
+import type { ManagerSettings } from "../../managerTypes";
+import { monthlySalesData } from "../reports.data";
+import { getReportsMutedTextClasses, getTrackClasses } from "../reports.helpers";
+import { ReportsSectionCard } from "../ReportsSectionCard";
 
 interface SalesOverviewChartProps {
   settings: ManagerSettings;
 }
 
-const MAX_SALES_VALUE = Math.max(...SALES_TREND_POINTS.map((point) => point.value));
+const MAX_SALES_VALUE = Math.max(...monthlySalesData.map((point) => point.value));
 
 export function SalesOverviewChart({ settings }: SalesOverviewChartProps) {
   return (
@@ -22,7 +22,7 @@ export function SalesOverviewChart({ settings }: SalesOverviewChartProps) {
     >
       <div className="-mx-1 h-full overflow-x-auto px-1">
         <div className="grid h-full min-h-[320px] min-w-[620px] grid-cols-6 gap-4 sm:gap-[18px]">
-          {SALES_TREND_POINTS.map((point) => {
+          {monthlySalesData.map((point) => {
             const height = `${(point.value / MAX_SALES_VALUE) * 100}%`;
 
             return (

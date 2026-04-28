@@ -1,8 +1,8 @@
-import { cn, getManagerStrongTextClasses } from "../managerUtils";
-import type { ManagerSettings } from "../managerTypes";
-import { PAYMENT_SUMMARY_METRICS } from "./reports.data";
-import { getReportsMicroLabelClasses, getReportsMutedTextClasses, getReportsPanelClasses } from "./reports.helpers";
-import { ReportsSectionCard } from "./ReportsSectionCard";
+import { cn, getManagerStrongTextClasses } from "../../managerUtils";
+import type { ManagerSettings } from "../../managerTypes";
+import { paymentSummaryData } from "../reports.data";
+import { getReportsMicroLabelClasses, getReportsMutedTextClasses, getReportsPanelClasses } from "../reports.helpers";
+import { ReportsSectionCard } from "../ReportsSectionCard";
 
 interface PaymentSummaryCardProps {
   settings: ManagerSettings;
@@ -18,7 +18,7 @@ export function PaymentSummaryCard({ settings }: PaymentSummaryCardProps) {
       className="h-full"
     >
       <div className="space-y-3">
-        {PAYMENT_SUMMARY_METRICS.map((metric) => (
+        {paymentSummaryData.map((metric) => (
           <div key={metric.label} className={cn(getReportsPanelClasses(settings.scheme), "p-4 sm:p-5")}>
             <div className={getReportsMicroLabelClasses(settings.scheme)}>{metric.label}</div>
             <div

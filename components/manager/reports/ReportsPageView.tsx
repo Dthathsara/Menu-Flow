@@ -1,42 +1,30 @@
 "use client";
 
-import { getManagerPageSectionClasses } from "../managerUtils";
+import { useSearchParams } from "next/navigation";
 import type { ManagerSettings } from "../managerTypes";
-import { OrderStatusMixCard } from "./OrderStatusMixCard";
-import { PaymentSummaryCard } from "./PaymentSummaryCard";
-import { PeakHoursCard } from "./PeakHoursCard";
-import { QrUsageTable } from "./QrUsageTable";
-import { ReportsHeader } from "./ReportsHeader";
-import { SalesOverviewChart } from "./SalesOverviewChart";
-import { TopSellingItemsTable } from "./TopSellingItemsTable";
-import { WaiterPerformanceTable } from "./WaiterPerformanceTable";
+import type { ReportTab } from "./reports.types";
+import { OrdersReportsPage } from "./orders/OrdersReportsPage";
+import { UsersReportsPage } from "./users/UsersReportsPage";
 
 interface ReportsPageViewProps {
   settings: ManagerSettings;
+  initialTab?: ReportTab;
 }
 
-export function ReportsPageView({ settings }: ReportsPageViewProps) {
-  return (
-    <section className={getManagerPageSectionClasses()}>
-      <div className="mx-auto w-full max-w-[1700px] space-y-6 px-1 sm:px-2 xl:px-0">
-        <ReportsHeader settings={settings} />
+function getReportTab(value: string | null | undefined): ReportTab {
+  return value === "orders" ? "orders" : "users";
+}
 
-        <section className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
-          <SalesOverviewChart settings={settings} />
-          <PaymentSummaryCard settings={settings} />
-        </section>
+export function ReportsPageView({
+  settings,
+  initialTab = "users",
+}: ReportsPageViewProps) {
+  const searchParams = useSearchParams();
+  const activeReportTab = getReportTab(searchParams.get("tab") ?? initialTab);
 
-        <section className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
-          <WaiterPerformanceTable settings={settings} />
-          <PeakHoursCard settings={settings} />
-        </section>
-
-        <section className="grid gap-6 xl:grid-cols-3">
-          <QrUsageTable settings={settings} />
-          <TopSellingItemsTable settings={settings} />
-          <OrderStatusMixCard settings={settings} />
-        </section>
-      </div>
-    </section>
+  return activeReportTab === "orders" ? (
+    <OrdersReportsPage settings={settings} />
+  ) : (
+    <UsersReportsPage settings={settings} />
   );
 }

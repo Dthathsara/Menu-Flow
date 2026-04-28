@@ -1,26 +1,27 @@
 import {
   cn,
+  getManagerBadgeClasses,
   getManagerStrongTextClasses,
   getManagerTableCellPaddingClasses,
   getManagerTableHeadSurfaceClasses,
   getManagerTableHeaderClasses,
   getManagerTableHeaderPaddingClasses,
-} from "../managerUtils";
-import type { ManagerSettings } from "../managerTypes";
-import { TOP_SELLING_ITEMS } from "./reports.data";
-import { ReportsSectionCard } from "./ReportsSectionCard";
+} from "../../managerUtils";
+import type { ManagerSettings } from "../../managerTypes";
+import { qrUsageRows } from "../reports.data";
+import { ReportsSectionCard } from "../ReportsSectionCard";
 
-interface TopSellingItemsTableProps {
+interface QrUsageTableProps {
   settings: ManagerSettings;
 }
 
-export function TopSellingItemsTable({ settings }: TopSellingItemsTableProps) {
+export function QrUsageTable({ settings }: QrUsageTableProps) {
   return (
     <ReportsSectionCard
       settings={settings}
-      title="Top Selling Items"
-      description="Highest-performing menu items by quantity sold and revenue."
-      tag="MENU PERFORMANCE"
+      title="QR Usage Per Table"
+      description="How many times each QR was used and how many orders it produced."
+      tag="QR ANALYTICS"
       tagAlign="left"
       className="h-full"
       bodyClassName="px-0 py-0"
@@ -34,22 +35,23 @@ export function TopSellingItemsTable({ settings }: TopSellingItemsTableProps) {
                 getManagerTableHeaderClasses(settings.scheme),
               )}
             >
-              <th className={getManagerTableHeaderPaddingClasses()}>Item</th>
-              <th className={getManagerTableHeaderPaddingClasses()}>Qty</th>
-              <th className={getManagerTableHeaderPaddingClasses()}>Revenue</th>
+              <th className={getManagerTableHeaderPaddingClasses()}>Table</th>
+              <th className={getManagerTableHeaderPaddingClasses()}>Scans / Day</th>
+              <th className={getManagerTableHeaderPaddingClasses()}>Orders</th>
+              <th className={getManagerTableHeaderPaddingClasses()}>Conversion</th>
             </tr>
           </thead>
           <tbody>
-            {TOP_SELLING_ITEMS.map((row) => (
-              <tr key={row.item} className="border-b border-black/5 last:border-b-0">
+            {qrUsageRows.map((row) => (
+              <tr key={row.table} className="border-b border-black/5 last:border-b-0">
                 <td
                   className={cn(
                     getManagerTableCellPaddingClasses(),
-                    "text-[14px] font-medium",
+                    "text-[14px] font-semibold",
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
-                  {row.item}
+                  {row.table}
                 </td>
                 <td
                   className={cn(
@@ -58,7 +60,7 @@ export function TopSellingItemsTable({ settings }: TopSellingItemsTableProps) {
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
-                  {row.quantity}
+                  {row.scansPerDay}
                 </td>
                 <td
                   className={cn(
@@ -67,7 +69,17 @@ export function TopSellingItemsTable({ settings }: TopSellingItemsTableProps) {
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
-                  {row.revenue}
+                  {row.orders}
+                </td>
+                <td className={getManagerTableCellPaddingClasses()}>
+                  <span
+                    className={cn(
+                      "inline-flex h-7 items-center rounded-full border px-3 text-[12px] font-semibold",
+                      getManagerBadgeClasses("success", settings.scheme),
+                    )}
+                  >
+                    {row.conversion}
+                  </span>
                 </td>
               </tr>
             ))}

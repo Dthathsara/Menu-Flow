@@ -6,6 +6,7 @@ import {
   getContentAreaClasses,
   getDetachedFrameClasses,
 } from "./managerUtils";
+import type { ReportTab } from "./reports/reports.types";
 import type {
   LanguageOption,
   ManagerNavItem,
@@ -18,6 +19,7 @@ interface HorizontalShellProps {
   navItems: ManagerNavItem[];
   activeItem: ManagerNavItem;
   activeKey: ManagerNavKey;
+  initialReportTab: ReportTab;
   selectedLanguage: LanguageOption;
   languages: LanguageOption[];
   activeDropdown: "language" | "profile" | null;
@@ -36,6 +38,7 @@ export function HorizontalShell({
   navItems,
   activeItem,
   activeKey,
+  initialReportTab,
   selectedLanguage,
   languages,
   activeDropdown,
@@ -81,7 +84,11 @@ export function HorizontalShell({
           getContentAreaClasses(settings.layoutMode, settings.sidebarSize),
         )}
       >
-        <BlankContentPage activeItem={activeItem} settings={settings} />
+        <BlankContentPage
+          activeItem={activeItem}
+          settings={settings}
+          initialReportTab={initialReportTab}
+        />
       </main>
     </>
   );

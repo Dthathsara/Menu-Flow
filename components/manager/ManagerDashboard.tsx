@@ -7,13 +7,16 @@ import { VerticalShell } from "./VerticalShell";
 import { cn, getShellBackgroundClasses } from "./managerUtils";
 import { useManagerSettings } from "./useManagerSettings";
 import type { LanguageOption, ManagerNavKey } from "./managerTypes";
+import type { ReportTab } from "./reports/reports.types";
 
 interface ManagerDashboardProps {
   initialActiveNav?: ManagerNavKey;
+  initialReportTab?: ReportTab;
 }
 
 export function ManagerDashboard({
   initialActiveNav = "dashboard",
+  initialReportTab = "users",
 }: ManagerDashboardProps) {
   const [activeNav, setActiveNav] = useState<ManagerNavKey>(initialActiveNav);
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
@@ -43,6 +46,7 @@ export function ManagerDashboard({
     navItems: MANAGER_NAV_ITEMS,
     activeItem,
     activeKey: activeNav,
+    initialReportTab,
     selectedLanguage,
     languages: LANGUAGE_OPTIONS,
     activeDropdown,

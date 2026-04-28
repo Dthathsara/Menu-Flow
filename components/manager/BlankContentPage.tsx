@@ -2,6 +2,7 @@ import { DashboardContent } from "./DashboardContent";
 import { GenerateQrPage } from "./generate-qr/GenerateQrPage";
 import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
 import { ReportsPageView } from "./reports";
+import type { ReportTab } from "./reports/reports.types";
 import { UsersPageView } from "./view-users";
 import { OrdersPageView } from "./view-orders";
 import {
@@ -20,11 +21,13 @@ import type { ManagerNavItem, ManagerSettings } from "./managerTypes";
 interface BlankContentPageProps {
   activeItem: ManagerNavItem;
   settings: ManagerSettings;
+  initialReportTab?: ReportTab;
 }
 
 export function BlankContentPage({
   activeItem,
   settings,
+  initialReportTab = "users",
 }: BlankContentPageProps) {
   if (activeItem.key === "dashboard") {
     return <DashboardContent settings={settings} />;
@@ -47,7 +50,7 @@ export function BlankContentPage({
   }
 
   if (activeItem.key === "reports") {
-    return <ReportsPageView settings={settings} />;
+    return <ReportsPageView settings={settings} initialTab={initialReportTab} />;
   }
 
   return (

@@ -1,6 +1,10 @@
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Brand } from "@/components/Brand";
 import { ClientCompanyCard } from "./ClientCompanyCard";
+import { getManagerNavHref } from "./managerConfig";
 import {
+  ChevronDownIcon,
   DashboardIcon,
   MenuBookIcon,
   OrdersIcon,
@@ -57,6 +61,11 @@ export function Sidebar({
   onSelect,
   onClose,
 }: SidebarProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeReportTab = searchParams.get("tab") === "orders" ? "orders" : "users";
+  const [reportsExpanded, setReportsExpanded] = useState(activeKey === "reports");
+
   if (overlay && !open) {
     return null;
   }
@@ -81,6 +90,60 @@ export function Sidebar({
       : settings.menu === "dark" || settings.scheme === "dark"
         ? "hover:bg-white/7"
         : "hover:bg-slate-50";
+  const submenuRailClasses =
+    settings.menu === "brand"
+      ? "bg-white/12"
+      : settings.menu === "dark" || settings.scheme === "dark"
+        ? "bg-white/10"
+        : "bg-slate-200";
+  const activeSubItemClasses =
+    settings.menu === "brand"
+      ? "bg-white/10 text-white"
+      : settings.menu === "dark" || settings.scheme === "dark"
+        ? "bg-white/8 text-slate-100"
+        : "bg-slate-100 text-slate-900";
+  const idleSubItemClasses =
+    settings.menu === "brand"
+      ? "text-white/74 hover:bg-white/8"
+      : settings.menu === "dark" || settings.scheme === "dark"
+        ? "text-slate-300 hover:bg-white/6"
+        : "text-slate-600 hover:bg-slate-50";
+  const subItemIndicatorClasses =
+    settings.menu === "brand"
+      ? "bg-white/55"
+      : settings.menu === "dark" || settings.scheme === "dark"
+        ? "bg-blue-400"
+        : "bg-blue-500";
+
+  function handleNavigate(key: ManagerNavKey) {
+    onSelect(key);
+
+    const href = getManagerNavHref(key);
+
+    if (href) {
+      router.push(href);
+    }
+
+    onClose?.();
+  }
+
+  function handleReportsClick() {
+    if (activeKey !== "reports") {
+      setReportsExpanded(true);
+      onSelect("reports");
+      router.push(getManagerNavHref("reports", "users") ?? "/manager/reports?tab=users");
+      onClose?.();
+      return;
+    }
+
+    setReportsExpanded((current) => !current);
+  }
+
+  function handleReportTabSelect(tab: "users" | "orders") {
+    onSelect("reports");
+    router.push(getManagerNavHref("reports", tab) ?? `/manager/reports?tab=${tab}`);
+    onClose?.();
+  }
 
   return (
     <>
@@ -154,15 +217,127 @@ export function Sidebar({
             {navItems.map((item) => {
               const Icon = getNavIcon(item.icon);
               const active = item.key === activeKey;
+              const textVisibilityClasses =
+                hideText &&
+                !overlay &&
+                "lg:max-w-0 lg:overflow-hidden lg:opacity-0 lg:transition lg:duration-200 lg:group-hover/sidebar:max-w-[180px] lg:group-hover/sidebar:opacity-100";
+
+              if (item.key === "reports") {
+                const submenuVisible = reportsExpanded;
+
+                return (
+                  <div key={item.key} className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={handleReportsClick}
+                      className={cn(
+                        "group/nav flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left text-l font-medium transition-all duration-200 ease-out active:translate-y-0 active:scale-[0.99]",
+                        active ? activeItemClasses : hoverItemClasses,
+                        !active && (settings.menu === "brand" ? "text-white/86" : ""),
+                        !active &&
+                          (settings.menu === "brand"
+                            ? "hover:translate-x-1 hover:shadow-[0_14px_26px_rgba(15,23,42,0.12)]"
+                            : settings.menu === "dark" || settings.scheme === "dark"
+                              ? "hover:translate-x-1 hover:shadow-[0_14px_28px_rgba(2,6,23,0.18)]"
+                              : "hover:translate-x-1 hover:border-slate-300/90 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)]"),
+                        getFocusRingClasses(settings.scheme),
+                        hideText && !overlay && "justify-center lg:px-0",
+                      )}
+                      aria-expanded={submenuVisible}
+                      aria-controls="reports-submenu"
+                    >
+                      <span
+                        className={cn(
+                          "flex size-11 shrink-0 items-center justify-center rounded-md transition-all duration-200 ease-out group-hover/nav:scale-[1.03]",
+                          active
+                            ? settings.menu === "brand"
+                              ? "bg-white/14"
+                              : "bg-white/10"
+                            : settings.menu === "brand"
+                              ? "bg-white/8"
+                              : settings.menu === "dark" || settings.scheme === "dark"
+                                ? "bg-white/6 group-hover/nav:bg-white/10"
+                                : "bg-slate-100 group-hover/nav:bg-blue-50",
+                        )}
+                      >
+                        <Icon className="size-5 transition-transform duration-200 ease-out group-hover/nav:scale-[1.04]" />
+                      </span>
+
+                      <span className={cn("min-w-0 flex-1", textVisibilityClasses)}>
+                        <span className="block truncate">{item.label}</span>
+                      </span>
+
+                      <ChevronDownIcon
+                        className={cn(
+                          "size-4 shrink-0 transition-transform duration-200",
+                          submenuVisible && "rotate-180",
+                          textVisibilityClasses,
+                        )}
+                      />
+                    </button>
+
+                    <div
+                      id="reports-submenu"
+                      className={cn(
+                        "relative ml-[22px] overflow-hidden pl-5 transition-all duration-200",
+                        submenuVisible ? "max-h-40 opacity-100" : "max-h-0 opacity-0",
+                        hideText &&
+                          !overlay &&
+                          "lg:max-h-0 lg:opacity-0 lg:group-hover/sidebar:max-h-40 lg:group-hover/sidebar:opacity-100",
+                      )}
+                    >
+                      <div className={cn("pointer-events-none absolute bottom-2 left-0 top-2 w-px", submenuRailClasses)} />
+                      <div className="space-y-1.5 pb-1 pt-0.5">
+                        {(["users", "orders"] as const).map((tab) => {
+                          const subActive = active && activeReportTab === tab;
+
+                          return (
+                            <button
+                              key={tab}
+                              type="button"
+                              onClick={() => handleReportTabSelect(tab)}
+                              className={cn(
+                                "relative flex w-full items-center rounded-lg py-2.5 pl-5 pr-3 text-left text-[14px] font-medium transition-all duration-200 ease-out",
+                                subActive ? activeSubItemClasses : idleSubItemClasses,
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "absolute left-0 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2",
+                                  subActive
+                                    ? settings.menu === "brand"
+                                      ? "border-white/30 bg-white"
+                                      : settings.menu === "dark" || settings.scheme === "dark"
+                                        ? "border-slate-950 bg-blue-400"
+                                        : "border-white bg-blue-500"
+                                    : settings.menu === "brand"
+                                      ? "border-white/20 bg-white/20"
+                                      : settings.menu === "dark" || settings.scheme === "dark"
+                                        ? "border-slate-950 bg-white/18"
+                                        : "border-white bg-slate-300",
+                                )}
+                              />
+                              <span
+                                className={cn(
+                                  "absolute left-0 top-1/2 h-px w-4 -translate-y-1/2",
+                                  subActive ? subItemIndicatorClasses : submenuRailClasses,
+                                )}
+                              />
+                              <span className="capitalize">{tab}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <button
                   key={item.key}
                   type="button"
-                  onClick={() => {
-                    onSelect(item.key);
-                    onClose?.();
-                  }}
+                  onClick={() => handleNavigate(item.key)}
                   className={cn(
                     "group/nav flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left text-l font-medium transition-all duration-200 ease-out active:translate-y-0 active:scale-[0.99]",
                     active ? activeItemClasses : hoverItemClasses,
@@ -197,9 +372,7 @@ export function Sidebar({
                   <span
                     className={cn(
                       "min-w-0 flex-1",
-                      hideText &&
-                        !overlay &&
-                        "lg:max-w-0 lg:overflow-hidden lg:opacity-0 lg:transition lg:duration-200 lg:group-hover/sidebar:max-w-[180px] lg:group-hover/sidebar:opacity-100",
+                      textVisibilityClasses,
                     )}
                   >
                     <span className="block truncate">{item.label}</span>

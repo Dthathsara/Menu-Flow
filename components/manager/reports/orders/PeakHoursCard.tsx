@@ -1,8 +1,8 @@
-import { cn, getManagerStrongTextClasses } from "../managerUtils";
-import type { ManagerSettings } from "../managerTypes";
-import { PEAK_HOURS_METRICS } from "./reports.data";
-import { getProgressToneClasses, getTrackClasses } from "./reports.helpers";
-import { ReportsSectionCard } from "./ReportsSectionCard";
+import { cn, getManagerStrongTextClasses } from "../../managerUtils";
+import type { ManagerSettings } from "../../managerTypes";
+import { peakHoursData } from "../reports.data";
+import { getProgressToneClasses, getTrackClasses } from "../reports.helpers";
+import { ReportsSectionCard } from "../ReportsSectionCard";
 
 interface PeakHoursCardProps {
   settings: ManagerSettings;
@@ -18,7 +18,7 @@ export function PeakHoursCard({ settings }: PeakHoursCardProps) {
       className="h-full"
     >
       <div className="space-y-5">
-        {PEAK_HOURS_METRICS.map((item) => (
+        {peakHoursData.map((item) => (
           <div key={item.label}>
             <div
               className={cn(
