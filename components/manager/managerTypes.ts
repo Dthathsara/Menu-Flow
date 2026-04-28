@@ -4,7 +4,8 @@ export type ManagerNavKey =
   | "generate-qr"
   | "users"
   | "reports"
-  | "orders";
+  | "orders"
+  | "billing";
 
 export type LayoutType = "vertical" | "horizontal";
 export type Scheme = "light" | "dark";
@@ -33,7 +34,7 @@ export interface ManagerNavItem {
   label: string;
   pageTitle: string;
   description: string;
-  icon: "dashboard" | "menu" | "qr" | "users" | "reports" | "orders";
+  icon: "dashboard" | "menu" | "qr" | "users" | "reports" | "orders" | "billing";
 }
 
 export interface LanguageOption {

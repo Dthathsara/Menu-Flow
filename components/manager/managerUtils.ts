@@ -341,6 +341,16 @@ export function getManagerDangerButtonClasses(scheme: Scheme) {
   );
 }
 
+export function getManagerSuccessButtonClasses(scheme: Scheme) {
+  return cn(
+    "inline-flex h-11 items-center justify-center rounded-lg border px-5 text-[15px] font-semibold",
+    scheme === "dark"
+      ? "border-emerald-400/18 bg-emerald-500/12 text-emerald-100 hover:bg-emerald-500/18"
+      : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+    getInteractiveSecondaryButtonClasses(scheme),
+  );
+}
+
 export function getToolbarControlClasses(tone: TopbarTone, scheme: Scheme) {
   if (tone === "brand" || tone === "dark") {
     return cn(

@@ -177,6 +177,18 @@ export function OrdersIcon({ className }: IconProps) {
   );
 }
 
+export function BillingIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <rect x="4" y="4" width="16" height="16" rx="2.5" />
+      <path d="M8 9h8" />
+      <path d="M8 13h5" />
+      <path d="M8 17h8" />
+      <path d="M16 12.5h.01" />
+    </BaseIcon>
+  );
+}
+
 export function CheckIcon({ className }: IconProps) {
   return (
     <BaseIcon className={className}>

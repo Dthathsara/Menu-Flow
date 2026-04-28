@@ -54,6 +54,13 @@ export const MANAGER_NAV_ITEMS: ManagerNavItem[] = [
     description: "Reporting workspace placeholder for revenue and operational views.",
     icon: "reports",
   },
+  {
+    key: "billing",
+    label: "Billing",
+    pageTitle: "Billing",
+    description: "Convert QR orders into final bills, collect payments, and manage cashier workflows.",
+    icon: "billing",
+  },
 ];
 
 export const LANGUAGE_OPTIONS: LanguageOption[] = [
@@ -80,6 +87,8 @@ export function getManagerNavHref(
       return "/manager/users";
     case "reports":
       return `/manager/reports?tab=${reportsTab}`;
+    case "billing":
+      return "/manager/billing";
     case "manage-menu":
     default:
       return null;

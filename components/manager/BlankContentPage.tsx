@@ -1,3 +1,4 @@
+import { BillingPageView } from "./billing/BillingPageView";
 import { DashboardContent } from "./DashboardContent";
 import { GenerateQrPage } from "./generate-qr/GenerateQrPage";
 import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
@@ -51,6 +52,10 @@ export function BlankContentPage({
 
   if (activeItem.key === "reports") {
     return <ReportsPageView settings={settings} initialTab={initialReportTab} />;
+  }
+
+  if (activeItem.key === "billing") {
+    return <BillingPageView settings={settings} />;
   }
 
   return (

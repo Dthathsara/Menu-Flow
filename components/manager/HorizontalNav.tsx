@@ -1,6 +1,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { getManagerNavHref } from "./managerConfig";
 import {
+  BillingIcon,
   DashboardIcon,
   MenuBookIcon,
   OrdersIcon,
@@ -20,6 +21,8 @@ interface HorizontalNavProps {
 
 function getNavIcon(icon: ManagerNavItem["icon"]) {
   switch (icon) {
+    case "billing":
+      return BillingIcon;
     case "menu":
       return MenuBookIcon;
     case "qr":

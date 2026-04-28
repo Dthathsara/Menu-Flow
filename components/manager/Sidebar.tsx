@@ -4,6 +4,7 @@ import { Brand } from "@/components/Brand";
 import { ClientCompanyCard } from "./ClientCompanyCard";
 import { getManagerNavHref } from "./managerConfig";
 import {
+  BillingIcon,
   ChevronDownIcon,
   DashboardIcon,
   MenuBookIcon,
@@ -36,6 +37,8 @@ interface SidebarProps {
 
 function getNavIcon(icon: ManagerNavItem["icon"]) {
   switch (icon) {
+    case "billing":
+      return BillingIcon;
     case "menu":
       return MenuBookIcon;
     case "qr":
