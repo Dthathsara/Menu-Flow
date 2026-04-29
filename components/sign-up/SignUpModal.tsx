@@ -2,15 +2,15 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useId, useState } from "react";
-import { primaryButtonClassName } from "@/components/CTAButtons";
+import { primaryButtonClassName } from "@/components/common/buttons";
+import { AuthInputField } from "@/components/common/inputs";
+import { AuthModalShell } from "@/components/common/modals";
 import {
-  AuthInputField,
-  AuthModalShell,
-  type AuthTheme,
   cn,
   getAuthInlineLinkClasses,
   getAuthMutedTextClasses,
-} from "@/components/login/LoginModal";
+  type AuthTheme,
+} from "@/components/common/theme";
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);

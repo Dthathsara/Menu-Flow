@@ -1,14 +1,14 @@
-import { BenefitsSection } from "@/components/BenefitsSection";
-import { ContactSection } from "@/components/ContactSection";
-import { FeaturesSection } from "@/components/FeaturesSection";
-import { Footer } from "@/components/Footer";
-import { FAQSection } from "@/components/FAQSection";
-import { HeroSection } from "@/components/HeroSection";
-import { HowItWorksSection } from "@/components/HowItWorksSection";
-import { Navbar } from "@/components/Navbar";
-import { PricingSection } from "@/components/PricingSection";
-import { SolutionsSection } from "@/components/SolutionsSection";
-import { TestimonialsSection } from "@/components/TestimonialsSection";
+import { BenefitsSection } from "@/components/homepage/BenefitsSection";
+import { ContactSection } from "@/components/homepage/ContactSection";
+import { FeaturesSection } from "@/components/homepage/FeaturesSection";
+import { Footer } from "@/components/homepage/Footer";
+import { FAQSection } from "@/components/homepage/FAQSection";
+import { HeroSection } from "@/components/homepage/HeroSection";
+import { HowItWorksSection } from "@/components/homepage/HowItWorksSection";
+import { Navbar } from "@/components/homepage/Navbar";
+import { PricingSection } from "@/components/homepage/PricingSection";
+import { SolutionsSection } from "@/components/homepage/SolutionsSection";
+import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
 
 export default function Home() {
   return (

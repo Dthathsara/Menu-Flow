@@ -2,8 +2,9 @@
 
 import { MouseEvent, type ComponentPropsWithoutRef } from "react";
 
+import { SECTION_GAP } from "@/components/common/spacing";
+
 const HASH_LINK_PATTERN = /^#[a-z0-9-]+$/i;
-const SECTION_GAP = 16;
 
 type SectionLinkProps = ComponentPropsWithoutRef<"a"> & {
   navigationDelay?: number;

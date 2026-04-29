@@ -5,11 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import {
   primaryButtonClassName,
   secondaryButtonClassName,
-} from "@/components/CTAButtons";
-import { LoginModal, type AuthTheme, cn } from "@/components/login/LoginModal";
-import { scrollToSection, SectionLink } from "@/components/SectionLink";
-import { SignUpModal } from "@/components/sign up/SignUpModal";
-import { primaryNavLinks } from "@/components/siteNavigation";
+} from "@/components/common/buttons";
+import { cn, type AuthTheme } from "@/components/common/theme";
+import { SectionLink, scrollToSection } from "@/components/homepage/SectionLink";
+import { primaryNavLinks } from "@/components/homepage/siteNavigation";
+import { LoginModal } from "@/components/login/LoginModal";
+import { SignUpModal } from "@/components/sign-up/SignUpModal";
 
 function LogoMark() {
   return (

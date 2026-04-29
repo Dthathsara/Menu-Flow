@@ -1,5 +1,4 @@
-import { FloatingInfoCard } from "@/components/FloatingInfoCard";
-import { StatCard } from "@/components/StatCard";
+import { FloatingInfoCard, StatCard } from "@/components/common/cards";
 
 const stats = [
   {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Brand } from "@/components/Brand";
+import { Brand } from "@/components/common/Brand";
 import { ClientCompanyCard } from "./ClientCompanyCard";
 import { getManagerNavHref } from "./managerConfig";
 import {
