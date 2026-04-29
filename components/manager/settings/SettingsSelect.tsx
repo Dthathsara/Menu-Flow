@@ -5,7 +5,6 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon } from "../icons";
 import {
   cn,
-  getManagerControlShellClasses,
   getPopoverClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
@@ -221,9 +220,11 @@ export function SettingsSelect<T extends string>({
           }}
           onKeyDown={handleTriggerKeyDown}
           className={cn(
-            getManagerControlShellClasses(settings.scheme),
-            "h-10 w-full justify-between rounded-[14px] px-4 text-left text-[15px] font-medium",
-            settings.scheme === "dark" ? "bg-slate-950/48" : "bg-white",
+            "w-full h-[44px] justify-between rounded-xl px-4 text-left text-[15px] font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40",
+            settings.scheme === "dark"
+              ? "border border-white/10 bg-white/[0.03] text-white"
+              : "border border-slate-200 bg-white text-slate-900",
+            "inline-flex items-center transition-all duration-200 ease-out",
           )}
         >
           <span className="min-w-0 truncate">{selectedOption?.label ?? label}</span>

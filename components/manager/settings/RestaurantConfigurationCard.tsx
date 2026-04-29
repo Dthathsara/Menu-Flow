@@ -8,8 +8,6 @@ import {
   SERVICE_TYPE_OPTIONS,
 } from "./settings.data";
 import {
-  getSettingsFieldLabelClasses,
-  getSettingsInputClasses,
   getSettingsPillClasses,
   getSettingsSurfaceClasses,
 } from "./settings.helpers";
@@ -20,6 +18,39 @@ interface RestaurantConfigurationCardProps {
   settings: ManagerSettings;
   value: RestaurantConfigurationSettings;
   onChange: (value: RestaurantConfigurationSettings) => void;
+}
+
+function getConfigurationInputClasses(settings: ManagerSettings) {
+  return cn(
+    "w-full h-[44px] rounded-xl px-4 text-[15px] focus:outline-none focus:ring-2 focus:ring-blue-500/40",
+    settings.scheme === "dark"
+      ? "border border-white/10 bg-white/[0.03] text-white placeholder:text-slate-500"
+      : "border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400",
+  );
+}
+
+function ConfigurationField({
+  settings,
+  label,
+  children,
+}: {
+  settings: ManagerSettings;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex w-full flex-col gap-2">
+      <label
+        className={cn(
+          "text-sm",
+          settings.scheme === "dark" ? "text-slate-400" : "text-slate-500",
+        )}
+      >
+        {label}
+      </label>
+      {children}
+    </div>
+  );
 }
 
 function TimeInput({
@@ -34,17 +65,16 @@ function TimeInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <div>
-      <label className={getSettingsFieldLabelClasses(settings.scheme)}>{label}</label>
-      <div className="relative">
+    <ConfigurationField settings={settings} label={label}>
+      <div className="relative w-full">
         <input
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className={cn(getSettingsInputClasses(settings.scheme), "pr-10")}
+          className={cn(getConfigurationInputClasses(settings), "pr-10")}
         />
         <ClockIcon className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
       </div>
-    </div>
+    </ConfigurationField>
   );
 }
 
@@ -65,9 +95,8 @@ export function RestaurantConfigurationCard({
         <span className={getSettingsPillClasses(settings.scheme)}>BUSINESS RULES</span>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label className={getSettingsFieldLabelClasses(settings.scheme)}>Business Type</label>
+      <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+        <ConfigurationField settings={settings} label="Business Type">
           <SettingsSelect
             label="Business Type"
             options={BUSINESS_TYPE_OPTIONS}
@@ -75,9 +104,8 @@ export function RestaurantConfigurationCard({
             onChange={(businessType) => onChange({ ...value, businessType })}
             settings={settings}
           />
-        </div>
-        <div>
-          <label className={getSettingsFieldLabelClasses(settings.scheme)}>Default Service Type</label>
+        </ConfigurationField>
+        <ConfigurationField settings={settings} label="Default Service Type">
           <SettingsSelect
             label="Default Service Type"
             options={SERVICE_TYPE_OPTIONS}
@@ -85,23 +113,21 @@ export function RestaurantConfigurationCard({
             onChange={(defaultServiceType) => onChange({ ...value, defaultServiceType })}
             settings={settings}
           />
-        </div>
-        <div>
-          <label className={getSettingsFieldLabelClasses(settings.scheme)}>Tax Rate (%)</label>
+        </ConfigurationField>
+        <ConfigurationField settings={settings} label="Tax Rate (%)">
           <input
             value={value.taxRate}
             onChange={(event) => onChange({ ...value, taxRate: event.target.value })}
-            className={getSettingsInputClasses(settings.scheme)}
+            className={getConfigurationInputClasses(settings)}
           />
-        </div>
-        <div>
-          <label className={getSettingsFieldLabelClasses(settings.scheme)}>Service Charge (%)</label>
+        </ConfigurationField>
+        <ConfigurationField settings={settings} label="Service Charge (%)">
           <input
             value={value.serviceCharge}
             onChange={(event) => onChange({ ...value, serviceCharge: event.target.value })}
-            className={getSettingsInputClasses(settings.scheme)}
+            className={getConfigurationInputClasses(settings)}
           />
-        </div>
+        </ConfigurationField>
         <TimeInput
           settings={settings}
           label="Opening Time"
@@ -114,8 +140,7 @@ export function RestaurantConfigurationCard({
           value={value.closingTime}
           onChange={(closingTime) => onChange({ ...value, closingTime })}
         />
-        <div>
-          <label className={getSettingsFieldLabelClasses(settings.scheme)}>Currency</label>
+        <ConfigurationField settings={settings} label="Currency">
           <SettingsSelect
             label="Currency"
             options={CURRENCY_OPTIONS}
@@ -123,9 +148,8 @@ export function RestaurantConfigurationCard({
             onChange={(currency) => onChange({ ...value, currency })}
             settings={settings}
           />
-        </div>
-        <div>
-          <label className={getSettingsFieldLabelClasses(settings.scheme)}>Order Timeout</label>
+        </ConfigurationField>
+        <ConfigurationField settings={settings} label="Order Timeout">
           <SettingsSelect
             label="Order Timeout"
             options={ORDER_TIMEOUT_OPTIONS}
@@ -133,7 +157,7 @@ export function RestaurantConfigurationCard({
             onChange={(orderTimeout) => onChange({ ...value, orderTimeout })}
             settings={settings}
           />
-        </div>
+        </ConfigurationField>
       </div>
     </section>
   );
