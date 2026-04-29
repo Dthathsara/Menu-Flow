@@ -1,12 +1,13 @@
 import { BlankContentPage } from "./BlankContentPage";
 import { HorizontalNav } from "./HorizontalNav";
 import { Topbar } from "./Topbar";
+import type { ReportTab } from "./reports/reports.types";
+import type { RestaurantProfile } from "./settings/settings.types";
 import {
   cn,
   getContentAreaClasses,
   getDetachedFrameClasses,
 } from "./managerUtils";
-import type { ReportTab } from "./reports/reports.types";
 import type {
   LanguageOption,
   ManagerNavItem,
@@ -20,17 +21,21 @@ interface HorizontalShellProps {
   activeItem: ManagerNavItem;
   activeKey: ManagerNavKey;
   initialReportTab: ReportTab;
+  reportTab: ReportTab;
+  restaurantProfile: RestaurantProfile;
   selectedLanguage: LanguageOption;
   languages: LanguageOption[];
   activeDropdown: "language" | "profile" | null;
   navigationOpen: boolean;
   onSelectNav: (key: ManagerNavKey) => void;
+  onSelectReportTab: (tab: ReportTab) => void;
   onToggleNavigation: () => void;
   onCloseNavigation: () => void;
   onToggleTheme: () => void;
   onToggleDropdown: (dropdown: "language" | "profile") => void;
   onCloseDropdowns: () => void;
   onSelectLanguage: (language: LanguageOption) => void;
+  onUpdateRestaurantProfile: (profile: RestaurantProfile) => void;
 }
 
 export function HorizontalShell({
@@ -39,21 +44,26 @@ export function HorizontalShell({
   activeItem,
   activeKey,
   initialReportTab,
+  reportTab,
+  restaurantProfile,
   selectedLanguage,
   languages,
   activeDropdown,
   navigationOpen,
   onSelectNav,
+  onSelectReportTab,
   onToggleNavigation,
   onCloseNavigation,
   onToggleTheme,
   onToggleDropdown,
   onCloseDropdowns,
   onSelectLanguage,
+  onUpdateRestaurantProfile,
 }: HorizontalShellProps) {
   const frameClasses = getDetachedFrameClasses(settings.scheme);
   void navigationOpen;
   void onCloseNavigation;
+  void onSelectReportTab;
 
   const content = (
     <>
@@ -75,6 +85,7 @@ export function HorizontalShell({
         settings={settings}
         navItems={navItems}
         activeKey={activeKey}
+        reportTab={reportTab}
         onSelect={onSelectNav}
       />
 
@@ -88,6 +99,8 @@ export function HorizontalShell({
           activeItem={activeItem}
           settings={settings}
           initialReportTab={initialReportTab}
+          restaurantProfile={restaurantProfile}
+          onUpdateRestaurantProfile={onUpdateRestaurantProfile}
         />
       </main>
     </>

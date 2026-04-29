@@ -1,4 +1,4 @@
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getManagerNavHref } from "./managerConfig";
 import {
   BillingIcon,
@@ -7,20 +7,25 @@ import {
   OrdersIcon,
   QrCodeIcon,
   ReportsIcon,
+  SettingsIcon,
   UsersIcon,
 } from "./icons";
 import { cn, getHorizontalNavToneClasses } from "./managerUtils";
 import type { ManagerNavItem, ManagerNavKey, ManagerSettings } from "./managerTypes";
+import type { ReportTab } from "./reports/reports.types";
 
 interface HorizontalNavProps {
   settings: ManagerSettings;
   navItems: ManagerNavItem[];
   activeKey: ManagerNavKey;
+  reportTab: ReportTab;
   onSelect: (key: ManagerNavKey) => void;
 }
 
 function getNavIcon(icon: ManagerNavItem["icon"]) {
   switch (icon) {
+    case "settings":
+      return SettingsIcon;
     case "billing":
       return BillingIcon;
     case "menu":
@@ -43,11 +48,10 @@ export function HorizontalNav({
   settings,
   navItems,
   activeKey,
+  reportTab,
   onSelect,
 }: HorizontalNavProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const activeReportTab = searchParams.get("tab") === "orders" ? "orders" : "users";
   const navClasses = getHorizontalNavToneClasses(settings.menu, settings.scheme);
   const activeClasses =
     settings.menu === "brand"
@@ -85,7 +89,7 @@ export function HorizontalNav({
                 onSelect(item.key);
                 const href =
                   item.key === "reports"
-                    ? getManagerNavHref("reports", activeReportTab)
+                    ? getManagerNavHref("reports", reportTab)
                     : getManagerNavHref(item.key);
 
                 if (href) {

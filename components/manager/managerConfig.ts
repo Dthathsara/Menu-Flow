@@ -61,6 +61,13 @@ export const MANAGER_NAV_ITEMS: ManagerNavItem[] = [
     description: "Convert QR orders into final bills, collect payments, and manage cashier workflows.",
     icon: "billing",
   },
+  {
+    key: "settings",
+    label: "Settings",
+    pageTitle: "Settings",
+    description: "Customize restaurant workflows, profile details, theme preferences, and business rules.",
+    icon: "settings",
+  },
 ];
 
 export const LANGUAGE_OPTIONS: LanguageOption[] = [
@@ -89,6 +96,8 @@ export function getManagerNavHref(
       return `/manager/reports?tab=${reportsTab}`;
     case "billing":
       return "/manager/billing";
+    case "settings":
+      return "/manager/settings";
     case "manage-menu":
     default:
       return null;

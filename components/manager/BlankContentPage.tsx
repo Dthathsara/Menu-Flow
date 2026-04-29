@@ -4,6 +4,8 @@ import { GenerateQrPage } from "./generate-qr/GenerateQrPage";
 import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
 import { ReportsPageView } from "./reports";
 import type { ReportTab } from "./reports/reports.types";
+import { SettingsPageView } from "./settings/SettingsPageView";
+import type { RestaurantProfile } from "./settings/settings.types";
 import { UsersPageView } from "./view-users";
 import { OrdersPageView } from "./view-orders";
 import {
@@ -23,12 +25,16 @@ interface BlankContentPageProps {
   activeItem: ManagerNavItem;
   settings: ManagerSettings;
   initialReportTab?: ReportTab;
+  restaurantProfile: RestaurantProfile;
+  onUpdateRestaurantProfile: (profile: RestaurantProfile) => void;
 }
 
 export function BlankContentPage({
   activeItem,
   settings,
   initialReportTab = "users",
+  restaurantProfile,
+  onUpdateRestaurantProfile,
 }: BlankContentPageProps) {
   if (activeItem.key === "dashboard") {
     return <DashboardContent settings={settings} />;
@@ -56,6 +62,16 @@ export function BlankContentPage({
 
   if (activeItem.key === "billing") {
     return <BillingPageView settings={settings} />;
+  }
+
+  if (activeItem.key === "settings") {
+    return (
+      <SettingsPageView
+        settings={settings}
+        restaurantProfile={restaurantProfile}
+        onUpdateRestaurantProfile={onUpdateRestaurantProfile}
+      />
+    );
   }
 
   return (

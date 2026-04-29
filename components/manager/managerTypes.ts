@@ -5,7 +5,8 @@ export type ManagerNavKey =
   | "users"
   | "reports"
   | "orders"
-  | "billing";
+  | "billing"
+  | "settings";
 
 export type LayoutType = "vertical" | "horizontal";
 export type Scheme = "light" | "dark";
@@ -34,7 +35,7 @@ export interface ManagerNavItem {
   label: string;
   pageTitle: string;
   description: string;
-  icon: "dashboard" | "menu" | "qr" | "users" | "reports" | "orders" | "billing";
+  icon: "dashboard" | "menu" | "qr" | "users" | "reports" | "orders" | "billing" | "settings";
 }
 
 export interface LanguageOption {

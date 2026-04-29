@@ -1,8 +1,9 @@
 import { BlankContentPage } from "./BlankContentPage";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
-import { cn, getContentAreaClasses, getDetachedFrameClasses, hasPersistentSidebar } from "./managerUtils";
 import type { ReportTab } from "./reports/reports.types";
+import type { RestaurantProfile } from "./settings/settings.types";
+import { cn, getContentAreaClasses, getDetachedFrameClasses, hasPersistentSidebar } from "./managerUtils";
 import type {
   LanguageOption,
   ManagerNavItem,
@@ -16,17 +17,21 @@ interface VerticalShellProps {
   activeItem: ManagerNavItem;
   activeKey: ManagerNavKey;
   initialReportTab: ReportTab;
+  reportTab: ReportTab;
+  restaurantProfile: RestaurantProfile;
   selectedLanguage: LanguageOption;
   languages: LanguageOption[];
   activeDropdown: "language" | "profile" | null;
   navigationOpen: boolean;
   onSelectNav: (key: ManagerNavKey) => void;
+  onSelectReportTab: (tab: ReportTab) => void;
   onToggleNavigation: () => void;
   onCloseNavigation: () => void;
   onToggleTheme: () => void;
   onToggleDropdown: (dropdown: "language" | "profile") => void;
   onCloseDropdowns: () => void;
   onSelectLanguage: (language: LanguageOption) => void;
+  onUpdateRestaurantProfile: (profile: RestaurantProfile) => void;
 }
 
 export function VerticalShell({
@@ -35,17 +40,21 @@ export function VerticalShell({
   activeItem,
   activeKey,
   initialReportTab,
+  reportTab,
+  restaurantProfile,
   selectedLanguage,
   languages,
   activeDropdown,
   navigationOpen,
   onSelectNav,
+  onSelectReportTab,
   onToggleNavigation,
   onCloseNavigation,
   onToggleTheme,
   onToggleDropdown,
   onCloseDropdowns,
   onSelectLanguage,
+  onUpdateRestaurantProfile,
 }: VerticalShellProps) {
   const persistentSidebar = hasPersistentSidebar(settings.sidebarSize);
   const menuButtonClassName = persistentSidebar ? "lg:hidden" : "inline-flex";
@@ -65,7 +74,10 @@ export function VerticalShell({
                 settings={settings}
                 activeKey={activeKey}
                 navItems={navItems}
+                reportTab={reportTab}
+                restaurantProfile={restaurantProfile}
                 onSelect={onSelectNav}
+                onSelectReportTab={onSelectReportTab}
               />
             ) : null}
 
@@ -94,6 +106,8 @@ export function VerticalShell({
                   activeItem={activeItem}
                   settings={settings}
                   initialReportTab={initialReportTab}
+                  restaurantProfile={restaurantProfile}
+                  onUpdateRestaurantProfile={onUpdateRestaurantProfile}
                 />
               </main>
             </div>
@@ -104,9 +118,12 @@ export function VerticalShell({
           settings={settings}
           activeKey={activeKey}
           navItems={navItems}
+          reportTab={reportTab}
+          restaurantProfile={restaurantProfile}
           overlay
           open={navigationOpen}
           onSelect={onSelectNav}
+          onSelectReportTab={onSelectReportTab}
           onClose={onCloseNavigation}
         />
       </div>
@@ -121,7 +138,10 @@ export function VerticalShell({
             settings={settings}
             activeKey={activeKey}
             navItems={navItems}
+            reportTab={reportTab}
+            restaurantProfile={restaurantProfile}
             onSelect={onSelectNav}
+            onSelectReportTab={onSelectReportTab}
           />
         ) : null}
 
@@ -150,6 +170,8 @@ export function VerticalShell({
               activeItem={activeItem}
               settings={settings}
               initialReportTab={initialReportTab}
+              restaurantProfile={restaurantProfile}
+              onUpdateRestaurantProfile={onUpdateRestaurantProfile}
             />
           </main>
         </div>
@@ -159,9 +181,12 @@ export function VerticalShell({
         settings={settings}
         activeKey={activeKey}
         navItems={navItems}
+        reportTab={reportTab}
+        restaurantProfile={restaurantProfile}
         overlay
         open={navigationOpen}
         onSelect={onSelectNav}
+        onSelectReportTab={onSelectReportTab}
         onClose={onCloseNavigation}
       />
     </div>

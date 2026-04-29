@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Brand } from "@/components/Brand";
 import { ClientCompanyCard } from "./ClientCompanyCard";
 import { getManagerNavHref } from "./managerConfig";
@@ -10,8 +10,9 @@ import {
   MenuBookIcon,
   OrdersIcon,
   QrCodeIcon,
-  UsersIcon,
   ReportsIcon,
+  SettingsIcon,
+  UsersIcon,
   XIcon,
 } from "./icons";
 import {
@@ -24,19 +25,26 @@ import {
   isHoverSidebar,
 } from "./managerUtils";
 import type { ManagerNavItem, ManagerNavKey, ManagerSettings } from "./managerTypes";
+import type { ReportTab } from "./reports/reports.types";
+import type { RestaurantProfile } from "./settings/settings.types";
 
 interface SidebarProps {
   settings: ManagerSettings;
   activeKey: ManagerNavKey;
   navItems: ManagerNavItem[];
+  reportTab: ReportTab;
+  restaurantProfile: RestaurantProfile;
   overlay?: boolean;
   open?: boolean;
   onSelect: (key: ManagerNavKey) => void;
+  onSelectReportTab: (tab: ReportTab) => void;
   onClose?: () => void;
 }
 
 function getNavIcon(icon: ManagerNavItem["icon"]) {
   switch (icon) {
+    case "settings":
+      return SettingsIcon;
     case "billing":
       return BillingIcon;
     case "menu":
@@ -59,14 +67,15 @@ export function Sidebar({
   settings,
   activeKey,
   navItems,
+  reportTab,
+  restaurantProfile,
   overlay = false,
   open = true,
   onSelect,
+  onSelectReportTab,
   onClose,
 }: SidebarProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const activeReportTab = searchParams.get("tab") === "orders" ? "orders" : "users";
   const [reportsExpanded, setReportsExpanded] = useState(activeKey === "reports");
 
   if (overlay && !open) {
@@ -134,7 +143,7 @@ export function Sidebar({
     if (activeKey !== "reports") {
       setReportsExpanded(true);
       onSelect("reports");
-      router.push(getManagerNavHref("reports", "users") ?? "/manager/reports?tab=users");
+      router.push(getManagerNavHref("reports", reportTab) ?? `/manager/reports?tab=${reportTab}`);
       onClose?.();
       return;
     }
@@ -143,6 +152,7 @@ export function Sidebar({
   }
 
   function handleReportTabSelect(tab: "users" | "orders") {
+    onSelectReportTab(tab);
     onSelect("reports");
     router.push(getManagerNavHref("reports", tab) ?? `/manager/reports?tab=${tab}`);
     onClose?.();
@@ -203,6 +213,7 @@ export function Sidebar({
                 settings.menu === "dark" ||
                 settings.scheme === "dark"
               }
+              profile={restaurantProfile}
             />
           </div>
 
@@ -292,7 +303,7 @@ export function Sidebar({
                       <div className={cn("pointer-events-none absolute bottom-2 left-0 top-2 w-px", submenuRailClasses)} />
                       <div className="space-y-1.5 pb-1 pt-0.5">
                         {(["users", "orders"] as const).map((tab) => {
-                          const subActive = active && activeReportTab === tab;
+                          const subActive = active && reportTab === tab;
 
                           return (
                             <button
