@@ -3,6 +3,7 @@ import { getManagerNavHref } from "./managerConfig";
 import {
   BillingIcon,
   DashboardIcon,
+  InvoiceIcon,
   MenuBookIcon,
   OrdersIcon,
   QrCodeIcon,
@@ -28,6 +29,8 @@ function getNavIcon(icon: ManagerNavItem["icon"]) {
       return SettingsIcon;
     case "billing":
       return BillingIcon;
+    case "invoices":
+      return InvoiceIcon;
     case "menu":
       return MenuBookIcon;
     case "qr":

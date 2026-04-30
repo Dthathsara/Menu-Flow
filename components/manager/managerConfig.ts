@@ -62,6 +62,13 @@ export const MANAGER_NAV_ITEMS: ManagerNavItem[] = [
     icon: "billing",
   },
   {
+    key: "invoices",
+    label: "Invoices",
+    pageTitle: "Invoices",
+    description: "Manage subscription invoices, package renewals, payment methods, and plan changes.",
+    icon: "invoices",
+  },
+  {
     key: "settings",
     label: "Settings",
     pageTitle: "Settings",
@@ -96,6 +103,8 @@ export function getManagerNavHref(
       return `/manager/reports?tab=${reportsTab}`;
     case "billing":
       return "/manager/billing";
+    case "invoices":
+      return "/manager/invoices";
     case "settings":
       return "/manager/settings";
     case "manage-menu":

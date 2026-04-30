@@ -1,6 +1,7 @@
 import { BillingPageView } from "./billing/BillingPageView";
 import { DashboardContent } from "./DashboardContent";
 import { GenerateQrPage } from "./generate-qr/GenerateQrPage";
+import { InvoicePageView } from "./invoices/InvoicePageView";
 import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
 import { ReportsPageView } from "./reports";
 import type { ReportTab } from "./reports/reports.types";
@@ -72,6 +73,10 @@ export function BlankContentPage({
         onUpdateRestaurantProfile={onUpdateRestaurantProfile}
       />
     );
+  }
+
+  if (activeItem.key === "invoices") {
+    return <InvoicePageView settings={settings} />;
   }
 
   return (

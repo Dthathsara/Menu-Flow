@@ -189,6 +189,18 @@ export function BillingIcon({ className }: IconProps) {
   );
 }
 
+export function InvoiceIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <path d="M8 3.5h6l4 4V20a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 7 20V5a1.5 1.5 0 0 1 1-1.4Z" />
+      <path d="M14 3.5V8h4" />
+      <path d="M9.5 12h5" />
+      <path d="M9.5 16h5" />
+      <path d="m9.5 8.8 1.2 1.2 2.2-2.2" />
+    </BaseIcon>
+  );
+}
+
 export function CheckIcon({ className }: IconProps) {
   return (
     <BaseIcon className={className}>

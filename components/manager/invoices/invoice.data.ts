@@ -1,0 +1,223 @@
+import type {
+  InvoiceHistoryStatusFilter,
+  InvoiceRecord,
+  PaymentMethodRecord,
+  PlanId,
+  SubscriptionPlan,
+} from "./invoice.types";
+
+export const BILLING_EMAIL = "admin@dragoncafe.lk";
+export const RESTAURANT_ADDRESS = "Bambalapitiya, Colombo";
+export const COMPANY_ADDRESS = "Colombo, Sri Lanka";
+
+export const PLAN_ORDER: PlanId[] = ["starter", "growth", "premium"];
+
+export const SUBSCRIPTION_PLANS: Record<PlanId, SubscriptionPlan> = {
+  starter: {
+    id: "starter",
+    tier: 0,
+    label: "Starter",
+    planName: "Starter Plan",
+    billingLabel: "Starter Monthly",
+    priceDisplay: "Rs. 8,500",
+    priceUnit: "/mo",
+    headlineDescription:
+      "For small cafes and single-location restaurants using MenuFlow for QR menu access and daily updates.",
+    currentPackageDescription:
+      "For small cafes and single-location restaurants using MenuFlow for QR menu access and daily updates.",
+    billingCycle: "Monthly",
+    billingCycleDescription: "Auto-renewed every month.",
+    nextRenewal: "May 18",
+    nextRenewalDescription: "Subscription renews on May 18, 2026.",
+    amountDue: "Rs. 8,874",
+    amountDueDescription: "Including tax and service charges.",
+    taxDisplay: "Rs. 374",
+    discountDisplay: "Rs. 0",
+    totalDisplay: "Rs. 8,874",
+    packageType: "Monthly",
+    startedDate: "February 28, 2026",
+    renewalDate: "May 18, 2026",
+    restaurantName: "Chinese Dragon Cafe",
+    usage: {
+      locations: { used: 2, limit: 1 },
+      qrTables: { used: 33, limit: 50 },
+    },
+    renewalNoticeTitle: "Your package renews automatically on May 18, 2026.",
+    renewalNoticeBody:
+      "Keep your payment method active to avoid QR menu or dashboard interruptions.",
+    features: [
+      "1 location",
+      "QR menu access",
+      "Category setup",
+      "Basic analytics",
+    ],
+    latestInvoiceId: "INV-2341",
+    latestBillingDate: "April 28, 2026",
+    latestRenewalDate: "May 18, 2026",
+    changePlanLabel: "Starter - Rs. 8,500",
+    invoiceLineLabel: "MenuFlow Starter Plan",
+    invoiceCycle: "Monthly",
+    invoiceLineAmount: "Rs. 8,500",
+  },
+  growth: {
+    id: "growth",
+    tier: 1,
+    label: "Growth",
+    planName: "Growth Plan",
+    billingLabel: "Growth Monthly",
+    priceDisplay: "Rs. 23,500",
+    priceUnit: "/mo",
+    headlineDescription:
+      "Your current package for growing restaurants with QR ordering, live menu updates, table billing, and analytics.",
+    currentPackageDescription:
+      "Built for growing restaurants with QR ordering, live menu updates, table billing, staff controls, and advanced analytics.",
+    billingCycle: "Monthly",
+    billingCycleDescription: "Auto-renewed every month.",
+    nextRenewal: "May 28",
+    nextRenewalDescription: "Subscription renews on May 28, 2026.",
+    amountDue: "Rs. 24,176",
+    amountDueDescription: "Including tax and service charges.",
+    taxDisplay: "Rs. 676",
+    discountDisplay: "Rs. 0",
+    totalDisplay: "Rs. 24,176",
+    packageType: "Monthly",
+    startedDate: "April 28, 2026",
+    renewalDate: "May 28, 2026",
+    restaurantName: "Chinese Dragon Cafe",
+    usage: {
+      locations: { used: 2, limit: 5 },
+      qrTables: { used: 38, limit: 100 },
+    },
+    renewalNoticeTitle: "Your package renews automatically on May 28, 2026.",
+    renewalNoticeBody:
+      "Keep your payment method active to avoid QR menu or dashboard interruptions.",
+    features: [
+      "Up to 5 locations",
+      "Live menu updates",
+      "Order management",
+      "Advanced analytics",
+    ],
+    latestInvoiceId: "INV-2041",
+    latestBillingDate: "April 28, 2026",
+    latestRenewalDate: "May 28, 2026",
+    changePlanLabel: "Growth - Rs. 23,500",
+    invoiceLineLabel: "MenuFlow Growth Plan",
+    invoiceCycle: "Monthly",
+    invoiceLineAmount: "Rs. 23,500",
+  },
+  premium: {
+    id: "premium",
+    tier: 2,
+    label: "Premium",
+    planName: "Premium Plan",
+    billingLabel: "Premium Custom",
+    priceDisplay: "Custom",
+    priceUnit: "",
+    headlineDescription:
+      "For hotels, franchises, and enterprise brands that need white-label delivery, priority support, and custom onboarding.",
+    currentPackageDescription:
+      "For hotels, franchises, and enterprise brands that need white-label delivery, priority support, and custom onboarding.",
+    billingCycle: "Custom",
+    billingCycleDescription: "Custom enterprise billing schedule.",
+    nextRenewal: "Custom",
+    nextRenewalDescription: "Subscription renews on custom contract renewal.",
+    amountDue: "Custom Quote",
+    amountDueDescription: "Custom pricing with enterprise billing.",
+    taxDisplay: "Custom",
+    discountDisplay: "Rs. 0",
+    totalDisplay: "Custom Quote",
+    packageType: "Custom",
+    startedDate: "June 1, 2026",
+    renewalDate: "Custom contract renewal",
+    restaurantName: "Chinese Dragon Cafe",
+    usage: {
+      locations: { used: 2, limit: 25 },
+      qrTables: { used: 35, limit: 500 },
+    },
+    renewalNoticeTitle: "Your package renews automatically on custom contract renewal.",
+    renewalNoticeBody:
+      "Keep your payment method active to avoid QR menu or dashboard interruptions.",
+    features: [
+      "Unlimited locations",
+      "White-label options",
+      "Priority support",
+      "Custom onboarding",
+    ],
+    latestInvoiceId: "INV-2341",
+    latestBillingDate: "April 28, 2026",
+    latestRenewalDate: "Custom contract renewal",
+    changePlanLabel: "Premium - Custom pricing",
+    invoiceLineLabel: "MenuFlow Premium Plan",
+    invoiceCycle: "Custom",
+    invoiceLineAmount: "Custom",
+  },
+};
+
+export const INVOICE_STATUS_FILTER_OPTIONS: InvoiceHistoryStatusFilter[] = [
+  "All Status",
+  "Paid",
+];
+
+export const ARCHIVED_INVOICES: InvoiceRecord[] = [
+  {
+    id: "INV-2040",
+    packageLabel: "Growth Monthly",
+    billingDate: "March 28, 2026",
+    renewalDate: "April 28, 2026",
+    amount: "Rs. 24,176",
+    status: "Paid",
+    invoiceLineLabel: "MenuFlow Growth Plan",
+    cycle: "Monthly",
+    lineAmount: "Rs. 23,500",
+    taxDisplay: "Rs. 676",
+    discountDisplay: "Rs. 0",
+    totalDisplay: "Rs. 24,176",
+  },
+  {
+    id: "INV-2039",
+    packageLabel: "Starter Monthly",
+    billingDate: "February 28, 2026",
+    renewalDate: "March 28, 2026",
+    amount: "Rs. 8,874",
+    status: "Paid",
+    invoiceLineLabel: "MenuFlow Starter Plan",
+    cycle: "Monthly",
+    lineAmount: "Rs. 8,500",
+    taxDisplay: "Rs. 374",
+    discountDisplay: "Rs. 0",
+    totalDisplay: "Rs. 8,874",
+  },
+  {
+    id: "INV-2038",
+    packageLabel: "Starter Monthly",
+    billingDate: "January 28, 2026",
+    renewalDate: "February 28, 2026",
+    amount: "Rs. 8,874",
+    status: "Paid",
+    invoiceLineLabel: "MenuFlow Starter Plan",
+    cycle: "Monthly",
+    lineAmount: "Rs. 8,500",
+    taxDisplay: "Rs. 374",
+    discountDisplay: "Rs. 0",
+    totalDisplay: "Rs. 8,874",
+  },
+];
+
+export const DEFAULT_PAYMENT_METHODS: PaymentMethodRecord[] = [
+  {
+    id: "visa-4821",
+    label: "Visa ending 4821",
+    holderName: "Maxine Perera",
+    cardNumber: "4242 4242 4242 4821",
+    expiryDate: "12 / 28",
+    cvc: "123",
+  },
+  {
+    id: "mastercard-9014",
+    label: "Mastercard ending 9014",
+    holderName: "Maxine Perera",
+    cardNumber: "5555 4444 3333 9014",
+    expiryDate: "09 / 29",
+    cvc: "345",
+  },
+];
