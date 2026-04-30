@@ -20,7 +20,6 @@ export type SidebarSize =
   | "hover"
   | "full"
   | "hidden";
-export type SummaryMetricAccent = "blue" | "amber" | "purple" | "green" | "teal" | "red";
 
 export interface ManagerSettings {
   layoutType: LayoutType;

@@ -1,5 +1,5 @@
+import { SummaryCard } from "@/components/common/SummaryCard";
 import type { ManagerSettings } from "../managerTypes";
-import { SummaryMetricCard } from "../SummaryMetricCard";
 import { getReportsMicroLabelClasses, getReportsMutedTextClasses } from "./reports.helpers";
 import type { ReportStat } from "./reports.types";
 
@@ -10,8 +10,8 @@ interface ReportStatCardProps {
 
 export function ReportStatCard({ settings, stat }: ReportStatCardProps) {
   return (
-    <SummaryMetricCard
-      settings={settings}
+    <SummaryCard
+      scheme={settings.scheme}
       accent={stat.accent}
       title={stat.label}
       value={stat.value}

@@ -1,10 +1,10 @@
-import type { SummaryMetricAccent } from "../managerTypes";
+import type { SummaryCardAccent } from "@/components/common/SummaryCard";
 
 export interface ReportStat {
   label: string;
   value: string;
   helperText: string;
-  accent: SummaryMetricAccent;
+  accent: SummaryCardAccent;
 }
 
 export type ReportTab = "users" | "orders";

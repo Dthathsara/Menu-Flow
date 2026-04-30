@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   cn,
   getInteractiveCardClasses,
@@ -5,16 +6,18 @@ import {
   getManagerPanelShellClasses,
   getManagerStrongTextClasses,
   getMutedTextClasses,
-} from "./managerUtils";
-import type { ManagerSettings, SummaryMetricAccent } from "./managerTypes";
+} from "@/components/manager/managerUtils";
+import type { Scheme } from "@/components/manager/managerTypes";
 
-const SUMMARY_METRIC_ACCENT_STYLES: Record<
-  SummaryMetricAccent,
+export type SummaryCardAccent = "blue" | "amber" | "purple" | "green" | "teal" | "red";
+
+const SUMMARY_CARD_ACCENT_STYLES: Record<
+  SummaryCardAccent,
   {
     gradientClassName: string;
     glowClassName: string;
-    borderClassName: Record<ManagerSettings["scheme"], string>;
-    shadowClassName: Record<ManagerSettings["scheme"], string>;
+    borderClassName: Record<Scheme, string>;
+    shadowClassName: Record<Scheme, string>;
   }
 > = {
   blue: {
@@ -91,20 +94,20 @@ const SUMMARY_METRIC_ACCENT_STYLES: Record<
   },
 };
 
-interface SummaryMetricCardProps {
-  settings: ManagerSettings;
-  accent: SummaryMetricAccent;
-  title: React.ReactNode;
-  value: React.ReactNode;
-  note: React.ReactNode;
+interface SummaryCardProps {
+  scheme: Scheme;
+  accent: SummaryCardAccent;
+  title: ReactNode;
+  value: ReactNode;
+  note: ReactNode;
   className?: string;
   titleClassName?: string;
   valueClassName?: string;
   noteClassName?: string;
 }
 
-export function SummaryMetricCard({
-  settings,
+export function SummaryCard({
+  scheme,
   accent,
   title,
   value,
@@ -113,16 +116,16 @@ export function SummaryMetricCard({
   titleClassName,
   valueClassName,
   noteClassName,
-}: SummaryMetricCardProps) {
-  const accentStyles = SUMMARY_METRIC_ACCENT_STYLES[accent];
+}: SummaryCardProps) {
+  const accentStyles = SUMMARY_CARD_ACCENT_STYLES[accent];
 
   return (
     <div
       className={cn(
-        getManagerPanelShellClasses(settings.scheme),
-        getInteractiveCardClasses(settings.scheme),
-        accentStyles.borderClassName[settings.scheme],
-        accentStyles.shadowClassName[settings.scheme],
+        getManagerPanelShellClasses(scheme),
+        getInteractiveCardClasses(scheme),
+        accentStyles.borderClassName[scheme],
+        accentStyles.shadowClassName[scheme],
         "group relative overflow-hidden",
         className,
       )}
@@ -140,13 +143,13 @@ export function SummaryMetricCard({
           "opacity-70 group-hover:opacity-100",
         )}
       />
-      <div className={cn("relative", titleClassName ?? getManagerEyebrowClasses(settings.scheme))}>
+      <div className={cn("relative", titleClassName ?? getManagerEyebrowClasses(scheme))}>
         {title}
       </div>
       <div
         className={cn(
           "relative mt-4 text-[2rem] font-bold tracking-tight",
-          getManagerStrongTextClasses(settings.scheme),
+          getManagerStrongTextClasses(scheme),
           valueClassName,
         )}
       >
@@ -155,7 +158,7 @@ export function SummaryMetricCard({
       <p
         className={cn(
           "relative mt-3 text-[14px] leading-6",
-          getMutedTextClasses(settings.scheme),
+          getMutedTextClasses(scheme),
           noteClassName,
         )}
       >

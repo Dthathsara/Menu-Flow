@@ -1,4 +1,4 @@
-import type { SummaryMetricAccent } from "../managerTypes";
+import type { SummaryCardAccent } from "@/components/common/SummaryCard";
 
 export type BillStatus = "Pending" | "Paid" | "Refunded";
 
@@ -55,7 +55,7 @@ export interface BillingStat {
   label: string;
   value: string;
   helper: string;
-  accent: SummaryMetricAccent;
+  accent: SummaryCardAccent;
 }
 
 export interface CashierSummaryMetric {

@@ -20,7 +20,7 @@ export function ClientCompanyCard({
         "flex items-center justify-center rounded-lg border px-3 py-2.5 transition-all duration-200 ease-out hover:-translate-y-0.5",
         inverted
           ? "border-white/10 bg-white/6 hover:bg-white/10 hover:shadow-[0_18px_34px_rgba(2,6,23,0.2)]"
-          : "border-slate-200/80 bg-slate-50/85 hover:bg-white hover:shadow-[0_18px_34px_rgba(15,23,42,0.08)]",
+          : "border-[#dbe3ef] bg-white/88 hover:bg-white hover:shadow-[0_18px_34px_rgba(15,23,42,0.08)]",
       )}
     >
       <div

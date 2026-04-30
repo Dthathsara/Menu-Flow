@@ -1,4 +1,4 @@
-import type { SummaryMetricAccent } from "../managerTypes";
+import type { SummaryCardAccent } from "@/components/common/SummaryCard";
 
 export type OrderStatus = "Accepted" | "Preparing" | "Ready" | "Delivered";
 export type PaymentStatus = "Paid" | "Pending";
@@ -39,5 +39,5 @@ export interface OrdersSummaryCard {
   title: string;
   value: string;
   note: string;
-  accent: SummaryMetricAccent;
+  accent: SummaryCardAccent;
 }

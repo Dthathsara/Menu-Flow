@@ -1,10 +1,10 @@
+import { SummaryCard } from "@/components/common/SummaryCard";
 import {
   cn,
   getManagerEyebrowClasses,
   getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
-import { SummaryMetricCard } from "../SummaryMetricCard";
 import type { BillingStat } from "./billing.types";
 
 interface BillingStatCardProps {
@@ -14,8 +14,8 @@ interface BillingStatCardProps {
 
 export function BillingStatCard({ settings, stat }: BillingStatCardProps) {
   return (
-    <SummaryMetricCard
-      settings={settings}
+    <SummaryCard
+      scheme={settings.scheme}
       accent={stat.accent}
       title={stat.label}
       value={stat.value}

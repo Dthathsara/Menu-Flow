@@ -1,3 +1,4 @@
+import { SummaryCard } from "@/components/common/SummaryCard";
 import {
   cn,
   getManagerPageSubtitleClasses,
@@ -6,7 +7,6 @@ import {
 import type { ManagerSettings } from "../managerTypes";
 import { PlusIcon } from "../icons";
 import { getUsersFieldLabelClasses, getUsersMutedTextClasses } from "./helpers";
-import { SummaryMetricCard } from "../SummaryMetricCard";
 import { UsersActionButton, UsersSectionBadge, UsersSurfaceCard } from "./shared";
 import type { StaffSummaryCard } from "./types";
 
@@ -51,9 +51,9 @@ export function UsersHero({ settings, summaryCards, onAddStaff }: UsersHeroProps
 
         <div className="mt-7 grid gap-3 xl:grid-cols-4">
           {summaryCards.map((card) => (
-            <SummaryMetricCard
+            <SummaryCard
               key={card.title}
-              settings={settings}
+              scheme={settings.scheme}
               accent={card.accent}
               title={card.title}
               value={card.value}

@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { GlobalBackground } from "@/components/common/layout";
+import { MANAGER_STORAGE_KEY } from "@/components/manager/managerConfig";
+import {
+  createManagerThemeInitScript,
+  getManagerSchemeFromStoredValue,
+} from "@/components/manager/managerTheme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,18 +25,36 @@ export const metadata: Metadata = {
     "Premium QR menu software for restaurants, cafes, hotels, and food brands.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const initialTheme = getManagerSchemeFromStoredValue(
+    cookieStore.get(MANAGER_STORAGE_KEY)?.value,
+  );
+
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme={initialTheme}
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth`}
     >
-      <body className="relative min-h-full bg-[var(--background)] font-sans text-[var(--text-primary)] antialiased transition-colors duration-300">
+      <head>
+        <script
+          id="menuflow-theme-init"
+          dangerouslySetInnerHTML={{
+            __html: createManagerThemeInitScript(),
+          }}
+        />
+      </head>
+      <body
+        data-theme={initialTheme}
+        suppressHydrationWarning
+        className="relative min-h-full bg-[var(--background)] font-sans text-[var(--text-primary)] antialiased transition-colors duration-300"
+      >
         <GlobalBackground />
         <div className="relative z-10 overflow-x-clip">{children}</div>
       </body>

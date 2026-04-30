@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { SummaryCard } from "@/components/common/SummaryCard";
 import {
   cn,
   getManagerPageSectionClasses,
@@ -19,7 +20,6 @@ import {
 import { OrderDetailsModal } from "./OrderDetailsModal";
 import { OrdersTable } from "./OrdersTable";
 import { OrdersToolbar } from "./OrdersToolbar";
-import { SummaryMetricCard } from "../SummaryMetricCard";
 import { SectionPill, SurfaceCard } from "./shared";
 import type { OrderRecord, OrderStatusFilter, PaymentStatusFilter } from "./types";
 
@@ -73,9 +73,9 @@ export function OrdersPageView({ settings }: OrdersPageViewProps) {
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {summaryCards.map((card) => (
-                <SummaryMetricCard
+                <SummaryCard
                   key={card.title}
-                  settings={settings}
+                  scheme={settings.scheme}
                   accent={card.accent}
                   title={card.title}
                   value={card.value}

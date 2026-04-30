@@ -19,7 +19,6 @@ import {
   cn,
   getFocusRingClasses,
   getMenuToneClasses,
-  getMutedTextClasses,
   getSidebarWidthClasses,
   isCondensedSidebar,
   isHoverSidebar,
@@ -85,45 +84,49 @@ export function Sidebar({
   const collapsed = !overlay && isCondensedSidebar(settings.sidebarSize);
   const hoverSidebar = !overlay && isHoverSidebar(settings.sidebarSize);
   const hideText = collapsed || hoverSidebar;
+  const usesBrandSidebar = settings.menu === "brand";
+  const usesDarkSidebar = !usesBrandSidebar && settings.scheme === "dark";
   const menuClasses = getMenuToneClasses(settings.menu, settings.scheme);
   const mutedClasses =
-    settings.menu === "brand"
+    usesBrandSidebar
       ? "text-white/70"
-      : getMutedTextClasses(settings.scheme);
+      : usesDarkSidebar
+        ? "text-slate-400"
+        : "text-slate-500";
   const activeItemClasses =
-    settings.menu === "brand"
+    usesBrandSidebar
       ? "bg-white/16 text-white shadow-[0_14px_30px_rgba(15,23,42,0.12)]"
-      : settings.menu === "dark" || settings.scheme === "dark"
+      : usesDarkSidebar
         ? "bg-blue-500 text-white shadow-[0_14px_30px_rgba(59,130,246,0.28)]"
         : "bg-blue-50 text-blue-700 shadow-[0_12px_26px_rgba(59,130,246,0.14)]";
   const hoverItemClasses =
-    settings.menu === "brand"
+    usesBrandSidebar
       ? "hover:bg-white/10"
-      : settings.menu === "dark" || settings.scheme === "dark"
+      : usesDarkSidebar
         ? "hover:bg-white/7"
-        : "hover:bg-slate-50";
+        : "hover:bg-white/82";
   const submenuRailClasses =
-    settings.menu === "brand"
+    usesBrandSidebar
       ? "bg-white/12"
-      : settings.menu === "dark" || settings.scheme === "dark"
+      : usesDarkSidebar
         ? "bg-white/10"
-        : "bg-slate-200";
+        : "bg-[#dbe3ef]";
   const activeSubItemClasses =
-    settings.menu === "brand"
+    usesBrandSidebar
       ? "bg-white/10 text-white"
-      : settings.menu === "dark" || settings.scheme === "dark"
+      : usesDarkSidebar
         ? "bg-white/8 text-slate-100"
-        : "bg-slate-100 text-slate-900";
+        : "bg-white text-slate-900";
   const idleSubItemClasses =
-    settings.menu === "brand"
+    usesBrandSidebar
       ? "text-white/74 hover:bg-white/8"
-      : settings.menu === "dark" || settings.scheme === "dark"
+      : usesDarkSidebar
         ? "text-slate-300 hover:bg-white/6"
-        : "text-slate-600 hover:bg-slate-50";
+        : "text-slate-500 hover:bg-white/82";
   const subItemIndicatorClasses =
-    settings.menu === "brand"
+    usesBrandSidebar
       ? "bg-white/55"
-      : settings.menu === "dark" || settings.scheme === "dark"
+      : usesDarkSidebar
         ? "bg-blue-400"
         : "bg-blue-500";
 
@@ -188,7 +191,7 @@ export function Sidebar({
           <div className="flex items-center justify-between gap-3">
             <Brand
               size="sidebar"
-              inverted={settings.menu === "brand" || settings.menu === "dark" || settings.scheme === "dark"}
+              inverted={usesBrandSidebar || usesDarkSidebar}
               showText={!hideText || overlay}
               hideSubtitleOnMobile={overlay}
               className="min-w-0"
@@ -198,7 +201,12 @@ export function Sidebar({
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex size-10 items-center justify-center rounded-md border border-white/12 bg-white/10 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-white/16 active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                className={cn(
+                  "inline-flex size-10 items-center justify-center rounded-md border transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]",
+                  usesDarkSidebar || usesBrandSidebar
+                    ? "border-white/12 bg-white/10 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                    : "border-[#dbe3ef] bg-white/88 text-slate-900 hover:bg-[#e8eef7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+                )}
                 aria-label="Close sidebar"
               >
                 <XIcon className="size-4" />
@@ -208,11 +216,7 @@ export function Sidebar({
 
           <div className="mt-5">
             <ClientCompanyCard
-              inverted={
-                settings.menu === "brand" ||
-                settings.menu === "dark" ||
-                settings.scheme === "dark"
-              }
+              inverted={usesBrandSidebar || usesDarkSidebar}
               profile={restaurantProfile}
             />
           </div>
@@ -247,13 +251,13 @@ export function Sidebar({
                       className={cn(
                         "group/nav flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left text-l font-medium transition-all duration-200 ease-out active:translate-y-0 active:scale-[0.99]",
                         active ? activeItemClasses : hoverItemClasses,
-                        !active && (settings.menu === "brand" ? "text-white/86" : ""),
+                        !active && (usesBrandSidebar ? "text-white/86" : ""),
                         !active &&
-                          (settings.menu === "brand"
+                          (usesBrandSidebar
                             ? "hover:translate-x-1 hover:shadow-[0_14px_26px_rgba(15,23,42,0.12)]"
-                            : settings.menu === "dark" || settings.scheme === "dark"
+                            : usesDarkSidebar
                               ? "hover:translate-x-1 hover:shadow-[0_14px_28px_rgba(2,6,23,0.18)]"
-                              : "hover:translate-x-1 hover:border-slate-300/90 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)]"),
+                              : "hover:translate-x-1 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)]"),
                         getFocusRingClasses(settings.scheme),
                         hideText && !overlay && "justify-center lg:px-0",
                       )}
@@ -264,14 +268,14 @@ export function Sidebar({
                         className={cn(
                           "flex size-11 shrink-0 items-center justify-center rounded-md transition-all duration-200 ease-out group-hover/nav:scale-[1.03]",
                           active
-                            ? settings.menu === "brand"
+                            ? usesBrandSidebar
                               ? "bg-white/14"
                               : "bg-white/10"
-                            : settings.menu === "brand"
+                            : usesBrandSidebar
                               ? "bg-white/8"
-                              : settings.menu === "dark" || settings.scheme === "dark"
+                              : usesDarkSidebar
                                 ? "bg-white/6 group-hover/nav:bg-white/10"
-                                : "bg-slate-100 group-hover/nav:bg-blue-50",
+                                : "bg-white group-hover/nav:bg-[#e8eef7]",
                         )}
                       >
                         <Icon className="size-5 transition-transform duration-200 ease-out group-hover/nav:scale-[1.04]" />
@@ -319,14 +323,14 @@ export function Sidebar({
                                 className={cn(
                                   "absolute left-0 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2",
                                   subActive
-                                    ? settings.menu === "brand"
+                                    ? usesBrandSidebar
                                       ? "border-white/30 bg-white"
-                                      : settings.menu === "dark" || settings.scheme === "dark"
+                                      : usesDarkSidebar
                                         ? "border-slate-950 bg-blue-400"
                                         : "border-white bg-blue-500"
-                                    : settings.menu === "brand"
+                                    : usesBrandSidebar
                                       ? "border-white/20 bg-white/20"
-                                      : settings.menu === "dark" || settings.scheme === "dark"
+                                      : usesDarkSidebar
                                         ? "border-slate-950 bg-white/18"
                                         : "border-white bg-slate-300",
                                 )}
@@ -355,13 +359,13 @@ export function Sidebar({
                   className={cn(
                     "group/nav flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left text-l font-medium transition-all duration-200 ease-out active:translate-y-0 active:scale-[0.99]",
                     active ? activeItemClasses : hoverItemClasses,
-                    !active && (settings.menu === "brand" ? "text-white/86" : ""),
+                    !active && (usesBrandSidebar ? "text-white/86" : ""),
                     !active &&
-                      (settings.menu === "brand"
+                      (usesBrandSidebar
                         ? "hover:translate-x-1 hover:shadow-[0_14px_26px_rgba(15,23,42,0.12)]"
-                        : settings.menu === "dark" || settings.scheme === "dark"
+                        : usesDarkSidebar
                           ? "hover:translate-x-1 hover:shadow-[0_14px_28px_rgba(2,6,23,0.18)]"
-                          : "hover:translate-x-1 hover:border-slate-300/90 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)]"),
+                          : "hover:translate-x-1 hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)]"),
                     getFocusRingClasses(settings.scheme),
                     hideText && !overlay && "justify-center lg:px-0",
                   )}
@@ -370,14 +374,14 @@ export function Sidebar({
                     className={cn(
                       "flex size-11 shrink-0 items-center justify-center rounded-md transition-all duration-200 ease-out group-hover/nav:scale-[1.03]",
                       active
-                        ? settings.menu === "brand"
+                        ? usesBrandSidebar
                           ? "bg-white/14"
                           : "bg-white/10"
-                        : settings.menu === "brand"
+                        : usesBrandSidebar
                           ? "bg-white/8"
-                          : settings.menu === "dark" || settings.scheme === "dark"
+                          : usesDarkSidebar
                             ? "bg-white/6 group-hover/nav:bg-white/10"
-                            : "bg-slate-100 group-hover/nav:bg-blue-50",
+                            : "bg-white group-hover/nav:bg-[#e8eef7]",
                     )}
                   >
                     <Icon className="size-5 transition-transform duration-200 ease-out group-hover/nav:scale-[1.04]" />

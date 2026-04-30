@@ -69,7 +69,7 @@ export function getTopbarToneClasses(tone: TopbarTone, scheme: Scheme) {
 }
 
 export function getMenuToneClasses(tone: MenuTone, scheme: Scheme) {
-  if (tone === "dark") {
+  if (tone === "dark" && scheme === "dark") {
     return "border-slate-800 bg-slate-950 text-slate-100 shadow-[0_24px_50px_rgba(2,6,23,0.28)]";
   }
 
@@ -79,7 +79,7 @@ export function getMenuToneClasses(tone: MenuTone, scheme: Scheme) {
 
   return scheme === "dark"
     ? "border-white/10 bg-slate-900/86 text-slate-100 shadow-[0_24px_50px_rgba(2,6,23,0.22)]"
-    : "border-slate-200/80 bg-white/95 text-slate-900 shadow-[0_24px_48px_rgba(15,23,42,0.08)]";
+    : "border-[#dbe3ef] bg-[#f1f5f9] text-slate-900 shadow-[0_24px_48px_rgba(15,23,42,0.08)]";
 }
 
 export function getHorizontalNavToneClasses(tone: MenuTone, scheme: Scheme) {
