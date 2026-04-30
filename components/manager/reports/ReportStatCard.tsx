@@ -1,6 +1,6 @@
-import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
-import { getReportsMicroLabelClasses, getReportsMutedTextClasses, getReportsPanelClasses } from "./reports.helpers";
+import { SummaryMetricCard } from "../SummaryMetricCard";
+import { getReportsMicroLabelClasses, getReportsMutedTextClasses } from "./reports.helpers";
 import type { ReportStat } from "./reports.types";
 
 interface ReportStatCardProps {
@@ -10,20 +10,18 @@ interface ReportStatCardProps {
 
 export function ReportStatCard({ settings, stat }: ReportStatCardProps) {
   return (
-    <div className={cn(getReportsPanelClasses(settings.scheme), "relative overflow-hidden p-4 sm:p-5")}>
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent" />
-      <div className={getReportsMicroLabelClasses(settings.scheme)}>{stat.label}</div>
-      <div
-        className={cn(
-          "mt-5 text-[2.15rem] font-bold tracking-tight",
-          getManagerStrongTextClasses(settings.scheme),
-        )}
-      >
-        {stat.value}
-      </div>
-      <p className={cn("mt-3 max-w-[17rem] text-[14px] leading-7", getReportsMutedTextClasses(settings.scheme))}>
-        {stat.helperText}
-      </p>
-    </div>
+    <SummaryMetricCard
+      settings={settings}
+      accent={stat.accent}
+      title={stat.label}
+      value={stat.value}
+      note={stat.helperText}
+      className="p-4 sm:p-5"
+      titleClassName={getReportsMicroLabelClasses(settings.scheme)}
+      valueClassName="mt-5 text-[2.15rem]"
+      noteClassName={`max-w-[17rem] text-[14px] leading-7 ${getReportsMutedTextClasses(
+        settings.scheme,
+      )}`}
+    />
   );
 }

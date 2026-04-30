@@ -1,7 +1,10 @@
+import type { SummaryMetricAccent } from "../managerTypes";
+
 export interface ReportStat {
   label: string;
   value: string;
   helperText: string;
+  accent: SummaryMetricAccent;
 }
 
 export type ReportTab = "users" | "orders";

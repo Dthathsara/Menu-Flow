@@ -19,7 +19,8 @@ import {
 import { OrderDetailsModal } from "./OrderDetailsModal";
 import { OrdersTable } from "./OrdersTable";
 import { OrdersToolbar } from "./OrdersToolbar";
-import { SecondaryPanel, SectionPill, SurfaceCard } from "./shared";
+import { SummaryMetricCard } from "../SummaryMetricCard";
+import { SectionPill, SurfaceCard } from "./shared";
 import type { OrderRecord, OrderStatusFilter, PaymentStatusFilter } from "./types";
 
 interface OrdersPageViewProps {
@@ -72,34 +73,20 @@ export function OrdersPageView({ settings }: OrdersPageViewProps) {
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {summaryCards.map((card) => (
-                <SecondaryPanel
+                <SummaryMetricCard
                   key={card.title}
                   settings={settings}
-                  className="relative overflow-hidden p-4 sm:p-5"
-                >
-                  <div
-                    className={cn(
-                      "pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r",
-                      card.accentClassName,
-                    )}
-                  />
-                  <div
-                    className={cn(
-                      "relative text-[11px] font-semibold uppercase tracking-[0.22em]",
-                      getMutedTextClasses(settings.scheme),
-                    )}
-                  >
-                    {card.title}
-                  </div>
-                  <div className="relative mt-4 text-[2rem] font-bold tracking-tight">
-                    {card.value}
-                  </div>
-                  <div
-                    className={cn("relative mt-3", getManagerSectionSubtitleClasses(settings.scheme))}
-                  >
-                    {card.note}
-                  </div>
-                </SecondaryPanel>
+                  accent={card.accent}
+                  title={card.title}
+                  value={card.value}
+                  note={card.note}
+                  className="p-4 sm:p-5"
+                  titleClassName={cn(
+                    "text-[11px] font-semibold uppercase tracking-[0.22em]",
+                    getMutedTextClasses(settings.scheme),
+                  )}
+                  noteClassName={getManagerSectionSubtitleClasses(settings.scheme)}
+                />
               ))}
             </div>
           </div>

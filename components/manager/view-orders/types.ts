@@ -1,3 +1,5 @@
+import type { SummaryMetricAccent } from "../managerTypes";
+
 export type OrderStatus = "Accepted" | "Preparing" | "Ready" | "Delivered";
 export type PaymentStatus = "Paid" | "Pending";
 
@@ -37,5 +39,5 @@ export interface OrdersSummaryCard {
   title: string;
   value: string;
   note: string;
-  accentClassName: string;
+  accent: SummaryMetricAccent;
 }

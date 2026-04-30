@@ -360,25 +360,25 @@ export function getOrdersSummaryCards(
       title: "Total Orders",
       value: String(orders.length),
       note: `${activeOrders.length} currently active across the floor`,
-      accentClassName: "from-blue-500/20 via-blue-500/8 to-transparent",
+      accent: "blue",
     },
     {
       title: "Pending Payments",
       value: String(pendingOrders.length),
       note: `Rs. ${pendingAmount.toLocaleString("en-LK")} awaiting collection`,
-      accentClassName: "from-amber-500/22 via-amber-500/8 to-transparent",
+      accent: "amber",
     },
     {
       title: "Active Orders",
       value: String(activeOrders.length),
       note: "Accepted, preparing, and ready queues combined",
-      accentClassName: "from-violet-500/20 via-violet-500/8 to-transparent",
+      accent: "purple",
     },
     {
       title: "Delivered Today",
       value: String(deliveredToday.length),
       note: "Completed and handed over since opening",
-      accentClassName: "from-emerald-500/18 via-emerald-500/8 to-transparent",
+      accent: "green",
     },
   ];
 }

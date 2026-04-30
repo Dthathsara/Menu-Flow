@@ -1,3 +1,5 @@
+import type { SummaryMetricAccent } from "../managerTypes";
+
 export const STAFF_ROLES = ["Chef", "Waiter", "Counter"] as const;
 export const STAFF_STATUSES = ["Active", "Inactive", "On Leave"] as const;
 
@@ -38,4 +40,5 @@ export interface StaffSummaryCard {
   title: string;
   value: number;
   note: string;
+  accent: SummaryMetricAccent;
 }

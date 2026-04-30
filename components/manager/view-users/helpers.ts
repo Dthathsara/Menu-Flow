@@ -149,21 +149,25 @@ export function getStaffSummaryCards(records: StaffRecord[]): StaffSummaryCard[]
       title: "TOTAL USERS",
       value: totalUsers,
       note: "All restaurant staff profiles currently listed for this branch.",
+      accent: "blue",
     },
     {
       title: "KITCHEN STAFF",
       value: kitchenStaff,
       note: "Chefs handling kitchen preparation and service output.",
+      accent: "amber",
     },
     {
       title: "SERVICE STAFF",
       value: serviceStaff,
       note: "Waiters and counter staff supporting guest service flow.",
+      accent: "purple",
     },
     {
       title: "ACTIVE TODAY",
       value: activeToday,
       note: "Staff members currently marked active in the system.",
+      accent: "green",
     },
   ];
 }

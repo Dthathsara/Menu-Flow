@@ -124,26 +124,31 @@ export function calculateBillingMetrics(bills: BillRecord[]): BillingMetrics {
         label: "TODAY REVENUE",
         value: formatCurrency(paidBills.reduce((sum, bill) => sum + bill.total, 0)),
         helper: "Paid bills collected today.",
+        accent: "green",
       },
       {
         label: "PENDING TABLES",
         value: pendingBills.length.toString().padStart(2, "0"),
         helper: "Tables waiting for cashier settlement.",
+        accent: "amber",
       },
       {
         label: "BILLS GENERATED",
         value: `${bills.length}`,
         helper: "Receipts generated from QR orders.",
+        accent: "blue",
       },
       {
         label: "WAITER SERVED",
         value: `${totalItemsServed}`,
         helper: "Items served by floor staff today.",
+        accent: "purple",
       },
       {
         label: "AVG BILL VALUE",
         value: formatCurrency(averageBillValue),
         helper: "Average payment per table.",
+        accent: "teal",
       },
     ],
     cashierSummary: [

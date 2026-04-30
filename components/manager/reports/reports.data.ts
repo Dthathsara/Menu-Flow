@@ -21,21 +21,25 @@ export const userReportStats: ReportStat[] = [
     label: "TOTAL STAFF",
     value: "24",
     helperText: "Active staff members across restaurant operations.",
+    accent: "blue",
   },
   {
     label: "WAITER ORDERS",
     value: "106",
     helperText: "Orders served by waiter staff during the selected period.",
+    accent: "amber",
   },
   {
     label: "STAFF REVENUE",
     value: "Rs. 315,220",
     helperText: "Revenue handled by assigned restaurant staff.",
+    accent: "purple",
   },
   {
     label: "ACTIVE SHIFTS",
     value: "18",
     helperText: "Currently tracked active or completed staff shifts.",
+    accent: "green",
   },
 ];
 
@@ -97,21 +101,25 @@ export const orderReportStats: ReportStat[] = [
     label: "TOTAL MONTHLY ORDERS",
     value: "186",
     helperText: "Orders placed within the selected reporting period.",
+    accent: "blue",
   },
   {
     label: "REVENUE",
     value: "Rs. 482,600",
     helperText: "Gross revenue generated from completed and active orders.",
+    accent: "purple",
   },
   {
     label: "QR SCANS",
     value: "214",
     helperText: "Total QR scans captured across tracked tables and sessions.",
+    accent: "amber",
   },
   {
     label: "PENDING PAYMENTS",
     value: "Rs. 24,176",
     helperText: "Open payment amount awaiting collection or settlement.",
+    accent: "red",
   },
 ];
 

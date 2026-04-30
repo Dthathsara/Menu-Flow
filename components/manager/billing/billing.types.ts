@@ -1,3 +1,5 @@
+import type { SummaryMetricAccent } from "../managerTypes";
+
 export type BillStatus = "Pending" | "Paid" | "Refunded";
 
 export type BillMethod = "Cash" | "Card" | "Online" | "Pending";
@@ -53,6 +55,7 @@ export interface BillingStat {
   label: string;
   value: string;
   helper: string;
+  accent: SummaryMetricAccent;
 }
 
 export interface CashierSummaryMetric {

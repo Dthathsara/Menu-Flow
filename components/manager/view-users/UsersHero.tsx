@@ -2,12 +2,12 @@ import {
   cn,
   getManagerPageSubtitleClasses,
   getManagerPageTitleClasses,
-  getManagerStrongTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { PlusIcon } from "../icons";
 import { getUsersFieldLabelClasses, getUsersMutedTextClasses } from "./helpers";
-import { UsersActionButton, UsersPanel, UsersSectionBadge, UsersSurfaceCard } from "./shared";
+import { SummaryMetricCard } from "../SummaryMetricCard";
+import { UsersActionButton, UsersSectionBadge, UsersSurfaceCard } from "./shared";
 import type { StaffSummaryCard } from "./types";
 
 interface UsersHeroProps {
@@ -51,26 +51,21 @@ export function UsersHero({ settings, summaryCards, onAddStaff }: UsersHeroProps
 
         <div className="mt-7 grid gap-3 xl:grid-cols-4">
           {summaryCards.map((card) => (
-            <UsersPanel settings={settings} key={card.title} className="relative overflow-hidden p-4 sm:p-5">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent" />
-              <div className={getUsersFieldLabelClasses(settings.scheme)}>{card.title}</div>
-              <div
-                className={cn(
-                  "mt-4 text-[2.15rem] font-bold tracking-tight",
-                  getManagerStrongTextClasses(settings.scheme),
-                )}
-              >
-                {card.value}
-              </div>
-              <p
-                className={cn(
-                  "mt-3 max-w-[17rem] text-[15px] leading-7",
-                  getUsersMutedTextClasses(settings.scheme),
-                )}
-              >
-                {card.note}
-              </p>
-            </UsersPanel>
+            <SummaryMetricCard
+              key={card.title}
+              settings={settings}
+              accent={card.accent}
+              title={card.title}
+              value={card.value}
+              note={card.note}
+              className="p-4 sm:p-5"
+              titleClassName={getUsersFieldLabelClasses(settings.scheme)}
+              valueClassName="text-[2.15rem]"
+              noteClassName={cn(
+                "max-w-[17rem] text-[15px] leading-7",
+                getUsersMutedTextClasses(settings.scheme),
+              )}
+            />
           ))}
         </div>
       </div>
