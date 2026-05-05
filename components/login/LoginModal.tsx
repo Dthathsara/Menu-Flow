@@ -2,6 +2,8 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useId, useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 import { primaryButtonClassName } from "@/components/common/buttons";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
@@ -14,6 +16,18 @@ import {
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
+
+function getApiErrorMessage(error: unknown) {
+  const message = axios.isAxiosError(error)
+    ? error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Login failed. Please try again."
+    : "Login failed. Please try again.";
+
+  return Array.isArray(message) ? message.join(", ") : message;
 }
 
 interface LoginModalProps {
@@ -29,6 +43,7 @@ export function LoginModal({
   onOpenSignUp,
   theme,
 }: LoginModalProps) {
+  const router = useRouter();
   const emailId = useId();
   const passwordId = useId();
   const [form, setForm] = useState({
@@ -40,11 +55,15 @@ export function LoginModal({
     password?: string;
   }>({});
   const [statusMessage, setStatusMessage] = useState("");
+  const [statusType, setStatusType] = useState<"success" | "error">("success");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setErrors({});
       setStatusMessage("");
+      setStatusType("success");
+      setIsSubmitting(false);
       setForm({
         email: "",
         password: "",
@@ -52,7 +71,7 @@ export function LoginModal({
     }
   }, [open]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextErrors: typeof errors = {};
@@ -74,7 +93,32 @@ export function LoginModal({
       return;
     }
 
-    setStatusMessage("Your login details look valid. Connect this form to your backend auth next.");
+    setIsSubmitting(true);
+    setStatusMessage("");
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+
+      if (response.data?.accessToken) {
+        window.localStorage.setItem("accessToken", response.data.accessToken);
+      }
+
+      if (response.data?.refreshToken) {
+        window.localStorage.setItem("refreshToken", response.data.refreshToken);
+      }
+
+      setStatusType("success");
+      setStatusMessage("Login successful.");
+      router.push("/manager");
+    } catch (error) {
+      setStatusType("error");
+      setStatusMessage(getApiErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -126,12 +170,24 @@ export function LoginModal({
         <button
           type="submit"
           className={cn(primaryButtonClassName, "w-full rounded-2xl px-6 py-3.5 text-sm")}
+          disabled={isSubmitting}
         >
-          Continue
+          {isSubmitting ? "Logging in..." : "Continue"}
         </button>
 
         {statusMessage ? (
-          <p className={cn("text-sm", theme === "dark" ? "text-emerald-300" : "text-emerald-600")}>
+          <p
+            className={cn(
+              "text-sm",
+              statusType === "success"
+                ? theme === "dark"
+                  ? "text-emerald-300"
+                  : "text-emerald-600"
+                : theme === "dark"
+                  ? "text-red-300"
+                  : "text-red-600",
+            )}
+          >
             {statusMessage}
           </p>
         ) : null}

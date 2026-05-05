@@ -1,7 +1,9 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 import { primaryButtonClassName } from "@/components/common/buttons";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
@@ -20,6 +22,19 @@ function isValidPhone(value: string) {
   return /^\+?[0-9\s()-]{7,}$/.test(value);
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/;
+
+function getApiErrorMessage(error: unknown) {
+  const message = axios.isAxiosError(error)
+    ? error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Registration failed. Please try again."
+    : "Registration failed. Please try again.";
+
+  return Array.isArray(message) ? message.join(", ") : message;
+}
+
 interface SignUpModalProps {
   open: boolean;
   onClose: () => void;
@@ -33,6 +48,7 @@ export function SignUpModal({
   onOpenLogin,
   theme,
 }: SignUpModalProps) {
+  const router = useRouter();
   const hotelNameId = useId();
   const emailId = useId();
   const contactNameId = useId();
@@ -49,11 +65,21 @@ export function SignUpModal({
   });
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [statusMessage, setStatusMessage] = useState("");
+  const [statusType, setStatusType] = useState<"success" | "error">("success");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const loginRedirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!open) {
+      if (loginRedirectTimeoutRef.current) {
+        clearTimeout(loginRedirectTimeoutRef.current);
+        loginRedirectTimeoutRef.current = null;
+      }
+
       setErrors({});
       setStatusMessage("");
+      setStatusType("success");
+      setIsSubmitting(false);
       setForm({
         hotelName: "",
         businessEmail: "",
@@ -65,7 +91,15 @@ export function SignUpModal({
     }
   }, [open]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    return () => {
+      if (loginRedirectTimeoutRef.current) {
+        clearTimeout(loginRedirectTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextErrors: Partial<Record<keyof typeof form, string>> = {};
@@ -94,6 +128,9 @@ export function SignUpModal({
       nextErrors.password = "Password is required.";
     } else if (form.password.length < 8) {
       nextErrors.password = "Password must be at least 8 characters.";
+    } else if (!PASSWORD_PATTERN.test(form.password)) {
+      nextErrors.password =
+        "Password must include upper, lower, number, and special character.";
     }
 
     if (!form.confirmPassword.trim()) {
@@ -109,7 +146,36 @@ export function SignUpModal({
       return;
     }
 
-    setStatusMessage("Your sign up details look ready. Connect this form to backend registration next.");
+    setIsSubmitting(true);
+    setStatusMessage("");
+
+    try {
+      const fullName = form.contactName.trim().split(" ");
+      const firstName = fullName[0];
+      const lastName = fullName.slice(1).join(" ") || "User";
+
+      const payload = {
+        email: form.businessEmail.trim().toLowerCase(),
+        password: form.password,
+        firstName,
+        lastName,
+      };
+
+      await axios.post(`${API_BASE_URL}/auth/register`, payload);
+
+      setStatusType("success");
+      setStatusMessage("Registration successful. Please login.");
+
+      loginRedirectTimeoutRef.current = setTimeout(() => {
+        onOpenLogin();
+        router.push("/");
+      }, 1000);
+    } catch (error) {
+      setStatusType("error");
+      setStatusMessage(getApiErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -206,12 +272,24 @@ export function SignUpModal({
         <button
           type="submit"
           className={cn(primaryButtonClassName, "w-full rounded-2xl px-6 py-3.5 text-sm")}
+          disabled={isSubmitting}
         >
-          Continue
+          {isSubmitting ? "Creating account..." : "Continue"}
         </button>
 
         {statusMessage ? (
-          <p className={cn("text-sm", theme === "dark" ? "text-emerald-300" : "text-emerald-600")}>
+          <p
+            className={cn(
+              "text-sm",
+              statusType === "success"
+                ? theme === "dark"
+                  ? "text-emerald-300"
+                  : "text-emerald-600"
+                : theme === "dark"
+                  ? "text-red-300"
+                  : "text-red-600",
+            )}
+          >
             {statusMessage}
           </p>
         ) : null}
