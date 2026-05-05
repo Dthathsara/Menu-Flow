@@ -22,18 +22,38 @@ function isValidPhone(value: string) {
   return /^\+?[0-9\s()-]{7,}$/.test(value);
 }
 
+const extractErrorMessage = (data: unknown): string => {
+  if (!data) return "Registration failed. Please try again.";
+
+  if (typeof data === "string") return data;
+
+  if (Array.isArray(data)) {
+    return data.map((item) => extractErrorMessage(item)).join(", ");
+  }
+
+  if (typeof data === "object") {
+    const obj = data as Record<string, unknown>;
+
+    if (Array.isArray(obj.message)) {
+      return obj.message.map(String).join(", ");
+    }
+
+    if (typeof obj.message === "string") {
+      return obj.message;
+    }
+
+    if (typeof obj.error === "string") {
+      return obj.error;
+    }
+
+    return JSON.stringify(obj);
+  }
+
+  return "Registration failed. Please try again.";
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/;
-
-function getApiErrorMessage(error: unknown) {
-  const message = axios.isAxiosError(error)
-    ? error.response?.data?.message ||
-      error.response?.data?.error ||
-      "Registration failed. Please try again."
-    : "Registration failed. Please try again.";
-
-  return Array.isArray(message) ? message.join(", ") : message;
-}
 
 interface SignUpModalProps {
   open: boolean;
@@ -150,16 +170,15 @@ export function SignUpModal({
     setStatusMessage("");
 
     try {
-      const fullName = form.contactName.trim().split(" ");
-      const firstName = fullName[0];
-      const lastName = fullName.slice(1).join(" ") || "User";
-
       const payload = {
-        email: form.businessEmail.trim().toLowerCase(),
+        hotelName: form.hotelName.trim(),
+        businessEmail: form.businessEmail.trim().toLowerCase(),
+        contactPersonName: form.contactName.trim(),
+        contactPersonMobileNumber: form.mobileNumber.trim(),
         password: form.password,
-        firstName,
-        lastName,
       };
+
+      console.log("REGISTER PAYLOAD:", payload);
 
       await axios.post(`${API_BASE_URL}/auth/register`, payload);
 
@@ -171,8 +190,16 @@ export function SignUpModal({
         router.push("/");
       }, 1000);
     } catch (error) {
+      const data = axios.isAxiosError(error) ? error.response?.data : null;
+
+      console.log(
+        "REGISTER ERROR STATUS:",
+        axios.isAxiosError(error) ? error.response?.status : null,
+      );
+      console.log("REGISTER ERROR DATA:", data);
+
       setStatusType("error");
-      setStatusMessage(getApiErrorMessage(error));
+      setStatusMessage(extractErrorMessage(data));
     } finally {
       setIsSubmitting(false);
     }

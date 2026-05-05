@@ -5,6 +5,7 @@ import { useEffect, useId, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { primaryButtonClassName } from "@/components/common/buttons";
+import { getErrorMessage } from "@/components/common/errors";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import {
@@ -19,16 +20,6 @@ function isValidEmail(value: string) {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
-
-function getApiErrorMessage(error: unknown) {
-  const message = axios.isAxiosError(error)
-    ? error.response?.data?.message ||
-      error.response?.data?.error ||
-      "Login failed. Please try again."
-    : "Login failed. Please try again.";
-
-  return Array.isArray(message) ? message.join(", ") : message;
-}
 
 interface LoginModalProps {
   open: boolean;
@@ -98,7 +89,7 @@ export function LoginModal({
 
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email: form.email.trim().toLowerCase(),
+        businessEmail: form.email.trim().toLowerCase(),
         password: form.password,
       });
 
@@ -115,7 +106,7 @@ export function LoginModal({
       router.push("/manager");
     } catch (error) {
       setStatusType("error");
-      setStatusMessage(getApiErrorMessage(error));
+      setStatusMessage(getErrorMessage(error, "Login failed. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
