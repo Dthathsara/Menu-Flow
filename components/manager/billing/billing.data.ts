@@ -32,7 +32,7 @@ export const REFUND_REASON_OPTIONS: readonly RefundReason[] = [
   "Manager approval",
 ] as const;
 
-export const BILLING_RECEIVED_BY = "Maxine - Admin Head";
+export const BILLING_RECEIVED_BY = "Manager";
 
 export const BILLING_BASELINE = {
   waiterServedOffset: 96,

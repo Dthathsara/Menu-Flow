@@ -75,7 +75,7 @@ export function PaymentMethodModal({
             type="text"
             value={values.holderName}
             onChange={(event) => onChange("holderName", event.target.value)}
-            placeholder="Maxine Perera"
+            placeholder="Account holder name"
             className={cn("mt-2", getManagerTextInputClasses(settings.scheme))}
           />
         </div>

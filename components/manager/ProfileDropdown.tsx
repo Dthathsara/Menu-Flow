@@ -1,10 +1,19 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronDownIcon, LogoutIcon, UserIcon } from "./icons";
 import { cn, getFocusRingClasses, getMutedTextClasses, getPopoverClasses } from "./managerUtils";
 import { useOnClickOutside } from "./useOnClickOutside";
 import type { Scheme } from "./managerTypes";
+
+type StoredUser = {
+  id?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
+};
 
 interface ProfileDropdownProps {
   open: boolean;
@@ -21,9 +30,35 @@ export function ProfileDropdown({
   onToggle,
   onClose,
 }: ProfileDropdownProps) {
+  const router = useRouter();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const [user, setUser] = useState<StoredUser | null>(null);
 
   useOnClickOutside(rootRef, onClose, open);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    console.log("STORED USER:", storedUser);
+
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const displayName =
+    user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user?.email || "User";
+  const displayRole = user?.role || "Manager";
+  const initials = user?.firstName ? user.firstName[0].toUpperCase() : "U";
+
+  function handleSignOut() {
+    window.localStorage.removeItem("accessToken");
+    window.localStorage.removeItem("refreshToken");
+    window.localStorage.removeItem("user");
+    onClose();
+    router.push("/");
+  }
 
   return (
     <div className="relative z-20 shrink-0" ref={rootRef}>
@@ -37,12 +72,12 @@ export function ProfileDropdown({
         )}
       >
         <span className="flex size-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,#60a5fa,#2563eb)] text-xs font-bold text-white">
-          MK
+          {initials}
         </span>
         <span className="hidden text-left lg:block">
-          <span className="block leading-none">Maxine</span>
+          <span className="block leading-none">{displayName}</span>
           <span className={cn("mt-1 block text-[11px] font-medium", triggerClassName.includes("text-white") ? "text-white/72" : getMutedTextClasses(scheme))}>
-            Admin Head
+            {displayRole}
           </span>
         </span>
         <ChevronDownIcon
@@ -60,7 +95,7 @@ export function ProfileDropdown({
           <div className="rounded-md px-3 py-2">
             <div className="text-sm font-semibold">Welcome!</div>
             <div className={cn("mt-1 text-xs", getMutedTextClasses(scheme))}>
-              Maxine Kennedy
+              {user?.email || displayName}
             </div>
           </div>
 
@@ -81,6 +116,7 @@ export function ProfileDropdown({
 
             <button
               type="button"
+              onClick={handleSignOut}
               className={cn(
                 "flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm text-rose-500 transition-all duration-200 ease-out hover:bg-rose-500/10 hover:text-rose-400",
                 getFocusRingClasses(scheme),

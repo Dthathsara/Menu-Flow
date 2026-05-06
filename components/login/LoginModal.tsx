@@ -101,6 +101,12 @@ export function LoginModal({
         window.localStorage.setItem("refreshToken", response.data.refreshToken);
       }
 
+      console.log("LOGIN RESPONSE:", response.data);
+
+      if (response.data?.user) {
+        window.localStorage.setItem("user", JSON.stringify(response.data.user));
+      }
+
       setStatusType("success");
       setStatusMessage("Login successful.");
       router.push("/manager");

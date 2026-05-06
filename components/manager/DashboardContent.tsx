@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   BellIcon,
   DashboardIcon,
@@ -30,6 +33,13 @@ import type { ManagerSettings } from "./managerTypes";
 interface DashboardContentProps {
   settings: ManagerSettings;
 }
+
+type LoggedInUser = {
+  contactPersonName?: string;
+  firstName?: string;
+  lastName?: string;
+  businessEmail?: string;
+};
 
 interface StatCardItem {
   title: string;
@@ -327,6 +337,15 @@ function SectionPill({
   );
 }
 
+function getDisplayName(user: LoggedInUser | null) {
+  return (
+    user?.contactPersonName ||
+    (user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user?.businessEmail || "User")
+  );
+}
+
 function SurfaceCard({
   settings,
   className,
@@ -374,7 +393,13 @@ function CardHeader({
   );
 }
 
-function HeroOverviewCard({ settings }: { settings: ManagerSettings }) {
+function HeroOverviewCard({
+  settings,
+  displayName,
+}: {
+  settings: ManagerSettings;
+  displayName: string;
+}) {
   const secondarySurface = getSecondarySurfaceClasses(settings.scheme);
   const mutedText = getMutedTextClasses(settings.scheme);
 
@@ -385,7 +410,7 @@ function HeroOverviewCard({ settings }: { settings: ManagerSettings }) {
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-52 rounded-l-[48px] bg-gradient-to-l from-blue-500/10 to-transparent lg:block" />
           <SectionPill scheme={settings.scheme}>Dashboard</SectionPill>
           <h2 className={cn("mt-5 max-w-2xl leading-tight", getManagerPageTitleClasses())}>
-            Good afternoon, Maxine. Downtown Branch is running smoothly.
+            Good afternoon, {displayName}. Downtown Branch is running smoothly.
           </h2>
           <p className={cn("mt-4 max-w-2xl", getManagerBodyTextClasses(settings.scheme))}>
             Lunch traffic is trending above target, kitchen throughput remains
@@ -893,9 +918,20 @@ function QuickActionsCard({ settings }: { settings: ManagerSettings }) {
 }
 
 export function DashboardContent({ settings }: DashboardContentProps) {
+  const [user, setUser] = useState<LoggedInUser | null>(null);
+  const displayName = getDisplayName(user);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   return (
     <section className={getManagerPageSectionClasses()}>
-      <HeroOverviewCard settings={settings} />
+      <HeroOverviewCard settings={settings} displayName={displayName} />
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.7fr)]">
         <OrderStatusCard settings={settings} />

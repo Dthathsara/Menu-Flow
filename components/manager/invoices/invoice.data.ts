@@ -207,7 +207,7 @@ export const DEFAULT_PAYMENT_METHODS: PaymentMethodRecord[] = [
   {
     id: "visa-4821",
     label: "Visa ending 4821",
-    holderName: "Maxine Perera",
+    holderName: "MenuFlow Restaurant",
     cardNumber: "4242 4242 4242 4821",
     expiryDate: "12 / 28",
     cvc: "123",
@@ -215,7 +215,7 @@ export const DEFAULT_PAYMENT_METHODS: PaymentMethodRecord[] = [
   {
     id: "mastercard-9014",
     label: "Mastercard ending 9014",
-    holderName: "Maxine Perera",
+    holderName: "MenuFlow Restaurant",
     cardNumber: "5555 4444 3333 9014",
     expiryDate: "09 / 29",
     cvc: "345",
