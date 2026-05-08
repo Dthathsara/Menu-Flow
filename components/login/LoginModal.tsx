@@ -93,19 +93,11 @@ export function LoginModal({
         password: form.password,
       });
 
-      if (response.data?.accessToken) {
-        window.localStorage.setItem("accessToken", response.data.accessToken);
-      }
-
-      if (response.data?.refreshToken) {
-        window.localStorage.setItem("refreshToken", response.data.refreshToken);
-      }
+      window.localStorage.setItem("accessToken", response.data.accessToken);
+      window.localStorage.setItem("refreshToken", response.data.refreshToken);
+      window.localStorage.setItem("user", JSON.stringify(response.data.user));
 
       console.log("LOGIN RESPONSE:", response.data);
-
-      if (response.data?.user) {
-        window.localStorage.setItem("user", JSON.stringify(response.data.user));
-      }
 
       setStatusType("success");
       setStatusMessage("Login successful.");

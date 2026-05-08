@@ -8,6 +8,8 @@ import {
   getManagerSectionSubtitleClasses,
   getManagerSectionTitleClasses,
   getManagerSecondaryButtonClasses,
+  getManagerStrongTextClasses,
+  getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import type { PlanId } from "./invoice.types";
@@ -49,20 +51,43 @@ export function AvailablePlans({
               className={cn(
                 "rounded-[18px] border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5",
                 current
-                  ? "border-blue-500/80 bg-[linear-gradient(180deg,rgba(37,99,235,0.18),rgba(15,23,42,0.82))] shadow-[0_28px_56px_rgba(37,99,235,0.18)]"
+                  ? settings.scheme === "dark"
+                    ? "border-blue-500/80 bg-[linear-gradient(180deg,rgba(37,99,235,0.18),rgba(15,23,42,0.82))] shadow-[0_28px_56px_rgba(37,99,235,0.18)]"
+                    : "border-blue-300 bg-[linear-gradient(180deg,rgba(239,246,255,0.98),rgba(255,255,255,0.98))] shadow-[0_24px_48px_rgba(37,99,235,0.13)]"
                   : getManagerCardShellClasses(settings.scheme, { interactive: true }),
               )}
             >
-              <div className="text-[1.1rem] font-semibold text-slate-100">{plan.label}</div>
-              <div className="mt-3 text-[2rem] font-bold leading-none text-white">
+              <div
+                className={cn(
+                  "text-[1.1rem] font-semibold",
+                  getManagerStrongTextClasses(settings.scheme),
+                )}
+              >
+                {plan.label}
+              </div>
+              <div
+                className={cn(
+                  "mt-3 text-[2rem] font-bold leading-none",
+                  getManagerStrongTextClasses(settings.scheme),
+                )}
+              >
                 {plan.priceDisplay}
                 {plan.priceUnit ? (
-                  <span className="text-[1rem] font-semibold text-slate-300">{plan.priceUnit}</span>
+                  <span className={cn("text-[1rem] font-semibold", getMutedTextClasses(settings.scheme))}>
+                    {plan.priceUnit}
+                  </span>
                 ) : null}
               </div>
-              <p className="mt-4 text-[13px] leading-6 text-slate-400">{plan.headlineDescription}</p>
+              <p className={cn("mt-4 text-[13px] leading-6", getMutedTextClasses(settings.scheme))}>
+                {plan.headlineDescription}
+              </p>
 
-              <ul className="mt-4 space-y-2.5 text-[13px] text-slate-200">
+              <ul
+                className={cn(
+                  "mt-4 space-y-2.5 text-[13px]",
+                  settings.scheme === "dark" ? "text-slate-200" : "text-slate-700",
+                )}
+              >
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2.5">
                     <CheckIcon className="mt-0.5 size-4 text-sky-400" />

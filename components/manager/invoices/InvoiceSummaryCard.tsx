@@ -5,6 +5,8 @@ import {
   getManagerSectionTitleClasses,
   getManagerPrimaryButtonClasses,
   getManagerSecondaryButtonClasses,
+  getManagerStrongTextClasses,
+  getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import type { SubscriptionPlan } from "./invoice.types";
@@ -46,14 +48,24 @@ export function InvoiceSummaryCard({
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex items-center justify-between gap-4 border-b border-white/8 pb-4 text-[14px]"
+            className={cn(
+              "flex items-center justify-between gap-4 border-b pb-4 text-[14px]",
+              settings.scheme === "dark" ? "border-white/8" : "border-slate-200",
+            )}
           >
-            <span className="text-slate-300">{row.label}</span>
-            <span className="font-semibold text-slate-100">{row.value}</span>
+            <span className={getMutedTextClasses(settings.scheme)}>{row.label}</span>
+            <span className={cn("font-semibold", getManagerStrongTextClasses(settings.scheme))}>
+              {row.value}
+            </span>
           </div>
         ))}
 
-        <div className="flex items-center justify-between gap-4 pt-1 text-[1.2rem] font-bold text-white">
+        <div
+          className={cn(
+            "flex items-center justify-between gap-4 pt-1 text-[1.2rem] font-bold",
+            getManagerStrongTextClasses(settings.scheme),
+          )}
+        >
           <span>Total</span>
           <span>{plan.totalDisplay}</span>
         </div>

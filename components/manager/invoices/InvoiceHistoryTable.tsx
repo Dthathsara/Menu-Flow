@@ -13,6 +13,8 @@ import {
   getManagerTableRowClasses,
   getManagerTextInputClasses,
   getManagerBadgeClasses,
+  getManagerStrongTextClasses,
+  getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import type {
@@ -131,19 +133,37 @@ export function InvoiceHistoryTable({
             ) : (
               invoices.map((invoice) => (
                 <tr key={invoice.id} className={getManagerTableRowClasses(settings.scheme)}>
-                  <td className={cn(getManagerTableCellPaddingClasses(), "font-semibold text-slate-100")}>
+                  <td
+                    className={cn(
+                      getManagerTableCellPaddingClasses(),
+                      "font-semibold",
+                      getManagerStrongTextClasses(settings.scheme),
+                    )}
+                  >
                     #{invoice.id}
                   </td>
-                  <td className={cn(getManagerTableCellPaddingClasses(), "font-semibold text-slate-200")}>
+                  <td
+                    className={cn(
+                      getManagerTableCellPaddingClasses(),
+                      "font-semibold",
+                      settings.scheme === "dark" ? "text-slate-200" : "text-slate-800",
+                    )}
+                  >
                     {invoice.packageLabel}
                   </td>
-                  <td className={cn(getManagerTableCellPaddingClasses(), "text-slate-300")}>
+                  <td className={cn(getManagerTableCellPaddingClasses(), getMutedTextClasses(settings.scheme))}>
                     {invoice.billingDate}
                   </td>
-                  <td className={cn(getManagerTableCellPaddingClasses(), "text-slate-300")}>
+                  <td className={cn(getManagerTableCellPaddingClasses(), getMutedTextClasses(settings.scheme))}>
                     {invoice.renewalDate}
                   </td>
-                  <td className={cn(getManagerTableCellPaddingClasses(), "font-semibold text-slate-100")}>
+                  <td
+                    className={cn(
+                      getManagerTableCellPaddingClasses(),
+                      "font-semibold",
+                      getManagerStrongTextClasses(settings.scheme),
+                    )}
+                  >
                     {invoice.amount}
                   </td>
                   <td className={getManagerTableCellPaddingClasses()}>
