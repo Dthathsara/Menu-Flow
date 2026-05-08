@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ManagerSettings } from "../managerTypes";
-import { FilterDropdown } from "../view-orders/FilterDropdown";
+import { FilterDropdown } from "../orders/FilterDropdown";
 import { DEFAULT_STAFF_FORM_VALUES, STAFF_ROLE_OPTIONS } from "./staff-data";
 import {
   UsersActionButton,

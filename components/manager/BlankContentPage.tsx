@@ -1,14 +1,14 @@
 import { BillingPageView } from "./billing/BillingPageView";
 import { DashboardContent } from "./DashboardContent";
-import { GenerateQrPage } from "./generate-qr/GenerateQrPage";
+import { GenerateQrPage } from "./qr-codes/GenerateQrPage";
 import { InvoicePageView } from "./invoices/InvoicePageView";
 import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
 import { ReportsPageView } from "./reports";
 import type { ReportTab } from "./reports/reports.types";
 import { SettingsPageView } from "./settings/SettingsPageView";
 import type { RestaurantProfile } from "./settings/settings.types";
-import { UsersPageView } from "./view-users";
-import { OrdersPageView } from "./view-orders";
+import { UsersPageView } from "./users";
+import { OrdersPageView } from "./orders";
 import {
   cn,
   getManagerCardShellClasses,

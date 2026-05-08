@@ -2,7 +2,7 @@ import {
   primaryButtonClassName,
   secondaryButtonClassName,
 } from "@/components/common/buttons";
-import { SectionLink } from "@/components/homepage/SectionLink";
+import { SectionLink } from "@/components/home-page/SectionLink";
 
 export function CTAButtons() {
   return (

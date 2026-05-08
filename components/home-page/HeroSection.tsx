@@ -1,6 +1,6 @@
 import { HeroBadge } from "@/components/common/typography";
-import { CTAButtons } from "@/components/homepage/CTAButtons";
-import { DashboardPreview } from "@/components/homepage/DashboardPreview";
+import { CTAButtons } from "@/components/home-page/CTAButtons";
+import { DashboardPreview } from "@/components/home-page/DashboardPreview";
 
 const highlights = [
   "QR menus in minutes",

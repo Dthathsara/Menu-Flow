@@ -7,8 +7,8 @@ import {
   secondaryButtonClassName,
 } from "@/components/common/buttons";
 import { cn, type AuthTheme } from "@/components/common/theme";
-import { SectionLink, scrollToSection } from "@/components/homepage/SectionLink";
-import { primaryNavLinks } from "@/components/homepage/siteNavigation";
+import { SectionLink, scrollToSection } from "@/components/home-page/SectionLink";
+import { primaryNavLinks } from "@/components/home-page/siteNavigation";
 import { LoginModal } from "@/components/login/LoginModal";
 import { SignUpModal } from "@/components/sign-up/SignUpModal";
 

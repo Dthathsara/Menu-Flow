@@ -5,7 +5,7 @@ import {
   getManagerSectionTitleClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
-import { FilterDropdown } from "../view-orders/FilterDropdown";
+import { FilterDropdown } from "../orders/FilterDropdown";
 import { formatStaffCountLabel } from "./helpers";
 import {
   STAFF_ROLE_FILTER_OPTIONS,

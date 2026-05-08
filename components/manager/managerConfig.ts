@@ -95,6 +95,8 @@ export function getManagerNavHref(
       return "/manager";
     case "orders":
       return "/manager/orders";
+    case "manage-menu":
+      return "/manager/manage-menu";
     case "generate-qr":
       return "/manager/qr-codes";
     case "users":
@@ -107,7 +109,6 @@ export function getManagerNavHref(
       return "/manager/invoices";
     case "settings":
       return "/manager/settings";
-    case "manage-menu":
     default:
       return null;
   }

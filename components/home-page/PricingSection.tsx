@@ -1,4 +1,4 @@
-import { SectionLink } from "@/components/homepage/SectionLink";
+import { SectionLink } from "@/components/home-page/SectionLink";
 
 const plans = [
   {

@@ -1,14 +1,14 @@
-import { BenefitsSection } from "@/components/homepage/BenefitsSection";
-import { ContactSection } from "@/components/homepage/ContactSection";
-import { FeaturesSection } from "@/components/homepage/FeaturesSection";
-import { Footer } from "@/components/homepage/Footer";
-import { FAQSection } from "@/components/homepage/FAQSection";
-import { HeroSection } from "@/components/homepage/HeroSection";
-import { HowItWorksSection } from "@/components/homepage/HowItWorksSection";
-import { Navbar } from "@/components/homepage/Navbar";
-import { PricingSection } from "@/components/homepage/PricingSection";
-import { SolutionsSection } from "@/components/homepage/SolutionsSection";
-import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
+import { BenefitsSection } from "@/components/home-page/BenefitsSection";
+import { ContactSection } from "@/components/home-page/ContactSection";
+import { FeaturesSection } from "@/components/home-page/FeaturesSection";
+import { Footer } from "@/components/home-page/Footer";
+import { FAQSection } from "@/components/home-page/FAQSection";
+import { HeroSection } from "@/components/home-page/HeroSection";
+import { HowItWorksSection } from "@/components/home-page/HowItWorksSection";
+import { Navbar } from "@/components/home-page/Navbar";
+import { PricingSection } from "@/components/home-page/PricingSection";
+import { SolutionsSection } from "@/components/home-page/SolutionsSection";
+import { TestimonialsSection } from "@/components/home-page/TestimonialsSection";
 
 export default function Home() {
   return (

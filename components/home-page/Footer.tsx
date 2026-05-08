@@ -1,5 +1,5 @@
-import { SectionLink } from "@/components/homepage/SectionLink";
-import { footerNavLinks } from "@/components/homepage/siteNavigation";
+import { SectionLink } from "@/components/home-page/SectionLink";
+import { footerNavLinks } from "@/components/home-page/siteNavigation";
 
 function LogoMark() {
   return (
