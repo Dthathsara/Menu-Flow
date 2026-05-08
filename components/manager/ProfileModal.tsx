@@ -5,8 +5,10 @@ import { useEffect, useId, useRef, useState } from "react";
 import axios from "axios";
 
 import { primaryButtonClassName } from "@/components/common/buttons";
+import { getApiErrorMessage } from "@/lib/error-handler";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
+import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
 import {
   cn,
   getAuthMutedTextClasses,
@@ -85,44 +87,6 @@ function buildForm(user: UserProfile | null): ProfileForm {
     newPassword: "",
     confirmPassword: "",
   };
-}
-
-function getErrorMessage(error: unknown, fallback = "Something went wrong.") {
-  if (!axios.isAxiosError(error)) {
-    return error instanceof Error ? error.message : fallback;
-  }
-
-  const data = error.response?.data;
-
-  if (typeof data === "string") {
-    return data;
-  }
-
-  if (Array.isArray(data)) {
-    return data.map(String).join(", ");
-  }
-
-  if (data && typeof data === "object") {
-    const record = data as Record<string, unknown>;
-
-    if (Array.isArray(record.message)) {
-      return record.message.map(String).join(", ");
-    }
-
-    if (typeof record.message === "string") {
-      return record.message;
-    }
-
-    if (Array.isArray(record.error)) {
-      return record.error.map(String).join(", ");
-    }
-
-    if (typeof record.error === "string") {
-      return record.error;
-    }
-  }
-
-  return error.message || fallback;
 }
 
 function logProfileError(error: unknown) {
@@ -214,7 +178,7 @@ export function ProfileModal({
 
         logProfileError(error);
         setStatusType("error");
-        setStatusMessage(getErrorMessage(error, "Unable to load profile details."));
+        setStatusMessage(getApiErrorMessage(error, "Unable to load profile details."));
       } finally {
         if (isActive) {
           setIsLoading(false);
@@ -353,7 +317,7 @@ export function ProfileModal({
     } catch (error) {
       logProfileError(error);
       setStatusType("error");
-      setStatusMessage(getErrorMessage(error));
+      setStatusMessage(getApiErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -496,17 +460,13 @@ export function ProfileModal({
           {isSubmitting ? "Saving..." : "Save"}
         </button>
 
-        {statusMessage ? (
+        {statusType === "error" ? (
+          <ErrorMessage message={statusMessage} />
+        ) : statusMessage ? (
           <p
             className={cn(
               "text-sm",
-              statusType === "success"
-                ? theme === "dark"
-                  ? "text-emerald-300"
-                  : "text-emerald-600"
-                : theme === "dark"
-                  ? "text-red-300"
-                  : "text-red-600",
+              theme === "dark" ? "text-emerald-300" : "text-emerald-600",
             )}
           >
             {statusMessage}

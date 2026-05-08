@@ -5,9 +5,10 @@ import { useEffect, useId, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { primaryButtonClassName } from "@/components/common/buttons";
-import { getErrorMessage } from "@/components/common/errors";
+import { getApiErrorMessage } from "@/lib/error-handler";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
+import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
 import {
   cn,
   getAuthInlineLinkClasses,
@@ -104,7 +105,11 @@ export function LoginModal({
       router.push("/manager");
     } catch (error) {
       setStatusType("error");
-      setStatusMessage(getErrorMessage(error, "Login failed. Please try again."));
+      setStatusMessage(
+        axios.isAxiosError(error) && error.response?.status === 401
+          ? "Invalid email or password. Please try again."
+          : getApiErrorMessage(error, "Login failed. Please try again."),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -147,9 +152,10 @@ export function LoginModal({
             <button
               type="button"
               className={cn("text-sm", getAuthInlineLinkClasses(theme))}
-              onClick={() =>
-                setStatusMessage("Forgot password flow can be connected here next.")
-              }
+              onClick={() => {
+                setStatusType("success");
+                setStatusMessage("Forgot password flow can be connected here next.");
+              }}
             >
               Forgot Password?
             </button>
@@ -164,17 +170,13 @@ export function LoginModal({
           {isSubmitting ? "Logging in..." : "Continue"}
         </button>
 
-        {statusMessage ? (
+        {statusType === "error" ? (
+          <ErrorMessage message={statusMessage} />
+        ) : statusMessage ? (
           <p
             className={cn(
               "text-sm",
-              statusType === "success"
-                ? theme === "dark"
-                  ? "text-emerald-300"
-                  : "text-emerald-600"
-                : theme === "dark"
-                  ? "text-red-300"
-                  : "text-red-600",
+              theme === "dark" ? "text-emerald-300" : "text-emerald-600",
             )}
           >
             {statusMessage}

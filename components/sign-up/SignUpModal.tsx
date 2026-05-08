@@ -5,8 +5,10 @@ import { useEffect, useId, useRef, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { primaryButtonClassName } from "@/components/common/buttons";
+import { getApiErrorMessage } from "@/lib/error-handler";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
+import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
 import {
   cn,
   getAuthInlineLinkClasses,
@@ -21,36 +23,6 @@ function isValidEmail(value: string) {
 function isValidPhone(value: string) {
   return /^\+?[0-9\s()-]{7,}$/.test(value);
 }
-
-const extractErrorMessage = (data: unknown): string => {
-  if (!data) return "Registration failed. Please try again.";
-
-  if (typeof data === "string") return data;
-
-  if (Array.isArray(data)) {
-    return data.map((item) => extractErrorMessage(item)).join(", ");
-  }
-
-  if (typeof data === "object") {
-    const obj = data as Record<string, unknown>;
-
-    if (Array.isArray(obj.message)) {
-      return obj.message.map(String).join(", ");
-    }
-
-    if (typeof obj.message === "string") {
-      return obj.message;
-    }
-
-    if (typeof obj.error === "string") {
-      return obj.error;
-    }
-
-    return JSON.stringify(obj);
-  }
-
-  return "Registration failed. Please try again.";
-};
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/;
@@ -199,7 +171,7 @@ export function SignUpModal({
       console.log("REGISTER ERROR DATA:", data);
 
       setStatusType("error");
-      setStatusMessage(extractErrorMessage(data));
+      setStatusMessage(getApiErrorMessage(error, "Registration failed. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -304,17 +276,13 @@ export function SignUpModal({
           {isSubmitting ? "Creating account..." : "Continue"}
         </button>
 
-        {statusMessage ? (
+        {statusType === "error" ? (
+          <ErrorMessage message={statusMessage} />
+        ) : statusMessage ? (
           <p
             className={cn(
               "text-sm",
-              statusType === "success"
-                ? theme === "dark"
-                  ? "text-emerald-300"
-                  : "text-emerald-600"
-                : theme === "dark"
-                  ? "text-red-300"
-                  : "text-red-600",
+              theme === "dark" ? "text-emerald-300" : "text-emerald-600",
             )}
           >
             {statusMessage}
