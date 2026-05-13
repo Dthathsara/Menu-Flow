@@ -3,8 +3,8 @@ import { SectionLink } from "@/components/home-page/SectionLink";
 const plans = [
   {
     name: "Starter",
-    price: "$29",
-    suffix: "/mo",
+    price: "Rs. 1,500",
+    suffix: "/ month",
     description: "For small cafes and single-location businesses.",
     features: [
       "1 location",
@@ -17,8 +17,8 @@ const plans = [
   },
   {
     name: "Growth",
-    price: "$79",
-    suffix: "/mo",
+    price: "Rs. 4,200",
+    suffix: "/ month",
     description: "For busy restaurants and expanding multi-branch teams.",
     features: [
       "Up to 5 locations",
@@ -45,6 +45,9 @@ const plans = [
     featured: false,
   },
 ] as const;
+
+const pricingCardHoverClassName =
+  "cursor-pointer hover:-translate-y-1 hover:bg-gradient-to-br hover:from-orange-500/20 hover:via-orange-500/10 hover:to-pink-500/10 hover:shadow-[0_30px_80px_rgba(249,115,22,0.16)] hover:[border-color:rgba(251,146,60,0.42)] [html[data-theme=light]_&]:hover:from-orange-100/90 [html[data-theme=light]_&]:hover:via-orange-50 [html[data-theme=light]_&]:hover:to-pink-100/80 [html[data-theme=light]_&]:hover:shadow-[0_24px_54px_rgba(249,115,22,0.14)] [html[data-theme=light]_&]:hover:[border-color:rgba(251,146,60,0.5)]";
 
 export function PricingSection() {
   return (
@@ -75,10 +78,10 @@ export function PricingSection() {
           {plans.map((plan) => (
             <article
               key={plan.name}
-              className={`group relative flex h-full flex-col rounded-[2rem] border p-7 shadow-[var(--pricing-card-shadow)] backdrop-blur-xl transition-all duration-300 sm:p-8 ${
+              className={`group relative flex h-full flex-col rounded-[2rem] border p-7 shadow-[var(--pricing-card-shadow)] backdrop-blur-xl transition-all duration-300 sm:p-8 ${pricingCardHoverClassName} ${
                 plan.featured
                   ? "[background:var(--pricing-card-featured-bg)] [border-color:var(--pricing-card-featured-border)] shadow-[var(--pricing-card-featured-shadow)]"
-                  : "[background:var(--pricing-card-bg)] [border-color:var(--pricing-card-border)] hover:-translate-y-0.5 hover:[background:var(--pricing-card-bg-hover)] hover:shadow-[var(--pricing-card-hover-shadow)] hover:[border-color:var(--pricing-card-border-hover)]"
+                  : "[background:var(--pricing-card-bg)] [border-color:var(--pricing-card-border)]"
               }`}
             >
               <div className="flex items-start justify-between gap-4">

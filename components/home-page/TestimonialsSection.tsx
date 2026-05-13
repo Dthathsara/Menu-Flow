@@ -22,6 +22,9 @@ const testimonials = [
   },
 ] as const;
 
+const testimonialCardHoverClassName =
+  "cursor-pointer hover:-translate-y-1 hover:bg-gradient-to-br hover:from-orange-500/20 hover:via-orange-500/10 hover:to-pink-500/10 hover:shadow-[0_30px_80px_rgba(249,115,22,0.16)] hover:[border-color:rgba(251,146,60,0.42)] [html[data-theme=light]_&]:hover:from-orange-100/90 [html[data-theme=light]_&]:hover:via-orange-50 [html[data-theme=light]_&]:hover:to-pink-100/80 [html[data-theme=light]_&]:hover:shadow-[0_24px_54px_rgba(249,115,22,0.14)] [html[data-theme=light]_&]:hover:[border-color:rgba(251,146,60,0.5)]";
+
 function StarRow() {
   return (
     <div
@@ -71,10 +74,10 @@ export function TestimonialsSection() {
           {testimonials.map((testimonial) => (
             <article
               key={testimonial.name}
-              className={`group relative flex h-full min-h-[18.5rem] flex-col rounded-[2rem] border p-7 shadow-[var(--testimonial-card-shadow)] backdrop-blur-xl transition-all duration-300 sm:p-8 ${
+              className={`group relative flex h-full min-h-[18.5rem] flex-col rounded-[2rem] border p-7 shadow-[var(--testimonial-card-shadow)] backdrop-blur-xl transition-all duration-300 sm:p-8 ${testimonialCardHoverClassName} ${
                 testimonial.featured
                   ? "xl:-translate-y-2 [background:var(--testimonial-card-featured-bg)] [border-color:var(--testimonial-card-featured-border)] shadow-[var(--testimonial-card-featured-shadow)]"
-                  : "[background:var(--testimonial-card-bg)] [border-color:var(--testimonial-card-border)] hover:-translate-y-0.5 hover:[background:var(--testimonial-card-bg-hover)] hover:shadow-[var(--testimonial-card-hover-shadow)] hover:[border-color:var(--testimonial-card-border-hover)]"
+                  : "[background:var(--testimonial-card-bg)] [border-color:var(--testimonial-card-border)]"
               }`}
             >
               <div

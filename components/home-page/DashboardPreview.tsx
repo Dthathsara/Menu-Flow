@@ -1,4 +1,4 @@
-import { FloatingInfoCard, StatCard } from "@/components/common/cards";
+import { StatCard } from "@/components/common/cards";
 
 const stats = [
   {
@@ -38,18 +38,6 @@ export function DashboardPreview() {
   return (
     <div className="relative mx-auto w-full max-w-[40rem] lg:mx-0">
       <div className="absolute inset-8 -z-10 rounded-[2.75rem] blur-3xl animate-[pulseGlow_12s_ease-in-out_infinite] [background-image:var(--dashboard-halo)]" />
-
-      <FloatingInfoCard
-        title="Orders Today"
-        value="+36 pending"
-        className="absolute left-3 top-5 z-20 max-w-[13rem] sm:left-0 sm:top-7 sm:max-w-[13.5rem] lg:-left-5 lg:top-8 animate-[float_9s_ease-in-out_infinite]"
-      />
-
-      <FloatingInfoCard
-        title="QR Scans"
-        value="1,290 live"
-        className="absolute right-3 top-20 z-20 max-w-[11rem] sm:right-2 sm:top-20 sm:max-w-[11.5rem] lg:-right-6 lg:top-24 animate-[float_10s_ease-in-out_infinite]"
-      />
 
       <div className="rounded-[2rem] border [background-image:var(--preview-shell)] p-3 shadow-[var(--panel-shadow)] [border-color:var(--border-soft)] sm:p-5">
         <div className="rounded-[1.9rem] border [background-image:var(--preview-main)] p-5 [border-color:var(--border-soft)] sm:p-6">
@@ -111,12 +99,6 @@ export function DashboardPreview() {
           </div>
         </div>
       </div>
-
-      <FloatingInfoCard
-        title="Menu Update"
-        value="Synced instantly"
-        className="absolute bottom-4 right-3 z-20 max-w-[12.5rem] sm:bottom-5 sm:right-4 sm:max-w-[13rem] lg:-right-4 lg:bottom-6 animate-[float_11s_ease-in-out_infinite]"
-      />
 
       <div className="absolute left-10 top-[57%] hidden rounded-full border bg-[var(--mock-chip-bg)] px-4 py-2 text-sm font-medium text-[var(--mock-chip-text)] shadow-[var(--card-shadow)] [border-color:var(--border-soft)] md:inline-flex">
         QR Ready
