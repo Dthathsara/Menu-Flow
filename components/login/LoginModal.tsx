@@ -5,7 +5,6 @@ import { useEffect, useId, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { primaryButtonClassName } from "@/components/common/buttons";
-import { getApiErrorMessage } from "@/lib/error-handler";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
@@ -108,7 +107,7 @@ export function LoginModal({
       setStatusMessage(
         axios.isAxiosError(error) && error.response?.status === 401
           ? "Invalid email or password. Please try again."
-          : getApiErrorMessage(error, "Login failed. Please try again."),
+          : "Login failed. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
