@@ -1,0 +1,38 @@
+import type { RestaurantInfo } from "@/types/customer";
+
+interface CustomerHeaderProps {
+  restaurant: RestaurantInfo;
+}
+
+export function CustomerHeader({ restaurant }: CustomerHeaderProps) {
+  return (
+    <section className="w-full rounded-[2rem] border border-[#dfd5c7] bg-[#fffaf4] px-4 py-4 shadow-[0_18px_48px_rgba(108,79,55,0.08)] sm:px-6 sm:py-6 md:px-8 md:py-8 lg:px-10 lg:py-10">
+      <div className="mx-auto w-full rounded-[1.5rem] bg-[linear-gradient(160deg,#fffdf8_0%,#f6eee3_60%,#efe4d7_100%)] px-4 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] sm:px-5 sm:py-6 md:px-8 md:py-8 lg:px-10">
+        <div className="space-y-4 md:flex md:flex-col md:items-center md:justify-center md:space-y-5 md:text-center">
+          <div className="inline-flex rounded-full bg-[#f2eadf] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#2c8b47]">
+            {restaurant.bannerLabel}
+          </div>
+          <div className="flex items-end gap-1 leading-none md:justify-center">
+            <span className="text-[2.35rem] font-black tracking-[-0.05em] text-[#19724d] sm:text-[3rem] md:text-[3.3rem]">
+              {restaurant.titlePrefix}
+            </span>
+            <span className="pb-1 font-serif text-[2.1rem] italic text-[#c7463d] sm:text-[2.7rem] md:text-[3rem]">
+              {restaurant.titleAccent}
+            </span>
+          </div>
+          <p className="text-xs uppercase tracking-[0.26em] text-[#927663] md:text-sm">
+            {restaurant.tagline}
+          </p>
+          <div className="flex flex-wrap gap-2 text-[0.72rem] font-medium text-[#85584d] md:justify-center">
+            <span className="rounded-full bg-white/80 px-3 py-1 shadow-sm">
+              {restaurant.location}
+            </span>
+            <span className="rounded-full bg-white/80 px-3 py-1 shadow-sm">
+              {restaurant.kitchenHours}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
