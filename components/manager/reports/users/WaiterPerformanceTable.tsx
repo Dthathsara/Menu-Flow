@@ -1,15 +1,22 @@
+import { ChevronDownIcon, SearchIcon } from "../../icons";
 import {
   cn,
+  getManagerAccentPillClasses,
+  getManagerBodyTextClasses,
+  getManagerCardShellClasses,
+  getManagerControlShellClasses,
+  getManagerSectionSubtitleClasses,
+  getManagerSectionTitleClasses,
   getManagerStrongTextClasses,
   getManagerTableCellPaddingClasses,
   getManagerTableHeadSurfaceClasses,
   getManagerTableHeaderClasses,
   getManagerTableHeaderPaddingClasses,
+  getManagerTableRowClasses,
 } from "../../managerUtils";
 import type { ManagerSettings } from "../../managerTypes";
 import { waiterPerformanceRows } from "../reports.data";
 import { getReportsRoleBadgeClasses } from "../reports.helpers";
-import { ReportsSectionCard } from "../ReportsSectionCard";
 
 interface WaiterPerformanceTableProps {
   settings: ManagerSettings;
@@ -17,37 +24,104 @@ interface WaiterPerformanceTableProps {
 
 export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps) {
   return (
-    <ReportsSectionCard
-      settings={settings}
-      title="Waiter Performance"
-      description="Orders served, revenue handled, and tables covered by waiters."
-      tag="STAFF PERFORMANCE"
-      className="h-full"
-      bodyClassName="px-0 py-0"
+    <section
+      className={cn(
+        "self-start overflow-hidden",
+        getManagerCardShellClasses(settings.scheme, { interactive: true }),
+      )}
     >
-      <div className="overflow-x-auto px-5 pb-4 pt-2 sm:px-6 sm:pb-5">
-        <table className="min-w-[640px] w-full border-collapse">
-          <thead>
+      <div className="border-b border-black/5 px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className={getManagerSectionTitleClasses()}>Waiter Performance</h3>
+            <p className={getManagerSectionSubtitleClasses(settings.scheme)}>
+              Orders served, revenue handled, and tables covered by waiters.
+            </p>
+          </div>
+          <span className={getManagerAccentPillClasses(settings.scheme, "brand")}>
+            STAFF PERFORMANCE
+          </span>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-3 xl:flex-row xl:items-center">
+          <label
+            className={cn(
+              "flex h-11 min-w-0 flex-1 items-center gap-2 rounded-lg border px-4",
+              getManagerControlShellClasses(settings.scheme),
+            )}
+          >
+            <SearchIcon className="size-4 text-slate-400" />
+            <input
+              type="search"
+              readOnly
+              placeholder="Search staff, role, revenue..."
+              className={cn(
+                "w-full cursor-default bg-transparent text-[15px] outline-none",
+                settings.scheme === "dark"
+                  ? "text-slate-100 placeholder:text-slate-400"
+                  : "text-slate-900 placeholder:text-slate-400",
+              )}
+            />
+          </label>
+
+          <div className="grid gap-3 sm:grid-cols-[180px_180px] xl:flex xl:items-center">
+            <div
+              className={cn(
+                getManagerControlShellClasses(settings.scheme),
+                "min-w-[180px] justify-between font-semibold",
+              )}
+            >
+              <span>All Roles</span>
+              <ChevronDownIcon className="size-4 text-slate-400" />
+            </div>
+
+            <div
+              className={cn(
+                getManagerControlShellClasses(settings.scheme),
+                "min-w-[180px] justify-between font-semibold",
+              )}
+            >
+              <span>All Periods</span>
+              <ChevronDownIcon className="size-4 text-slate-400" />
+            </div>
+          </div>
+
+          <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
+            {waiterPerformanceRows.length} results
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-[860px] w-full border-collapse">
+          <thead className="sticky top-0 z-10">
             <tr
               className={cn(
                 getManagerTableHeadSurfaceClasses(settings.scheme),
                 getManagerTableHeaderClasses(settings.scheme),
               )}
             >
-              <th className={getManagerTableHeaderPaddingClasses()}>Staff</th>
-              <th className={getManagerTableHeaderPaddingClasses()}>Role</th>
-              <th className={getManagerTableHeaderPaddingClasses()}>Orders</th>
-              <th className={getManagerTableHeaderPaddingClasses()}>Revenue</th>
-              <th className={getManagerTableHeaderPaddingClasses()}>Tables</th>
+              {["STAFF", "ROLE", "ORDERS", "REVENUE", "TABLES"].map((heading) => (
+                <th
+                  key={heading}
+                  className={cn(
+                    getManagerTableHeaderPaddingClasses(),
+                    "text-left",
+                    heading === "STAFF" && "pl-5",
+                  )}
+                >
+                  {heading}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {waiterPerformanceRows.map((row) => (
-              <tr key={row.staff} className="border-b border-black/5 last:border-b-0">
+              <tr key={row.staff} className={getManagerTableRowClasses(settings.scheme)}>
                 <td
                   className={cn(
                     getManagerTableCellPaddingClasses(),
-                    "text-[14px] font-medium",
+                    "font-semibold",
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
@@ -56,7 +130,7 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
                 <td className={getManagerTableCellPaddingClasses()}>
                   <span
                     className={cn(
-                      "inline-flex h-7 items-center rounded-full border px-3 text-[12px] font-semibold",
+                      "inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold",
                       getReportsRoleBadgeClasses(row.role, settings.scheme),
                     )}
                   >
@@ -66,7 +140,7 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
                 <td
                   className={cn(
                     getManagerTableCellPaddingClasses(),
-                    "text-[14px] font-semibold",
+                    "font-semibold",
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
@@ -75,7 +149,7 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
                 <td
                   className={cn(
                     getManagerTableCellPaddingClasses(),
-                    "text-[14px] font-semibold",
+                    "font-semibold",
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
@@ -84,7 +158,7 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
                 <td
                   className={cn(
                     getManagerTableCellPaddingClasses(),
-                    "text-[14px] font-medium",
+                    "font-semibold",
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
@@ -95,6 +169,6 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
           </tbody>
         </table>
       </div>
-    </ReportsSectionCard>
+    </section>
   );
 }
