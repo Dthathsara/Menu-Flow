@@ -2,6 +2,7 @@ import { ChevronDownIcon, SearchIcon } from "../icons";
 import {
   cn,
   getManagerAccentPillClasses,
+  getManagerBodyTextClasses,
   getManagerCardShellClasses,
   getManagerSectionSubtitleClasses,
   getManagerSectionTitleClasses,
@@ -58,7 +59,7 @@ export function InvoiceHistoryTable({
           </p>
         </div>
         <span className={getManagerAccentPillClasses(settings.scheme, "brand")}>
-          4 Invoices
+          SORTED BY RENEWAL DATE
         </span>
       </div>
 
@@ -89,6 +90,10 @@ export function InvoiceHistoryTable({
             <option value="Paid">Paid</option>
           </select>
           <ChevronDownIcon className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        </div>
+
+        <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
+          {invoices.length} result{invoices.length === 1 ? "" : "s"}
         </div>
       </div>
 

@@ -65,6 +65,20 @@ export const waiterPerformanceRows: WaiterPerformanceRow[] = [
     revenue: "Rs. 61,300",
     tables: "9",
   },
+  {
+    staff: "Nuwan Jayasuriya",
+    role: "Chef",
+    orders: "22",
+    revenue: "Rs. 48,900",
+    tables: "6",
+  },
+  {
+    staff: "Ishara Fernando",
+    role: "Counter",
+    orders: "19",
+    revenue: "Rs. 42,750",
+    tables: "5",
+  },
 ];
 
 export const staffRoleBreakdown: StaffRoleBreakdownMetric[] = [

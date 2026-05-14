@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { SummaryCard } from "@/components/common/SummaryCard";
 import {
   cn,
+  getManagerAccentPillClasses,
   getManagerPageSectionClasses,
   getManagerPageSubtitleClasses,
   getManagerPageTitleClasses,
@@ -64,7 +65,9 @@ export function OrdersPageView({ settings }: OrdersPageViewProps) {
         <SurfaceCard settings={settings} className="overflow-hidden p-5 sm:p-6">
           <div className="relative">
             <div className="pointer-events-none absolute -right-16 top-0 h-40 w-40 rounded-full bg-blue-500/12 blur-3xl" />
-            <SectionPill settings={settings}>Operations</SectionPill>
+            <span className={getManagerAccentPillClasses(settings.scheme, "brand")}>
+              Live order management
+            </span>
             <h2 className={cn("mt-5", getManagerPageTitleClasses())}>Orders</h2>
             <p className={cn("mt-3 max-w-3xl", getManagerPageSubtitleClasses(settings.scheme))}>
               Track active orders, delivery progress, and payment collection across

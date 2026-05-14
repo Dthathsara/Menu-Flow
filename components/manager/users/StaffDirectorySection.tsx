@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  cn,
+  getManagerBodyTextClasses,
   getManagerSectionSubtitleClasses,
   getManagerSectionTitleClasses,
 } from "../managerUtils";
@@ -65,7 +67,7 @@ export function StaffDirectorySection({
           </UsersSectionBadge>
         </div>
 
-        <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,1.55fr)_280px_280px]">
+        <div className="mt-5 grid gap-3 xl:grid-cols-[minmax(0,1.55fr)_280px_280px_auto] xl:items-center">
           <UsersSearchField
             settings={settings}
             value={query}
@@ -88,6 +90,10 @@ export function StaffDirectorySection({
             value={statusFilter}
             onChange={onStatusFilterChange}
           />
+
+          <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
+            {staffRecords.length} result{staffRecords.length === 1 ? "" : "s"}
+          </div>
         </div>
       </div>
 

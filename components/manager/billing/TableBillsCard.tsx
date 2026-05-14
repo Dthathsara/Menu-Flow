@@ -2,6 +2,7 @@ import { SearchIcon } from "../icons";
 import {
   cn,
   getManagerAccentPillClasses,
+  getManagerBodyTextClasses,
   getManagerCardShellClasses,
   getManagerControlShellClasses,
   getManagerSectionSubtitleClasses,
@@ -120,6 +121,10 @@ export function TableBillsCard({
             >
               Create Bill
             </button>
+          </div>
+
+          <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
+            {bills.length} result{bills.length === 1 ? "" : "s"}
           </div>
         </div>
       </div>

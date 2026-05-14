@@ -66,7 +66,6 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
         <QrLibrarySection
           settings={settings}
           items={filteredItems}
-          totalCount={items.length}
           searchValue={searchValue}
           onSearchChange={setSearchValue}
           onDownload={(item) => {

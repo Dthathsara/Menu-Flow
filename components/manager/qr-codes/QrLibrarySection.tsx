@@ -2,10 +2,12 @@ import { SearchIcon } from "../icons";
 import {
   cn,
   getManagerAccentPillClasses,
+  getManagerBodyTextClasses,
   getManagerCardShellClasses,
   getManagerControlShellClasses,
   getManagerPanelShellClasses,
   getManagerSectionSubtitleClasses,
+  getManagerSectionTitleClasses,
   getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
@@ -15,7 +17,6 @@ import type { QrCodeRecord } from "./types";
 interface QrLibrarySectionProps {
   settings: ManagerSettings;
   items: QrCodeRecord[];
-  totalCount: number;
   searchValue: string;
   onSearchChange: (value: string) => void;
   onDownload: (item: QrCodeRecord) => void;
@@ -25,7 +26,6 @@ interface QrLibrarySectionProps {
 export function QrLibrarySection({
   settings,
   items,
-  totalCount,
   searchValue,
   onSearchChange,
   onDownload,
@@ -36,7 +36,7 @@ export function QrLibrarySection({
       <div className="px-1">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h2 className={cn("text-[1.95rem] font-bold tracking-tight sm:text-[2.1rem]", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>
+            <h2 className={getManagerSectionTitleClasses()}>
               Table QR Library
             </h2>
             <p className={cn("mt-2 text-[14px] leading-7", getManagerSectionSubtitleClasses(settings.scheme))}>
@@ -46,12 +46,12 @@ export function QrLibrarySection({
           </div>
 
           <span className={cn(getManagerAccentPillClasses(settings.scheme, "brand"), "h-8 w-fit items-center px-4")}>
-            {totalCount} QR CODES
+            SORTED BY TABLE AND BRANCH
           </span>
         </div>
 
-        <div className="mt-5">
-          <label className="block">
+        <div className="mt-5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <label className="min-w-0 flex-1">
             <span className="sr-only">Search QR codes</span>
             <div className={cn(getManagerControlShellClasses(settings.scheme), "h-12 rounded-[14px]")}>
               <SearchIcon className="size-4 text-slate-400" />
@@ -64,6 +64,10 @@ export function QrLibrarySection({
               />
             </div>
           </label>
+
+          <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
+            {items.length} result{items.length === 1 ? "" : "s"}
+          </div>
         </div>
       </div>
 

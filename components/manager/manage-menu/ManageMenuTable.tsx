@@ -59,7 +59,7 @@ export function ManageMenuTable({
                 : "bg-slate-100 text-slate-500",
             )}
           >
-            {items.length} items
+            Sorted by category and price
           </div>
         </div>
 
