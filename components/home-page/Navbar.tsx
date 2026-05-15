@@ -10,6 +10,8 @@ import { cn, type AuthTheme } from "@/components/common/theme";
 import { SectionLink, scrollToSection } from "@/components/home-page/SectionLink";
 import { primaryNavLinks } from "@/components/home-page/siteNavigation";
 import { LoginModal } from "@/components/login/LoginModal";
+import { MANAGER_STORAGE_KEY } from "@/components/manager/managerConfig";
+import { parseManagerSettingsValue } from "@/components/manager/managerTheme";
 import { SignUpModal } from "@/components/sign-up/SignUpModal";
 
 function LogoMark() {
@@ -23,21 +25,30 @@ function LogoMark() {
 
 export function Navbar() {
   const headerRef = useRef<HTMLElement | null>(null);
-  const [theme, setTheme] = useState<AuthTheme>(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.dataset.theme === "light"
-        ? "light"
-        : "dark";
-    }
-
-    return "dark";
-  });
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<AuthTheme>("dark");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<"login" | "signup" | null>(null);
 
   useEffect(() => {
+    const storedSettings = parseManagerSettingsValue(
+      window.localStorage.getItem(MANAGER_STORAGE_KEY),
+    );
+    const savedTheme =
+      storedSettings?.scheme ??
+      (document.documentElement.dataset.theme === "light" ? "light" : "dark");
+
+    setTheme(savedTheme);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) {
+      return;
+    }
+
     document.documentElement.dataset.theme = theme;
-  }, [theme]);
+  }, [mounted, theme]);
 
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
@@ -90,6 +101,7 @@ export function Navbar() {
   const toggleTheme = () => {
     setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
   };
+  const renderedTheme = mounted ? theme : "dark";
 
   const desktopTextButtonClassName = cn(
     secondaryButtonClassName,
@@ -148,7 +160,7 @@ export function Navbar() {
               aria-label="Toggle theme"
               className={themeButtonClassName}
             >
-              {theme === "dark" ? (
+              {renderedTheme === "dark" ? (
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 24 24"
@@ -192,7 +204,7 @@ export function Navbar() {
               aria-label="Toggle theme"
               className={themeButtonClassName}
             >
-              {theme === "dark" ? (
+              {renderedTheme === "dark" ? (
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 24 24"
@@ -297,14 +309,14 @@ export function Navbar() {
         open={activeModal === "login"}
         onClose={() => setActiveModal(null)}
         onOpenSignUp={() => setActiveModal("signup")}
-        theme={theme}
+        theme={renderedTheme}
       />
 
       <SignUpModal
         open={activeModal === "signup"}
         onClose={() => setActiveModal(null)}
         onOpenLogin={() => setActiveModal("login")}
-        theme={theme}
+        theme={renderedTheme}
       />
     </>
   );

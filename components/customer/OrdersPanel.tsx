@@ -121,11 +121,11 @@ export function OrdersPanel({
                 <div className="mt-1 text-sm text-[#8e7364]">
                   {formatPrice(item.unitPrice)} each
                 </div>
-                <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-lg font-black text-[#2b8a38]">
                     {formatPrice(subtotal)}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex max-w-full flex-wrap items-center gap-2">
                     <button
                       type="button"
                       onClick={() => onEdit(item)}

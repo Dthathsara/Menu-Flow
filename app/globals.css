@@ -390,11 +390,17 @@ html[data-theme="light"] {
     rgba(168, 85, 247, 0.08)
   );
   --feature-card-bg: rgba(255, 255, 255, 0.8);
-  --feature-card-bg-hover: rgba(255, 255, 255, 0.92);
+  --feature-card-bg-hover: linear-gradient(
+    135deg,
+    rgba(255, 237, 213, 0.96),
+    rgba(255, 247, 237, 0.98),
+    rgba(252, 231, 243, 0.9)
+  );
   --feature-card-border: rgba(226, 232, 240, 0.95);
-  --feature-card-border-hover: rgba(203, 213, 225, 0.95);
+  --feature-card-border-hover: rgba(251, 146, 60, 0.52);
   --feature-card-shadow: 0 18px 34px rgba(15, 23, 42, 0.08);
-  --feature-card-hover-shadow: 0 24px 40px rgba(15, 23, 42, 0.12);
+  --feature-card-hover-shadow: 0 0 0 1px rgba(249, 115, 22, 0.14),
+    0 24px 54px rgba(249, 115, 22, 0.16);
   --feature-icon-ring: rgba(226, 232, 240, 0.95);
   --how-step-card-bg: rgba(255, 255, 255, 0.9);
   --how-step-card-bg-hover: rgba(255, 255, 255, 0.97);
