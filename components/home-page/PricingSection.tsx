@@ -46,9 +46,6 @@ const plans = [
   },
 ] as const;
 
-const pricingCardHoverClassName =
-  "cursor-pointer hover:-translate-y-1 hover:bg-gradient-to-br hover:from-orange-500/20 hover:via-orange-500/10 hover:to-pink-500/10 hover:shadow-[0_30px_80px_rgba(249,115,22,0.16)] hover:[border-color:rgba(251,146,60,0.42)] [html[data-theme=light]_&]:hover:from-orange-100/90 [html[data-theme=light]_&]:hover:via-orange-50 [html[data-theme=light]_&]:hover:to-pink-100/80 [html[data-theme=light]_&]:hover:shadow-[0_24px_54px_rgba(249,115,22,0.14)] [html[data-theme=light]_&]:hover:[border-color:rgba(251,146,60,0.5)]";
-
 export function PricingSection() {
   return (
     <section
@@ -78,10 +75,10 @@ export function PricingSection() {
           {plans.map((plan) => (
             <article
               key={plan.name}
-              className={`group relative flex h-full flex-col rounded-[2rem] border p-7 shadow-[var(--pricing-card-shadow)] backdrop-blur-xl transition-all duration-300 sm:p-8 ${pricingCardHoverClassName} ${
+              className={`group flex h-full flex-col rounded-[2rem] border [background:var(--feature-card-bg)] p-7 shadow-[var(--feature-card-shadow)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:[background:var(--feature-card-bg-hover)] hover:shadow-[var(--feature-card-hover-shadow)] [border-color:var(--feature-card-border)] hover:[border-color:var(--feature-card-border-hover)] sm:p-8 ${
                 plan.featured
-                  ? "[background:var(--pricing-card-featured-bg)] [border-color:var(--pricing-card-featured-border)] shadow-[var(--pricing-card-featured-shadow)]"
-                  : "[background:var(--pricing-card-bg)] [border-color:var(--pricing-card-border)]"
+                  ? "[background:var(--pricing-card-featured-bg)] [border-color:var(--pricing-card-featured-border)] shadow-[var(--pricing-card-featured-shadow)] hover:[background:linear-gradient(135deg,rgba(249,115,22,0.24),rgba(249,115,22,0.12),rgba(236,72,153,0.13))] hover:[border-color:rgba(251,146,60,0.64)] hover:shadow-[0_0_0_1px_rgba(249,115,22,0.22),0_34px_88px_rgba(249,115,22,0.22)] [html[data-theme=light]_&]:hover:[background:linear-gradient(135deg,rgba(255,237,213,0.97),rgba(255,247,237,0.99),rgba(252,231,243,0.92))] [html[data-theme=light]_&]:hover:[border-color:rgba(251,146,60,0.52)] [html[data-theme=light]_&]:hover:shadow-[0_0_0_1px_rgba(249,115,22,0.16),0_28px_62px_rgba(249,115,22,0.17)]"
+                  : ""
               }`}
             >
               <div className="flex items-start justify-between gap-4">

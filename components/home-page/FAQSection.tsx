@@ -65,10 +65,10 @@ export function FAQSection() {
             return (
               <article
                 key={item.question}
-                className={`overflow-hidden rounded-[2rem] border shadow-[var(--faq-card-shadow)] backdrop-blur-xl transition-all duration-300 [background:var(--faq-card-bg)] ${
+                className={`overflow-hidden rounded-[2rem] border [background:var(--feature-card-bg)] shadow-[var(--feature-card-shadow)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:[background:var(--feature-card-bg-hover)] hover:shadow-[var(--feature-card-hover-shadow)] [border-color:var(--feature-card-border)] hover:[border-color:var(--feature-card-border-hover)] ${
                   isOpen
-                    ? "[border-color:var(--faq-card-border-hover)]"
-                    : "[border-color:var(--faq-card-border)] hover:[border-color:var(--faq-card-border-hover)]"
+                    ? "[background:var(--feature-card-bg-hover)] shadow-[var(--feature-card-hover-shadow)] [border-color:var(--feature-card-border-hover)]"
+                    : ""
                 }`}
               >
                 <button
@@ -76,9 +76,7 @@ export function FAQSection() {
                   onClick={() => toggleItem(index)}
                   aria-expanded={isOpen}
                   aria-controls={`faq-panel-${index}`}
-                  className={`flex min-h-[6.6rem] w-full items-start justify-between gap-4 px-6 py-5 text-left transition-colors duration-300 sm:min-h-[6.9rem] sm:px-7 sm:py-5.5 lg:min-h-[7.2rem] lg:px-8 lg:py-6 ${
-                    isOpen ? "" : "hover:bg-white/[0.015]"
-                  }`}
+                  className="flex min-h-[6.6rem] w-full items-start justify-between gap-4 px-6 py-5 text-left transition-colors duration-300 sm:min-h-[6.9rem] sm:px-7 sm:py-5.5 lg:min-h-[7.2rem] lg:px-8 lg:py-6"
                 >
                   <span className="pr-4 text-[1.95rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[var(--text-primary)] sm:text-[2.05rem] lg:text-[2.15rem]">
                     {item.question}

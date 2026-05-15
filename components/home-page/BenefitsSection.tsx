@@ -90,17 +90,14 @@ const processCards = [
   },
 ] as const;
 
-const glassCardClassName =
-  "border border-white/10 bg-white/[0.055] shadow-[0_28px_70px_rgba(2,6,23,0.22)] backdrop-blur-xl [html[data-theme=light]_&]:border-slate-200 [html[data-theme=light]_&]:bg-white/86 [html[data-theme=light]_&]:shadow-[0_22px_48px_rgba(15,23,42,0.1)]";
-
-const benefitCardHoverClassName =
-  "relative cursor-pointer overflow-hidden transition-all duration-300 before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-gradient-to-br before:from-orange-500/0 before:via-orange-500/0 before:to-pink-500/0 before:opacity-0 before:transition-opacity before:duration-300 hover:-translate-y-1 hover:border-orange-400/40 hover:bg-gradient-to-br hover:from-orange-500/20 hover:via-orange-500/10 hover:to-pink-500/10 hover:shadow-[0_30px_80px_rgba(249,115,22,0.16)] hover:before:from-orange-500/15 hover:before:via-orange-500/8 hover:before:to-pink-500/10 hover:before:opacity-100 [html[data-theme=light]_&]:hover:border-orange-300/70 [html[data-theme=light]_&]:hover:from-orange-100/90 [html[data-theme=light]_&]:hover:via-orange-50 [html[data-theme=light]_&]:hover:to-pink-100/80 [html[data-theme=light]_&]:hover:shadow-[0_24px_54px_rgba(249,115,22,0.14)]";
+const featureCardClassName =
+  "border [background:var(--feature-card-bg)] shadow-[var(--feature-card-shadow)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:[background:var(--feature-card-bg-hover)] hover:shadow-[var(--feature-card-hover-shadow)] [border-color:var(--feature-card-border)] hover:[border-color:var(--feature-card-border-hover)]";
 
 export function BenefitsSection() {
   return (
     <section
       id="benefits"
-      className="relative isolate overflow-hidden scroll-mt-[calc(var(--header-height,5.75rem)+1rem)] py-24 text-white sm:py-28 lg:py-32 [html[data-theme=light]_&]:text-slate-950"
+      className="relative isolate overflow-hidden scroll-mt-[calc(var(--header-height,5.75rem)+1rem)] pt-4 pb-24 text-white sm:pt-6 sm:pb-28 lg:pt-8 lg:pb-32 [html[data-theme=light]_&]:text-slate-950"
     >
       <div
         aria-hidden="true"
@@ -140,9 +137,8 @@ export function BenefitsSection() {
             <article
               key={card.label}
               className={cn(
-                glassCardClassName,
-                benefitCardHoverClassName,
-                "rounded-[1.45rem] px-6 py-6",
+                featureCardClassName,
+                "rounded-[2rem] px-6 py-6",
               )}
             >
               <p className="text-sm text-blue-100/72 [html[data-theme=light]_&]:text-slate-500">
@@ -160,9 +156,8 @@ export function BenefitsSection() {
             <article
               key={card.number}
               className={cn(
-                glassCardClassName,
-                benefitCardHoverClassName,
-                "group min-h-[290px] rounded-[1.9rem] p-8",
+                featureCardClassName,
+                "group min-h-[290px] rounded-[2rem] p-8",
               )}
             >
               <div
@@ -196,14 +191,14 @@ export function BenefitsSection() {
           ))}
         </div>
 
-        <div className="mt-16 rounded-[2rem] border border-white/12 bg-white/[0.09] p-6 shadow-[0_30px_90px_rgba(2,6,23,0.26)] backdrop-blur-xl sm:p-8 lg:rounded-[2.2rem] lg:p-10 [html[data-theme=light]_&]:border-slate-200 [html[data-theme=light]_&]:bg-white/88 [html[data-theme=light]_&]:shadow-[0_24px_64px_rgba(15,23,42,0.1)]">
+        <div className="mt-16 rounded-[2rem] border border-white/12 bg-white/[0.09] p-6 shadow-[0_30px_90px_rgba(2,6,23,0.26)] backdrop-blur-xl sm:p-8 lg:rounded-[2.2rem] lg:p-10 [html[data-theme=light]_&]:border-slate-300/80 [html[data-theme=light]_&]:bg-white/96 [html[data-theme=light]_&]:shadow-[0_24px_64px_rgba(15,23,42,0.12)]">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <h3 className="max-w-[620px] text-4xl font-semibold leading-[1.04] tracking-[-0.05em] text-white sm:text-5xl [html[data-theme=light]_&]:text-slate-950">
               From scan to service,
               <br />
               everything feels smoother
             </h3>
-            <p className="max-w-[440px] text-base leading-7 text-blue-100/86 lg:justify-self-end [html[data-theme=light]_&]:text-slate-600">
+            <p className="max-w-[440px] text-base leading-7 text-blue-100/86 lg:justify-self-end [html[data-theme=light]_&]:text-slate-700">
               MenuFlow improves both sides of the restaurant experience:
               customers order with less friction, and your team manages daily
               operations with more control.
@@ -215,17 +210,17 @@ export function BenefitsSection() {
               <article
                 key={card.number}
                 className={cn(
-                  benefitCardHoverClassName,
-                  "rounded-[1.45rem] border border-white/8 bg-[#080d21]/88 p-6 shadow-[0_20px_44px_rgba(2,6,23,0.22)] [html[data-theme=light]_&]:border-slate-200 [html[data-theme=light]_&]:bg-slate-950 [html[data-theme=light]_&]:shadow-[0_18px_40px_rgba(15,23,42,0.16)]",
+                  featureCardClassName,
+                  "rounded-[2rem] p-6 [html[data-theme=light]_&]:border-slate-300/80 [html[data-theme=light]_&]:bg-white/95 [html[data-theme=light]_&]:shadow-[0_18px_44px_rgba(15,23,42,0.12)] [html[data-theme=light]_&]:hover:[background:var(--feature-card-bg-hover)] [html[data-theme=light]_&]:hover:[border-color:var(--feature-card-border-hover)]",
                 )}
               >
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-sky-400 text-base font-semibold text-white">
                   {card.number}
                 </span>
-                <h4 className="mt-6 text-xl font-semibold tracking-[-0.04em] text-white">
+                <h4 className="mt-6 text-xl font-semibold tracking-[-0.04em] text-white [html[data-theme=light]_&]:text-slate-950">
                   {card.title}
                 </h4>
-                <p className="mt-3 text-sm leading-6 text-blue-100/86">
+                <p className="mt-3 text-sm leading-6 text-blue-100/86 [html[data-theme=light]_&]:text-slate-700">
                   {card.description}
                 </p>
               </article>

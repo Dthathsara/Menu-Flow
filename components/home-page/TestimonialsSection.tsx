@@ -22,9 +22,6 @@ const testimonials = [
   },
 ] as const;
 
-const testimonialCardHoverClassName =
-  "cursor-pointer hover:-translate-y-1 hover:bg-gradient-to-br hover:from-orange-500/20 hover:via-orange-500/10 hover:to-pink-500/10 hover:shadow-[0_30px_80px_rgba(249,115,22,0.16)] hover:[border-color:rgba(251,146,60,0.42)] [html[data-theme=light]_&]:hover:from-orange-100/90 [html[data-theme=light]_&]:hover:via-orange-50 [html[data-theme=light]_&]:hover:to-pink-100/80 [html[data-theme=light]_&]:hover:shadow-[0_24px_54px_rgba(249,115,22,0.14)] [html[data-theme=light]_&]:hover:[border-color:rgba(251,146,60,0.5)]";
-
 function StarRow() {
   return (
     <div
@@ -74,18 +71,13 @@ export function TestimonialsSection() {
           {testimonials.map((testimonial) => (
             <article
               key={testimonial.name}
-              className={`group relative flex h-full min-h-[18.5rem] flex-col rounded-[2rem] border p-7 shadow-[var(--testimonial-card-shadow)] backdrop-blur-xl transition-all duration-300 sm:p-8 ${testimonialCardHoverClassName} ${
+              className={`group flex h-full min-h-[18.5rem] flex-col rounded-[2rem] border [background:var(--feature-card-bg)] p-7 shadow-[var(--feature-card-shadow)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:[background:var(--feature-card-bg-hover)] hover:shadow-[var(--feature-card-hover-shadow)] [border-color:var(--feature-card-border)] hover:[border-color:var(--feature-card-border-hover)] sm:p-8 ${
                 testimonial.featured
-                  ? "xl:-translate-y-2 [background:var(--testimonial-card-featured-bg)] [border-color:var(--testimonial-card-featured-border)] shadow-[var(--testimonial-card-featured-shadow)]"
-                  : "[background:var(--testimonial-card-bg)] [border-color:var(--testimonial-card-border)]"
+                  ? "xl:-translate-y-2 [background:var(--testimonial-card-featured-bg)] [border-color:var(--testimonial-card-featured-border)] shadow-[var(--testimonial-card-featured-shadow)] hover:[background:linear-gradient(135deg,rgba(249,115,22,0.22),rgba(249,115,22,0.1),rgba(236,72,153,0.12))] hover:[border-color:rgba(251,146,60,0.58)] hover:shadow-[0_0_0_1px_rgba(249,115,22,0.2),0_34px_86px_rgba(249,115,22,0.2)] xl:hover:-translate-y-3 [html[data-theme=light]_&]:hover:[background:linear-gradient(135deg,rgba(255,237,213,0.96),rgba(255,247,237,0.98),rgba(252,231,243,0.9))] [html[data-theme=light]_&]:hover:[border-color:rgba(251,146,60,0.5)] [html[data-theme=light]_&]:hover:shadow-[0_0_0_1px_rgba(249,115,22,0.16),0_28px_60px_rgba(249,115,22,0.16)]"
+                  : ""
               }`}
             >
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 rounded-[2rem] opacity-80 [background:var(--testimonial-card-sheen)]"
-              />
-
-              <div className="relative flex h-full flex-col">
+              <div className="flex h-full flex-col">
                 <StarRow />
 
                 <p className="mt-8 text-xl leading-9 text-[var(--text-secondary)]">

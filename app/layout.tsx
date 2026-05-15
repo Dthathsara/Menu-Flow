@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { GlobalBackground } from "@/components/common/layout";
+import { ManagerThemeInitializer } from "@/components/manager/ManagerThemeInitializer";
 import { MANAGER_STORAGE_KEY } from "@/components/manager/managerConfig";
-import {
-  createManagerThemeInitScript,
-  getManagerSchemeFromStoredValue,
-} from "@/components/manager/managerTheme";
+import { getManagerSchemeFromStoredValue } from "@/components/manager/managerTheme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,20 +40,12 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth`}
     >
-      <head>
-        <Script
-          id="menuflow-theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: createManagerThemeInitScript(),
-          }}
-        />
-      </head>
       <body
         data-theme={initialTheme}
         suppressHydrationWarning
         className="relative min-h-full bg-[var(--background)] font-sans text-[var(--text-primary)] antialiased transition-colors duration-300"
       >
+        <ManagerThemeInitializer />
         <GlobalBackground />
         <div className="relative z-10 overflow-x-clip">{children}</div>
       </body>

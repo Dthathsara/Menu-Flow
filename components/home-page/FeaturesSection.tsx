@@ -83,7 +83,7 @@ export function FeaturesSection() {
           {features.map((feature) => (
             <article
               key={feature.title}
-              className="group flex h-full flex-col rounded-[2rem] border bg-[var(--feature-card-bg)] p-7 shadow-[var(--feature-card-shadow)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:bg-[var(--feature-card-bg-hover)] hover:shadow-[var(--feature-card-hover-shadow)] [border-color:var(--feature-card-border)] hover:[border-color:var(--feature-card-border-hover)]"
+              className="group flex h-full flex-col rounded-[2rem] border [background:var(--feature-card-bg)] p-7 shadow-[var(--feature-card-shadow)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:[background:var(--feature-card-bg-hover)] hover:shadow-[var(--feature-card-hover-shadow)] [border-color:var(--feature-card-border)] hover:[border-color:var(--feature-card-border-hover)]"
             >
               <div
                 className={`flex h-12 w-12 items-center justify-center rounded-2xl ring-1 [--tw-ring-color:var(--feature-icon-ring)] ${feature.accent}`}

@@ -56,14 +56,9 @@ export function HowItWorksSection() {
           {steps.map((step) => (
             <article
               key={step.number}
-              className="group relative overflow-hidden rounded-[2rem] border p-7 shadow-[var(--how-step-card-shadow)] backdrop-blur-xl transition-all duration-300 [background:var(--how-step-card-bg)] [border-color:var(--how-step-card-border)] hover:-translate-y-0.5 hover:[background:var(--how-step-card-bg-hover)] hover:shadow-[var(--how-step-card-hover-shadow)] sm:p-8 lg:p-9"
+              className="group rounded-[2rem] border [background:var(--feature-card-bg)] p-7 shadow-[var(--feature-card-shadow)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:[background:var(--feature-card-bg-hover)] hover:shadow-[var(--feature-card-hover-shadow)] [border-color:var(--feature-card-border)] hover:[border-color:var(--feature-card-border-hover)]"
             >
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 opacity-80 [background:var(--how-step-card-sheen)]"
-              />
-
-              <div className="relative">
+              <div>
                 <p className="text-sm font-semibold tracking-[0.18em] text-orange-400">
                   {step.number}
                 </p>

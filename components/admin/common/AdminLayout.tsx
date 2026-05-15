@@ -17,19 +17,24 @@ import type { AdminScheme, AdminTab } from "./adminTypes";
 
 export function AdminLayout() {
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
-  const [scheme, setScheme] = useState<AdminScheme>(() => {
-    if (typeof window === "undefined") {
-      return "dark";
-    }
-    const stored = window.localStorage.getItem(ADMIN_STORAGE_KEY);
-    return stored === "light" || stored === "dark" ? stored : "dark";
-  });
+  const [mounted, setMounted] = useState(false);
+  const [scheme, setScheme] = useState<AdminScheme>("dark");
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    applyThemeToDocument(scheme);
-  }, [scheme]);
+    const stored = window.localStorage.getItem(ADMIN_STORAGE_KEY);
+
+    if (stored === "light" || stored === "dark") {
+      setScheme(stored);
+    }
+
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    applyThemeToDocument(mounted ? scheme : "dark");
+  }, [mounted, scheme]);
 
   useEffect(() => {
     const handleNavigate = (event: Event) => {
