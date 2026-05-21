@@ -15,8 +15,10 @@ import {
   type AuthTheme,
 } from "@/components/common/theme";
 
-const PROFILE_ME_URL = "/backend/auth/me";
-const CHANGE_PASSWORD_URL = "/backend/auth/change-password";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
+
+const PROFILE_ME_URL = `${API_BASE_URL}/auth/me`;
+const CHANGE_PASSWORD_URL = `${API_BASE_URL}/auth/change-password`;
 
 type UserProfile = {
   id?: string;
