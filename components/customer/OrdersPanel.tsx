@@ -12,10 +12,11 @@ interface OrdersPanelProps {
   serviceCharge: number;
   total: number;
   onEdit: (item: CartItem) => void;
-  onRemove: (key: string) => void;
+  onRemove: (item: CartItem) => void;
 }
 
 const orderStatuses = ["Accepted", "Preparing", "Ready", "Delivered"] as const;
+const fallbackImage = "/customer/sea-bowl.svg";
 
 export function OrdersPanel({
   items,
@@ -95,6 +96,7 @@ export function OrdersPanel({
       <div className="mt-5 space-y-3">
         {items.map((item) => {
           const subtotal = item.unitPrice * item.quantity;
+          const imageSrc = item.image?.trim() || fallbackImage;
 
           return (
             <article
@@ -103,9 +105,10 @@ export function OrdersPanel({
             >
               <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] border border-[#eadfce] bg-white">
                 <Image
-                  src={item.image}
+                  src={imageSrc}
                   alt={item.name}
                   fill
+                  unoptimized
                   sizes="80px"
                   className="object-cover"
                 />
@@ -135,7 +138,7 @@ export function OrdersPanel({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onRemove(item.key)}
+                      onClick={() => onRemove(item)}
                       className="rounded-full border border-[#d9b6ad] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#b03a34] transition hover:bg-[#fff1ee]"
                     >
                       Remove

@@ -922,11 +922,17 @@ export function DashboardContent({ settings }: DashboardContentProps) {
   const displayName = getDisplayName(user);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const timeoutId = window.setTimeout(() => {
+      const storedUser = localStorage.getItem("user");
 
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   return (

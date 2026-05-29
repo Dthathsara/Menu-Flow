@@ -10,8 +10,9 @@ function createServingPrices(basePrice: number) {
   } satisfies Record<ServingSize, number>;
 }
 
-function createItem(item: Omit<MenuItem, "servingPrices">): MenuItem {
+function createItem(item: Omit<MenuItem, "servingPrices" | "prepTime"> & { prepTime?: number }): MenuItem {
   return {
+    prepTime: 12,
     ...item,
     servingPrices: createServingPrices(item.basePrice),
   };
@@ -20,6 +21,9 @@ function createItem(item: Omit<MenuItem, "servingPrices">): MenuItem {
 export const customerMenuData: CustomerMenuData = {
   restaurant: {
     name: "Letona Cafe",
+    businessType: "Cafe",
+    kitchenCloseTime: "11:00 PM",
+    status: "Kitchen open until 11:00 PM",
     titlePrefix: "Letona",
     titleAccent: "Cafe",
     tagline: "restaurant by the beach",

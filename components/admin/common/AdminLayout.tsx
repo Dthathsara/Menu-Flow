@@ -23,13 +23,19 @@ export function AdminLayout() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(ADMIN_STORAGE_KEY);
+    const timeoutId = window.setTimeout(() => {
+      const stored = window.localStorage.getItem(ADMIN_STORAGE_KEY);
 
-    if (stored === "light" || stored === "dark") {
-      setScheme(stored);
-    }
+      if (stored === "light" || stored === "dark") {
+        setScheme(stored);
+      }
 
-    setMounted(true);
+      setMounted(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {

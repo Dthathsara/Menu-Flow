@@ -79,7 +79,7 @@ export function ImageUploadField({
             <p
               className={`${scheme === "dark" ? "mt-2 text-slate-300" : "mt-2 text-slate-500"} ${getManagerBodyTextClasses(scheme)}`}
             >
-              PNG or JPG up to 10MB. The existing preview stays until you save a new file.
+              PNG, JPG, JPEG, or WEBP up to 10MB. The existing preview stays until you save a new file.
             </p>
             <div
               className={`mt-3 inline-flex items-center gap-2 text-xs font-medium ${
@@ -95,7 +95,7 @@ export function ImageUploadField({
         <input
           id={inputId}
           type="file"
-          accept="image/*"
+          accept="image/png,image/jpg,image/jpeg,image/webp"
           className="sr-only"
           onChange={(event) => onChange(event.target.files?.[0] ?? null)}
         />

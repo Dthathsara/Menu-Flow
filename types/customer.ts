@@ -9,6 +9,10 @@ export interface MenuItem {
   image: string;
   basePrice: number;
   servingPrices: Record<ServingSize, number>;
+  prepTime: number;
+  categoryName?: string;
+  subCategoryName?: string;
+  available?: boolean;
   spiceLevel?: "Mild" | "Medium" | "Hot";
 }
 
@@ -44,7 +48,11 @@ export interface ContactInfo {
 }
 
 export interface RestaurantInfo {
+  id?: string | null;
   name: string;
+  businessType: string;
+  kitchenCloseTime: string;
+  status: string;
   titlePrefix: string;
   titleAccent: string;
   tagline: string;

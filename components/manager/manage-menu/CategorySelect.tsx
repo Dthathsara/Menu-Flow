@@ -11,23 +11,35 @@ import {
 } from "../managerUtils";
 import { useOnClickOutside } from "../useOnClickOutside";
 import type { Scheme } from "../managerTypes";
-import type { MenuFilterCategory } from "./types";
+
+export interface CategorySelectOption {
+  value: string;
+  label: string;
+}
 
 interface CategorySelectProps {
-  value: MenuFilterCategory;
-  options: readonly MenuFilterCategory[];
+  value: string;
+  options: readonly (string | CategorySelectOption)[];
   scheme: Scheme;
-  onChange: (value: MenuFilterCategory) => void;
+  label?: string;
+  onChange: (value: string) => void;
+}
+
+function normalizeOption(option: string | CategorySelectOption): CategorySelectOption {
+  return typeof option === "string" ? { value: option, label: option } : option;
 }
 
 export function CategorySelect({
   value,
   options,
   scheme,
+  label = "Category",
   onChange,
 }: CategorySelectProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const normalizedOptions = options.map(normalizeOption);
+  const selectedOption = normalizedOptions.find((option) => option.value === value);
 
   useOnClickOutside(rootRef, () => setOpen(false), open);
 
@@ -43,7 +55,7 @@ export function CategorySelect({
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className="truncate">{value}</span>
+        <span className="truncate">{selectedOption?.label ?? value}</span>
         <ChevronDownIcon className={cn("size-4 transition", open && "rotate-180")} />
       </button>
 
@@ -56,19 +68,19 @@ export function CategorySelect({
           role="listbox"
         >
           <div className={cn("px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.22em]", getMutedTextClasses(scheme))}>
-            Category
+            {label}
           </div>
 
           <div className="space-y-1">
-            {options.map((option) => {
-              const selected = option === value;
+            {normalizedOptions.map((option) => {
+              const selected = option.value === value;
 
               return (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
                   onClick={() => {
-                    onChange(option);
+                    onChange(option.value);
                     setOpen(false);
                   }}
                   className={cn(
@@ -83,7 +95,7 @@ export function CategorySelect({
                     getFocusRingClasses(scheme),
                   )}
                 >
-                  <span>{option}</span>
+                  <span>{option.label}</span>
                   {selected ? <CheckIcon className="size-4" /> : null}
                 </button>
               );

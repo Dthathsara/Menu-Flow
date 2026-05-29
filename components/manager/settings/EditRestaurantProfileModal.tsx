@@ -45,9 +45,15 @@ export function EditRestaurantProfileModal({
       return;
     }
 
-    setName(profile.name);
-    setLocation(profile.location);
-    setPreviewSrc(profile.imageSrc);
+    const timeoutId = window.setTimeout(() => {
+      setName(profile.name);
+      setLocation(profile.location);
+      setPreviewSrc(profile.imageSrc);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [open, profile]);
 
   useEffect(() => {

@@ -2,10 +2,10 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
-import axios from "axios";
 
 import { primaryButtonClassName } from "@/components/common/buttons";
 import { getApiErrorMessage } from "@/lib/error-handler";
+import { authJson, SessionExpiredError } from "@/lib/auth-session";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
@@ -15,16 +15,16 @@ import {
   type AuthTheme,
 } from "@/components/common/theme";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
-
-const PROFILE_ME_URL = `${API_BASE_URL}/auth/me`;
-const CHANGE_PASSWORD_URL = `${API_BASE_URL}/auth/change-password`;
+const PROFILE_ME_URL = "/backend/auth/me";
 
 type UserProfile = {
   id?: string;
   email?: string;
   businessEmail?: string;
   hotelName?: string;
+  businessType?: string;
+  businessLocation?: string;
+  kitchenCloseTime?: string;
   contactPersonName?: string;
   contactPersonMobileNumber?: string;
   firstName?: string;
@@ -34,6 +34,9 @@ type UserProfile = {
 
 type ProfileForm = {
   hotelName: string;
+  businessType: string;
+  businessLocation: string;
+  kitchenCloseTime: string;
   businessEmail: string;
   contactPersonName: string;
   contactPersonMobileNumber: string;
@@ -80,6 +83,9 @@ function getUserPayload(data: unknown): UserProfile | null {
 function buildForm(user: UserProfile | null): ProfileForm {
   return {
     hotelName: user?.hotelName || "",
+    businessType: user?.businessType || "",
+    businessLocation: user?.businessLocation || "",
+    kitchenCloseTime: user?.kitchenCloseTime || "",
     businessEmail: user?.businessEmail || user?.email || "",
     contactPersonName:
       user?.contactPersonName ||
@@ -92,11 +98,6 @@ function buildForm(user: UserProfile | null): ProfileForm {
 }
 
 function logProfileError(error: unknown) {
-  if (axios.isAxiosError(error)) {
-    console.log("PROFILE ERROR", error.response?.data || error.message);
-    return;
-  }
-
   console.log(
     "PROFILE ERROR",
     error instanceof Error ? error.message : "Unknown profile error",
@@ -110,6 +111,9 @@ export function ProfileModal({
   theme = "dark",
 }: ProfileModalProps) {
   const hotelNameId = useId();
+  const businessTypeId = useId();
+  const businessLocationId = useId();
+  const kitchenCloseTimeId = useId();
   const businessEmailId = useId();
   const contactNameId = useId();
   const mobileNumberId = useId();
@@ -143,15 +147,6 @@ export function ProfileModal({
     const storedUser = readStoredUser();
     setForm(buildForm(storedUser));
 
-    const token = window.localStorage.getItem("accessToken");
-    console.log("PROFILE TOKEN", token);
-
-    if (!token) {
-      setStatusType("error");
-      setStatusMessage("Session expired. Please login again.");
-      return;
-    }
-
     let isActive = true;
 
     async function loadProfile() {
@@ -159,18 +154,13 @@ export function ProfileModal({
       setStatusMessage("");
 
       try {
-        const response = await axios.get(PROFILE_ME_URL, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("PROFILE GET RESPONSE", response.data);
+        const response = await authJson<unknown>(PROFILE_ME_URL);
 
         if (!isActive) {
           return;
         }
 
-        const apiUser = getUserPayload(response.data);
+        const apiUser = getUserPayload(response);
         const nextUser = { ...(storedUser || {}), ...(apiUser || {}) };
         setForm(buildForm(nextUser));
       } catch (error) {
@@ -180,7 +170,11 @@ export function ProfileModal({
 
         logProfileError(error);
         setStatusType("error");
-        setStatusMessage(getApiErrorMessage(error, "Unable to load profile details."));
+        setStatusMessage(
+          error instanceof SessionExpiredError
+            ? error.message
+            : getApiErrorMessage(error, "Unable to load profile details."),
+        );
       } finally {
         if (isActive) {
           setIsLoading(false);
@@ -251,53 +245,46 @@ export function ProfileModal({
       return;
     }
 
-    const token = window.localStorage.getItem("accessToken");
-    console.log("PROFILE TOKEN", token);
-
-    if (!token) {
-      setStatusType("error");
-      setStatusMessage("Session expired. Please login again.");
-      return;
-    }
-
     setIsSubmitting(true);
     setStatusMessage("");
 
     try {
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
-      const payload = {
+      const payload: Record<string, string> = {
         hotelName: form.hotelName.trim(),
+        businessType: form.businessType.trim(),
+        businessLocation: form.businessLocation.trim(),
+        kitchenCloseTime: form.kitchenCloseTime.trim(),
         businessEmail: form.businessEmail.trim().toLowerCase(),
         contactPersonName: form.contactPersonName.trim(),
         contactPersonMobileNumber: form.contactPersonMobileNumber.trim(),
       };
-      console.log("PROFILE SAVE PAYLOAD", payload);
-
-      const profileResponse = await axios.patch(
-        PROFILE_ME_URL,
-        payload,
-        { headers },
-      );
 
       if (wantsPasswordChange) {
-        await axios.patch(
-          CHANGE_PASSWORD_URL,
-          {
-            oldPassword: form.oldPassword,
-            newPassword: form.newPassword,
-          },
-          { headers },
-        );
+        payload.oldPassword = form.oldPassword;
+        payload.newPassword = form.newPassword;
+        payload.confirmPassword = form.confirmPassword;
       }
 
+      const profileResponse = await authJson<unknown>(PROFILE_ME_URL, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
       const storedUser = readStoredUser();
-      const apiUser = getUserPayload(profileResponse.data);
+      const apiUser = getUserPayload(profileResponse);
       const nextUser = {
         ...(storedUser || {}),
         ...(apiUser || {}),
-        ...(!apiUser ? payload : {}),
+        hotelName: form.hotelName.trim(),
+        businessType: form.businessType.trim(),
+        businessLocation: form.businessLocation.trim(),
+        kitchenCloseTime: form.kitchenCloseTime.trim(),
+        businessEmail: form.businessEmail.trim().toLowerCase(),
+        contactPersonName: form.contactPersonName.trim(),
+        contactPersonMobileNumber: form.contactPersonMobileNumber.trim(),
       };
 
       window.localStorage.setItem("user", JSON.stringify(nextUser));
@@ -319,7 +306,11 @@ export function ProfileModal({
     } catch (error) {
       logProfileError(error);
       setStatusType("error");
-      setStatusMessage(getApiErrorMessage(error));
+      setStatusMessage(
+        error instanceof SessionExpiredError
+          ? error.message
+          : getApiErrorMessage(error),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -344,20 +335,57 @@ export function ProfileModal({
             Profile
           </h3>
           <div className="grid gap-5 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <AuthInputField
-                id={hotelNameId}
-                theme={theme}
-                label="Business / Hotel name"
-                value={form.hotelName}
-                autoComplete="organization"
-                placeholder="Enter your business name"
-                error={errors.hotelName}
-                onChange={(hotelName) =>
-                  setForm((current) => ({ ...current, hotelName }))
-                }
-              />
-            </div>
+            <AuthInputField
+              id={hotelNameId}
+              theme={theme}
+              label="Business / Hotel name"
+              value={form.hotelName}
+              autoComplete="organization"
+              placeholder="Enter your business name"
+              error={errors.hotelName}
+              onChange={(hotelName) =>
+                setForm((current) => ({ ...current, hotelName }))
+              }
+            />
+
+            <AuthInputField
+              id={businessTypeId}
+              theme={theme}
+              label="Business type"
+              value={form.businessType}
+              autoComplete="organization-title"
+              placeholder="Cafe / Restaurant / Hotel"
+              error={errors.businessType}
+              onChange={(businessType) =>
+                setForm((current) => ({ ...current, businessType }))
+              }
+            />
+
+            <AuthInputField
+              id={businessLocationId}
+              theme={theme}
+              label="Location"
+              value={form.businessLocation}
+              autoComplete="street-address"
+              placeholder="Negombo Lagoon Front"
+              error={errors.businessLocation}
+              onChange={(businessLocation) =>
+                setForm((current) => ({ ...current, businessLocation }))
+              }
+            />
+
+            <AuthInputField
+              id={kitchenCloseTimeId}
+              theme={theme}
+              label="Kitchen close time"
+              value={form.kitchenCloseTime}
+              autoComplete="off"
+              placeholder="11:00 PM"
+              error={errors.kitchenCloseTime}
+              onChange={(kitchenCloseTime) =>
+                setForm((current) => ({ ...current, kitchenCloseTime }))
+              }
+            />
 
             <div className="sm:col-span-2">
               <AuthInputField

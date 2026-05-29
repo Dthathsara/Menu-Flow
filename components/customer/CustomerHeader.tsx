@@ -10,25 +10,29 @@ export function CustomerHeader({ restaurant }: CustomerHeaderProps) {
       <div className="mx-auto w-full rounded-[1.5rem] bg-[linear-gradient(160deg,#fffdf8_0%,#f6eee3_60%,#efe4d7_100%)] px-4 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] sm:px-5 sm:py-6 md:px-8 md:py-8 lg:px-10">
         <div className="space-y-4 md:flex md:flex-col md:items-center md:justify-center md:space-y-5 md:text-center">
           <div className="inline-flex rounded-full bg-[#f2eadf] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#2c8b47]">
-            {restaurant.bannerLabel}
+            TODAY&apos;S SIGNATURE MENU
           </div>
           <div className="flex items-end gap-1 leading-none md:justify-center">
             <span className="text-[2.35rem] font-black tracking-[-0.05em] text-[#19724d] sm:text-[3rem] md:text-[3.3rem]">
-              {restaurant.titlePrefix}
+              {restaurant.name}
             </span>
-            <span className="pb-1 font-serif text-[2.1rem] italic text-[#c7463d] sm:text-[2.7rem] md:text-[3rem]">
-              {restaurant.titleAccent}
-            </span>
+            {restaurant.businessType ? (
+              <span className="pb-1 font-serif text-[2.1rem] italic text-[#c7463d] sm:text-[2.7rem] md:text-[3rem]">
+                {restaurant.businessType}
+              </span>
+            ) : null}
           </div>
           <p className="text-xs uppercase tracking-[0.26em] text-[#927663] md:text-sm">
-            {restaurant.tagline}
+            {restaurant.tagline || "CUSTOMER MENU"}
           </p>
           <div className="flex flex-wrap gap-2 text-[0.72rem] font-medium text-[#85584d] md:justify-center">
+            {restaurant.location ? (
+              <span className="rounded-full bg-white/80 px-3 py-1 shadow-sm">
+                {restaurant.location}
+              </span>
+            ) : null}
             <span className="rounded-full bg-white/80 px-3 py-1 shadow-sm">
-              {restaurant.location}
-            </span>
-            <span className="rounded-full bg-white/80 px-3 py-1 shadow-sm">
-              {restaurant.kitchenHours}
+              {restaurant.status}
             </span>
           </div>
         </div>
