@@ -24,9 +24,14 @@ type UserProfile = {
   hotelName?: string;
   businessType?: string;
   businessLocation?: string;
+  businessAddress?: string;
+  kitchenOpenTime?: string;
   kitchenCloseTime?: string;
   contactPersonName?: string;
   contactPersonMobileNumber?: string;
+  taxRate?: number | string;
+  serviceChargeRate?: number | string;
+  discountRate?: number | string | null;
   firstName?: string;
   lastName?: string;
   role?: string;
@@ -36,10 +41,15 @@ type ProfileForm = {
   hotelName: string;
   businessType: string;
   businessLocation: string;
-  kitchenCloseTime: string;
+  businessAddress: string;
   businessEmail: string;
+  kitchenOpenTime: string;
+  kitchenCloseTime: string;
   contactPersonName: string;
   contactPersonMobileNumber: string;
+  taxRate: string;
+  serviceChargeRate: string;
+  discountRate: string;
   oldPassword: string;
   newPassword: string;
   confirmPassword: string;
@@ -85,12 +95,23 @@ function buildForm(user: UserProfile | null): ProfileForm {
     hotelName: user?.hotelName || "",
     businessType: user?.businessType || "",
     businessLocation: user?.businessLocation || "",
-    kitchenCloseTime: user?.kitchenCloseTime || "",
+    businessAddress: user?.businessAddress || "",
     businessEmail: user?.businessEmail || user?.email || "",
+    kitchenOpenTime: user?.kitchenOpenTime || "",
+    kitchenCloseTime: user?.kitchenCloseTime || "",
     contactPersonName:
       user?.contactPersonName ||
       [user?.firstName, user?.lastName].filter(Boolean).join(" "),
     contactPersonMobileNumber: user?.contactPersonMobileNumber || "",
+    taxRate: user?.taxRate === undefined || user?.taxRate === null ? "" : String(user.taxRate),
+    serviceChargeRate:
+      user?.serviceChargeRate === undefined || user?.serviceChargeRate === null
+        ? ""
+        : String(user.serviceChargeRate),
+    discountRate:
+      user?.discountRate === undefined || user?.discountRate === null
+        ? ""
+        : String(user.discountRate),
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -113,10 +134,15 @@ export function ProfileModal({
   const hotelNameId = useId();
   const businessTypeId = useId();
   const businessLocationId = useId();
+  const businessAddressId = useId();
+  const kitchenOpenTimeId = useId();
   const kitchenCloseTimeId = useId();
   const businessEmailId = useId();
   const contactNameId = useId();
   const mobileNumberId = useId();
+  const taxRateId = useId();
+  const serviceChargeRateId = useId();
+  const discountRateId = useId();
   const oldPasswordId = useId();
   const newPasswordId = useId();
   const confirmPasswordId = useId();
@@ -222,6 +248,29 @@ export function ProfileModal({
       nextErrors.contactPersonMobileNumber = "Contact person mobile number is required.";
     }
 
+    const taxRate = Number(form.taxRate);
+    const serviceChargeRate = Number(form.serviceChargeRate);
+    const discountRate = form.discountRate.trim() ? Number(form.discountRate) : null;
+
+    if (!form.taxRate.trim() || !Number.isFinite(taxRate) || taxRate < 0) {
+      nextErrors.taxRate = "Tax percentage must be 0 or higher.";
+    }
+
+    if (
+      !form.serviceChargeRate.trim() ||
+      !Number.isFinite(serviceChargeRate) ||
+      serviceChargeRate < 0
+    ) {
+      nextErrors.serviceChargeRate = "Service charge percentage must be 0 or higher.";
+    }
+
+    if (
+      form.discountRate.trim() &&
+      (discountRate === null || !Number.isFinite(discountRate) || discountRate < 0)
+    ) {
+      nextErrors.discountRate = "Discount percentage must be 0 or higher.";
+    }
+
     if (wantsPasswordChange) {
       if (!form.oldPassword) {
         nextErrors.oldPassword = "Old password is required.";
@@ -249,14 +298,19 @@ export function ProfileModal({
     setStatusMessage("");
 
     try {
-      const payload: Record<string, string> = {
+      const payload: Record<string, string | number | null> = {
         hotelName: form.hotelName.trim(),
         businessType: form.businessType.trim(),
         businessLocation: form.businessLocation.trim(),
-        kitchenCloseTime: form.kitchenCloseTime.trim(),
+        businessAddress: form.businessAddress.trim(),
         businessEmail: form.businessEmail.trim().toLowerCase(),
+        kitchenOpenTime: form.kitchenOpenTime.trim(),
+        kitchenCloseTime: form.kitchenCloseTime.trim(),
         contactPersonName: form.contactPersonName.trim(),
         contactPersonMobileNumber: form.contactPersonMobileNumber.trim(),
+        taxRate,
+        serviceChargeRate,
+        discountRate,
       };
 
       if (wantsPasswordChange) {
@@ -281,10 +335,15 @@ export function ProfileModal({
         hotelName: form.hotelName.trim(),
         businessType: form.businessType.trim(),
         businessLocation: form.businessLocation.trim(),
-        kitchenCloseTime: form.kitchenCloseTime.trim(),
+        businessAddress: form.businessAddress.trim(),
         businessEmail: form.businessEmail.trim().toLowerCase(),
+        kitchenOpenTime: form.kitchenOpenTime.trim(),
+        kitchenCloseTime: form.kitchenCloseTime.trim(),
         contactPersonName: form.contactPersonName.trim(),
         contactPersonMobileNumber: form.contactPersonMobileNumber.trim(),
+        taxRate,
+        serviceChargeRate,
+        discountRate,
       };
 
       window.localStorage.setItem("user", JSON.stringify(nextUser));
@@ -334,7 +393,8 @@ export function ProfileModal({
           <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
             Profile
           </h3>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="space-y-5">
+            <div className="grid gap-5 sm:grid-cols-2">
             <AuthInputField
               id={hotelNameId}
               theme={theme}
@@ -360,7 +420,9 @@ export function ProfileModal({
                 setForm((current) => ({ ...current, businessType }))
               }
             />
+            </div>
 
+            <div className="grid gap-5 sm:grid-cols-2">
             <AuthInputField
               id={businessLocationId}
               theme={theme}
@@ -371,6 +433,48 @@ export function ProfileModal({
               error={errors.businessLocation}
               onChange={(businessLocation) =>
                 setForm((current) => ({ ...current, businessLocation }))
+              }
+            />
+
+            <AuthInputField
+              id={businessAddressId}
+              theme={theme}
+              label="Address"
+              value={form.businessAddress}
+              autoComplete="street-address"
+              placeholder="Full business address"
+              error={errors.businessAddress}
+              onChange={(businessAddress) =>
+                setForm((current) => ({ ...current, businessAddress }))
+              }
+            />
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-3">
+            <AuthInputField
+              id={businessEmailId}
+              theme={theme}
+              label="Business email"
+              type="email"
+              value={form.businessEmail}
+              autoComplete="email"
+              placeholder="team@restaurant.com"
+              error={errors.businessEmail}
+              onChange={(businessEmail) =>
+                setForm((current) => ({ ...current, businessEmail }))
+              }
+            />
+
+            <AuthInputField
+              id={kitchenOpenTimeId}
+              theme={theme}
+              label="Kitchen open time"
+              value={form.kitchenOpenTime}
+              autoComplete="off"
+              placeholder="11:00 AM"
+              error={errors.kitchenOpenTime}
+              onChange={(kitchenOpenTime) =>
+                setForm((current) => ({ ...current, kitchenOpenTime }))
               }
             />
 
@@ -386,23 +490,9 @@ export function ProfileModal({
                 setForm((current) => ({ ...current, kitchenCloseTime }))
               }
             />
-
-            <div className="sm:col-span-2">
-              <AuthInputField
-                id={businessEmailId}
-                theme={theme}
-                label="Business email"
-                type="email"
-                value={form.businessEmail}
-                autoComplete="email"
-                placeholder="team@restaurant.com"
-                error={errors.businessEmail}
-                onChange={(businessEmail) =>
-                  setForm((current) => ({ ...current, businessEmail }))
-                }
-              />
             </div>
 
+            <div className="grid gap-5 sm:grid-cols-2">
             <AuthInputField
               id={contactNameId}
               theme={theme}
@@ -430,6 +520,51 @@ export function ProfileModal({
                 setForm((current) => ({ ...current, contactPersonMobileNumber }))
               }
             />
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-3">
+            <AuthInputField
+              id={taxRateId}
+              theme={theme}
+              label="Tax percentage"
+              type="number"
+              value={form.taxRate}
+              inputMode="decimal"
+              placeholder="5"
+              error={errors.taxRate}
+              onChange={(taxRate) =>
+                setForm((current) => ({ ...current, taxRate }))
+              }
+            />
+
+            <AuthInputField
+              id={serviceChargeRateId}
+              theme={theme}
+              label="Service charge percentage"
+              type="number"
+              value={form.serviceChargeRate}
+              inputMode="decimal"
+              placeholder="3"
+              error={errors.serviceChargeRate}
+              onChange={(serviceChargeRate) =>
+                setForm((current) => ({ ...current, serviceChargeRate }))
+              }
+            />
+
+            <AuthInputField
+              id={discountRateId}
+              theme={theme}
+              label="Discount percentage"
+              type="number"
+              value={form.discountRate}
+              inputMode="decimal"
+              placeholder="0"
+              error={errors.discountRate}
+              onChange={(discountRate) =>
+                setForm((current) => ({ ...current, discountRate }))
+              }
+            />
+            </div>
           </div>
         </section>
 

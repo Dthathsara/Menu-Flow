@@ -50,13 +50,21 @@ export interface ContactInfo {
 export interface RestaurantInfo {
   id?: string | null;
   name: string;
-  businessType: string;
-  kitchenCloseTime: string;
-  status: string;
+  businessType?: string;
+  location?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  kitchenOpenTime?: string;
+  kitchenCloseTime?: string;
+  openingHours?: string;
+  taxRate?: number;
+  serviceChargeRate?: number;
+  discountRate?: number;
+  status?: string;
   titlePrefix: string;
   titleAccent: string;
   tagline: string;
-  location: string;
   heroSummary: string;
   heroNote: string;
   bannerLabel: string;
@@ -73,9 +81,12 @@ export interface CartItem {
   key: string;
   itemId: string;
   name: string;
+  categoryName?: string;
+  subCategoryName?: string;
   crust?: string;
   serving: ServingSize;
   quantity: number;
   unitPrice: number;
+  prepTime?: number;
   image: string;
 }

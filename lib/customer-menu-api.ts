@@ -9,13 +9,46 @@ import type {
 } from "@/types/customer";
 import { getAccessToken, refreshAccessToken } from "@/lib/auth-session";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
 const FALLBACK_IMAGE = "/customer/placeholder-food.svg";
 const SERVING_SIZES: ServingSize[] = ["Small", "Medium", "Large"];
 
 export interface CustomerMenuFetchParams {
   slug?: string;
   tenantId?: string;
+}
+
+export interface CustomerOrderItemPayload {
+  menu_item_id: string;
+  food_name: string;
+  category_name: string;
+  sub_category_name: string;
+  serving_size: string;
+  unit_price: number;
+  quantity: number;
+  prep_time_min: number;
+  image_url: string;
+  item_note?: string;
+}
+
+export interface CreateCustomerOrderPayload {
+  tenant_id: string;
+  customer_session_id: string;
+  customer_name: string;
+  customer_phone: string;
+  order_type: "dine_in" | "takeaway" | "delivery";
+  item_note?: string;
+  items: CustomerOrderItemPayload[];
+  payment: {
+    status: "paid";
+    card_last4: string;
+  };
+}
+
+export interface CustomerOrderRecord {
+  id: string;
+  order_status: string;
+  [key: string]: unknown;
 }
 
 type ApiRecord = Record<string, unknown>;
@@ -78,6 +111,34 @@ function asBoolean(value: unknown, fallback = true) {
   }
 
   return fallback;
+}
+
+function tryParseJson(text: string) {
+  if (!text.trim()) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+function getPayloadRecord(payload: unknown): ApiRecord {
+  const data = unwrapPayload(payload);
+
+  if (isRecord(data)) {
+    for (const key of ["order", "customerOrder", "customer_order"]) {
+      if (isRecord(data[key])) {
+        return data[key];
+      }
+    }
+
+    return data;
+  }
+
+  return {};
 }
 
 function slugify(value: string) {
@@ -173,21 +234,57 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
     restaurant.kitchenCloseTime ?? restaurant.kitchen_close_time,
     "",
   );
+  const kitchenOpenTime = asString(
+    restaurant.kitchenOpenTime ?? restaurant.kitchen_open_time,
+  );
+  const explicitOpeningHours = asString(
+    restaurant.openingHours ?? restaurant.opening_hours,
+  );
+  const openingHours =
+    explicitOpeningHours ||
+    (kitchenOpenTime || kitchenCloseTime
+      ? `Daily ${kitchenOpenTime} - ${kitchenCloseTime}`.trim()
+      : "");
+  const address = asString(
+    restaurant.address ?? restaurant.businessAddress ?? restaurant.business_address,
+  );
+  const email = asString(
+    restaurant.email ?? restaurant.businessEmail ?? restaurant.business_email,
+  );
+  const phone = asString(
+    restaurant.phone ??
+      restaurant.contactPersonMobileNumber ??
+      restaurant.contact_person_mobile_number,
+  );
   const status = asNonEmptyString(
     restaurant.status,
     kitchenCloseTime ? `Kitchen open until ${kitchenCloseTime}` : "Kitchen open",
   );
 
   return {
-    id: asString(restaurant.id) || null,
+    id: asString(restaurant.id ?? restaurant.tenantId ?? restaurant.tenant_id) || null,
     name,
     businessType,
+    location,
+    address,
+    email,
+    phone,
+    kitchenOpenTime,
     kitchenCloseTime,
+    openingHours,
+    taxRate: asNumber(restaurant.taxRate ?? restaurant.tax_rate, 5),
+    serviceChargeRate: asNumber(
+      restaurant.serviceChargeRate ?? restaurant.service_charge_rate,
+      3,
+    ),
+    discountRate: asNumber(
+      restaurant.discountRate ?? restaurant.discount_rate,
+      0,
+    ),
     status,
     titlePrefix: asString(restaurant.titlePrefix ?? restaurant.title_prefix, name),
     titleAccent: asString(restaurant.titleAccent ?? restaurant.title_accent, businessType),
     tagline: asString(restaurant.tagline, "customer menu"),
-    location,
     heroSummary: asString(
       restaurant.heroSummary ?? restaurant.hero_summary,
       "Browse the latest available dishes from the restaurant menu.",
@@ -204,13 +301,42 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
 function mapContact(rawContact: unknown, rawRestaurant: unknown): ContactInfo {
   const contact: ApiRecord = isRecord(rawContact) ? rawContact : {};
   const restaurant: ApiRecord = isRecord(rawRestaurant) ? rawRestaurant : {};
+  const kitchenOpenTime = asString(
+    restaurant.kitchenOpenTime ?? restaurant.kitchen_open_time,
+  );
+  const kitchenCloseTime = asString(
+    restaurant.kitchenCloseTime ?? restaurant.kitchen_close_time,
+  );
+  const fallbackOpeningHours =
+    kitchenOpenTime || kitchenCloseTime
+      ? `Daily ${kitchenOpenTime} - ${kitchenCloseTime}`.trim()
+      : "";
 
   return {
-    phone: asString(contact.phone ?? restaurant.phone),
-    email: asString(contact.email ?? restaurant.email),
-    address: asString(contact.address ?? restaurant.address),
+    phone: asString(
+      contact.phone ??
+        restaurant.phone ??
+        restaurant.contactPersonMobileNumber ??
+        restaurant.contact_person_mobile_number,
+    ),
+    email: asString(
+      contact.email ??
+        restaurant.email ??
+        restaurant.businessEmail ??
+        restaurant.business_email,
+    ),
+    address: asString(
+      contact.address ??
+        restaurant.address ??
+        restaurant.businessAddress ??
+        restaurant.business_address,
+    ),
     openingHours: asString(
-      contact.openingHours ?? contact.opening_hours ?? restaurant.openingHours,
+      contact.openingHours ??
+        contact.opening_hours ??
+        restaurant.openingHours ??
+        restaurant.opening_hours,
+      fallbackOpeningHours,
     ),
     reservations: asString(contact.reservations ?? restaurant.reservations),
     socials: [],
@@ -515,8 +641,9 @@ export function mapCustomerMenuData(payload: unknown): CustomerMenuData {
         .map(normalizeCategory)
         .filter((category): category is MenuCategory => Boolean(category))
     : groupFlatItems(flattenItemsFromPayload(data));
-  const restaurant = mapRestaurant(data.restaurant);
-  const contact = mapContact(data.contact, data.restaurant);
+  const rawRestaurant = isRecord(data.restaurant) ? data.restaurant : data;
+  const restaurant = mapRestaurant(rawRestaurant);
+  const contact = mapContact(data.contact, rawRestaurant);
   const menuData = filterCustomerMenuData({
     restaurant,
     contact,
@@ -584,4 +711,77 @@ export async function fetchCustomerMenuData(params?: CustomerMenuFetchParams) {
   }
 
   return mapCustomerMenuData(await response.json());
+}
+
+export function mapCustomerOrderRecord(payload: unknown): CustomerOrderRecord {
+  const order = getPayloadRecord(payload);
+  const id = asString(order.id ?? order.order_id ?? order.orderId);
+
+  return {
+    ...order,
+    id,
+    order_status: asString(
+      order.order_status ?? order.orderStatus ?? order.status,
+      "accepted",
+    ),
+  };
+}
+
+export async function createCustomerOrder(payload: CreateCustomerOrderPayload) {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}/customer-orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw new CustomerMenuApiError(
+      "Unable to create order. Please check your connection and try again.",
+      "network",
+    );
+  }
+
+  const text = await response.text();
+  const data = tryParseJson(text);
+
+  if (!response.ok) {
+    const message =
+      isRecord(data) && (data.message || data.error)
+        ? String(data.message ?? data.error)
+        : text.trim() || "Unable to create order. Please try again.";
+
+    throw new CustomerMenuApiError(message, "http");
+  }
+
+  return mapCustomerOrderRecord(data);
+}
+
+export async function fetchCustomerOrder(orderId: string) {
+  let response: Response;
+
+  try {
+    response = await fetch(
+      `${API_BASE_URL}/customer-orders/${encodeURIComponent(orderId)}`,
+      { cache: "no-store" },
+    );
+  } catch {
+    throw new CustomerMenuApiError(
+      "Unable to refresh order status right now.",
+      "network",
+    );
+  }
+
+  if (!response.ok) {
+    throw new CustomerMenuApiError(
+      "Unable to refresh order status right now.",
+      "http",
+    );
+  }
+
+  const text = await response.text();
+  return mapCustomerOrderRecord(tryParseJson(text));
 }

@@ -17,9 +17,14 @@ type StoredUser = {
   hotelName?: string;
   businessType?: string;
   businessLocation?: string;
+  businessAddress?: string;
+  kitchenOpenTime?: string;
   kitchenCloseTime?: string;
   contactPersonName?: string;
   contactPersonMobileNumber?: string;
+  taxRate?: number | string;
+  serviceChargeRate?: number | string;
+  discountRate?: number | string | null;
   firstName?: string;
   lastName?: string;
   role?: string;

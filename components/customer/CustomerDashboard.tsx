@@ -80,6 +80,23 @@ function getTenantIdFromLocation() {
     return queryTenantId;
   }
 
+  return getStoredTenantId();
+}
+
+function getQueryTenantIdFromLocation() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return (params.get("tenantId") ?? params.get("tenant") ?? "").trim();
+}
+
+function getStoredTenantId() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
   const storedUser = window.localStorage.getItem("user");
 
   if (!storedUser) {
@@ -263,9 +280,10 @@ export function CustomerDashboard() {
     (total, item) => total + item.unitPrice * item.quantity,
     0,
   );
-  const orderTax = orderSubtotal * 0.05;
-  const orderServiceCharge = orderSubtotal * 0.03;
-  const orderTotal = orderSubtotal + orderTax + orderServiceCharge;
+  const orderTenantId =
+    getQueryTenantIdFromLocation() ||
+    data.restaurant.id ||
+    getStoredTenantId();
   const activeCategoryItemCount = activeCategory.subcategories.reduce(
     (count, subcategory) => count + subcategory.items.length,
     0,
@@ -373,10 +391,13 @@ export function CustomerDashboard() {
             key,
             itemId: item.id,
             name: item.name,
+            categoryName: item.categoryName,
+            subCategoryName: item.subCategoryName,
             crust: crust ?? itemBeingEdited?.crust,
             serving,
             quantity,
             unitPrice,
+            prepTime: item.prepTime,
             image: item.image,
           },
         ];
@@ -398,10 +419,13 @@ export function CustomerDashboard() {
           key,
           itemId: item.id,
           name: item.name,
+          categoryName: item.categoryName,
+          subCategoryName: item.subCategoryName,
           crust,
           serving,
           quantity,
           unitPrice,
+          prepTime: item.prepTime,
           image: item.image,
         },
       ];
@@ -601,9 +625,9 @@ export function CustomerDashboard() {
           <OrdersPanel
             items={cartItems}
             subtotal={orderSubtotal}
-            tax={orderTax}
-            serviceCharge={orderServiceCharge}
-            total={orderTotal}
+            restaurant={data.restaurant}
+            tenantId={orderTenantId?.trim() ?? ""}
+            onOrderSuccess={() => setCartItems([])}
             onEdit={handleEditItem}
             onRemove={requestRemoveCartItem}
           />

@@ -32,7 +32,7 @@ export function CustomerHeader({ restaurant }: CustomerHeaderProps) {
               </span>
             ) : null}
             <span className="rounded-full bg-white/80 px-3 py-1 shadow-sm">
-              {restaurant.status}
+              {restaurant.status || restaurant.openingHours || "Kitchen open"}
             </span>
           </div>
         </div>
