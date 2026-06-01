@@ -9,7 +9,7 @@ import {
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { EyeIcon } from "./order-icons";
-import { calculateOrderGrandTotal, getOrderItemCount } from "./order-data";
+import { getOrderItemCount } from "./order-data";
 import {
   StatusBadge,
   formatCurrency,
@@ -22,17 +22,29 @@ import type { OrderRecord } from "./types";
 interface OrdersTableProps {
   settings: ManagerSettings;
   orders: OrderRecord[];
+  isLoading: boolean;
+  hasActiveFilters: boolean;
   onViewDetails: (order: OrderRecord) => void;
 }
 
-export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProps) {
+export function OrdersTable({
+  settings,
+  orders,
+  isLoading,
+  hasActiveFilters,
+  onViewDetails,
+}: OrdersTableProps) {
   if (!orders.length) {
     return (
       <div className="px-5 py-16 text-center sm:px-6">
-        <div className="text-lg font-semibold">No orders match the current filters.</div>
-        <div className={cn("mt-2", getManagerBodyTextClasses(settings.scheme))}>
-          Try broadening the search or clearing filters to see more orders.
+        <div className="text-lg font-semibold">
+          {isLoading ? "Loading orders..." : "No orders yet."}
         </div>
+        {hasActiveFilters && !isLoading ? (
+          <div className={cn("mt-2", getManagerBodyTextClasses(settings.scheme))}>
+            Try clearing filters to see all backend orders.
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -41,7 +53,7 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
     <>
       <div className="hidden md:block">
         <div className="overflow-x-auto">
-          <table className="min-w-[980px] w-full border-collapse">
+          <table className="min-w-[1080px] w-full border-collapse">
             <thead className="sticky top-0 z-10">
               <tr
                 className={cn(
@@ -57,72 +69,71 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
                 <th className={getManagerTableHeaderPaddingClasses()}>Order Status</th>
                 <th className={getManagerTableHeaderPaddingClasses()}>Grand Total</th>
                 <th className={getManagerTableHeaderPaddingClasses()}>Payment Status</th>
-                <th className={cn(getManagerTableHeaderPaddingClasses(), "text-right")}>Actions</th>
+                <th className={getManagerTableHeaderPaddingClasses()}>Items</th>
+                <th className={cn(getManagerTableHeaderPaddingClasses(), "text-right")}>
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => {
-                const itemCount = getOrderItemCount(order);
-
-                return (
-                  <tr
-                    key={order.id}
-                    className={cn(
-                      "group/row border-b border-black/5 transition-all duration-200 ease-out",
-                      getManagerTableRowTextClasses(),
-                      settings.scheme === "dark"
-                        ? "hover:bg-white/[0.045]"
-                        : "hover:bg-slate-50/90",
-                    )}
-                  >
-                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
-                      <div className="font-semibold">{order.orderId}</div>
-                      <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
-                        {itemCount} item{itemCount === 1 ? "" : "s"}
-                      </div>
-                    </td>
-                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top font-medium")}>
-                      {order.tableNumber}
-                    </td>
-                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
-                      <div className="font-medium">{order.customerName}</div>
-                      <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
-                        {order.waiterName}
-                      </div>
-                    </td>
-                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
-                      <div className="font-medium">{getRelativeDateLabel(order.createdAt)}</div>
-                      <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
-                        {formatDisplayDate(order.createdAt)}
-                      </div>
-                    </td>
-                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
-                      <StatusBadge settings={settings} type="order" value={order.orderStatus} />
-                    </td>
-                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top font-semibold")}>
-                      {formatCurrency(calculateOrderGrandTotal(order))}
-                    </td>
-                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
-                      <StatusBadge
-                        settings={settings}
-                        type="payment"
-                        value={order.paymentStatus}
-                      />
-                    </td>
-                    <td className={cn(getManagerTableCellPaddingClasses(), "align-top text-right")}>
-                      <button
-                        type="button"
-                        onClick={() => onViewDetails(order)}
-                        className={secondaryButtonClassName(settings)}
-                        aria-label={`View details for ${order.orderId}`}
-                      >
-                        <EyeIcon className="mr-2 size-4" />
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {orders.map((order) => (
+                <tr
+                  key={order.id}
+                  className={cn(
+                    "group/row border-b border-black/5 transition-all duration-200 ease-out",
+                    getManagerTableRowTextClasses(),
+                    settings.scheme === "dark"
+                      ? "hover:bg-white/[0.045]"
+                      : "hover:bg-slate-50/90",
+                  )}
+                >
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
+                    <div className="font-semibold">{order.order_number}</div>
+                  </td>
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top font-medium")}>
+                    {order.table_id || "N/A"}
+                  </td>
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
+                    <div className="font-medium">{order.customer_name || "N/A"}</div>
+                    <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
+                      {order.customer_phone || "No phone"}
+                    </div>
+                  </td>
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
+                    <div className="font-medium">{getRelativeDateLabel(order.placed_at)}</div>
+                    <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
+                      {formatDisplayDate(order.placed_at)}
+                    </div>
+                  </td>
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
+                    <StatusBadge settings={settings} type="order" value={order.order_status} />
+                  </td>
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top font-semibold")}>
+                    {formatCurrency(order.total_amount)}
+                  </td>
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
+                    <StatusBadge
+                      settings={settings}
+                      type="payment"
+                      value={order.payment_status}
+                    />
+                  </td>
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top")}>
+                    {getOrderItemCount(order)}
+                  </td>
+                  <td className={cn(getManagerTableCellPaddingClasses(), "align-top text-right")}>
+                    <button
+                      type="button"
+                      onClick={() => onViewDetails(order)}
+                      className={secondaryButtonClassName(settings)}
+                      aria-label={`View details for ${order.order_number}`}
+                    >
+                      <EyeIcon className="mr-2 size-4" />
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -144,24 +155,24 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-[1.05rem] font-semibold">{order.orderId}</div>
+                  <div className="text-[1.05rem] font-semibold">{order.order_number}</div>
                   <div className={cn("mt-1", getManagerBodyTextClasses(settings.scheme))}>
-                    {order.customerName}
+                    {order.customer_name || "N/A"}
                   </div>
                 </div>
-                <StatusBadge settings={settings} type="order" value={order.orderStatus} />
+                <StatusBadge settings={settings} type="order" value={order.order_status} />
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <MobileMeta label="Table Number" value={order.tableNumber} settings={settings} />
+                <MobileMeta label="Table Number" value={order.table_id || "N/A"} settings={settings} />
                 <MobileMeta
                   label="Order Date"
-                  value={getRelativeDateLabel(order.createdAt)}
+                  value={getRelativeDateLabel(order.placed_at)}
                   settings={settings}
                 />
                 <MobileMeta
                   label="Grand Total"
-                  value={formatCurrency(calculateOrderGrandTotal(order))}
+                  value={formatCurrency(order.total_amount)}
                   settings={settings}
                 />
                 <MobileMeta
@@ -170,7 +181,7 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
                     <StatusBadge
                       settings={settings}
                       type="payment"
-                      value={order.paymentStatus}
+                      value={order.payment_status}
                     />
                   }
                   settings={settings}
@@ -185,7 +196,7 @@ export function OrdersTable({ settings, orders, onViewDetails }: OrdersTableProp
                   type="button"
                   onClick={() => onViewDetails(order)}
                   className={secondaryButtonClassName(settings)}
-                  aria-label={`View details for ${order.orderId}`}
+                  aria-label={`View details for ${order.order_number}`}
                 >
                   <EyeIcon className="mr-2 size-4" />
                   View Details

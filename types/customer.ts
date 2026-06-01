@@ -90,3 +90,35 @@ export interface CartItem {
   prepTime?: number;
   image: string;
 }
+
+export interface CustomerOrderHistoryItem {
+  id: string;
+  menu_item_id: string;
+  food_name: string;
+  category_name: string;
+  sub_category_name: string;
+  serving_size: string;
+  unit_price: number;
+  quantity: number;
+  line_total: number;
+  prep_time_min: number;
+  image_url: string;
+  item_note: string;
+}
+
+export interface CustomerOrderHistory {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  customer_phone: string;
+  order_type: string;
+  order_status: string;
+  payment_status: string;
+  subtotal: number;
+  tax_amount: number;
+  service_charge_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  placed_at: string;
+  items: CustomerOrderHistoryItem[];
+}

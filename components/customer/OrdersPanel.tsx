@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import type { CartItem, RestaurantInfo } from "@/types/customer";
+import type {
+  CartItem,
+  CustomerOrderHistory,
+  RestaurantInfo,
+} from "@/types/customer";
 import { formatPrice } from "@/components/customer/customerUtils";
 import {
   createCustomerOrder,
   fetchCustomerOrder,
+  fetchCustomerSessionOrders,
   type CustomerOrderRecord,
 } from "@/lib/customer-menu-api";
 
@@ -44,13 +49,18 @@ const statusLabels: Record<string, string> = {
 };
 const orderStatuses = ["accepted", "preparing", "ready", "delivered"] as const;
 const fallbackImage = "/customer/sea-bowl.svg";
-const sessionStorageKey = "menuflow_customer_session_id";
-
-function makeCustomerSessionId() {
+function getCustomerSessionId(tenantId: string) {
   if (typeof window === "undefined") {
     return "";
   }
 
+  const cleanTenantId = tenantId.trim();
+
+  if (!cleanTenantId) {
+    return "";
+  }
+
+  const sessionStorageKey = `menuflow_customer_session_id_${cleanTenantId}`;
   const existing = window.localStorage.getItem(sessionStorageKey);
 
   if (existing) {
@@ -70,8 +80,34 @@ function getDigits(value: string) {
   return value.replace(/\D/g, "");
 }
 
-function getOrderStatus(order: CustomerOrderRecord | null) {
+function getOrderStatus(
+  order: CustomerOrderRecord | CustomerOrderHistory | null,
+) {
   return String(order?.order_status || "").toLowerCase();
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value || "-";
+  }
+
+  return date.toLocaleString();
+}
+
+function getOrderQuantity(order: CustomerOrderHistory) {
+  return order.items.reduce((total, item) => total + item.quantity, 0);
+}
+
+function getOrderItemsText(order: CustomerOrderHistory) {
+  if (!order.items.length) {
+    return "No items listed";
+  }
+
+  return order.items
+    .map((item) => `${item.food_name}${item.serving_size ? ` (${item.serving_size})` : ""} x ${item.quantity}`)
+    .join("\n");
 }
 
 export function OrdersPanel({
@@ -101,9 +137,14 @@ export function OrdersPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [historyErrorMessage, setHistoryErrorMessage] = useState("");
+  const [orderHistory, setOrderHistory] = useState<CustomerOrderHistory[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [detailsOrder, setDetailsOrder] = useState<CustomerOrderHistory | null>(null);
   const [currentOrder, setCurrentOrder] = useState<CustomerOrderRecord | null>(null);
-  const status = getOrderStatus(currentOrder);
+  const historyLoadIdRef = useRef(0);
+  const cleanTenantId = tenantId.trim();
   const taxRate = Number(restaurant.taxRate ?? 5);
   const serviceChargeRate = Number(restaurant.serviceChargeRate ?? 3);
   const discountRate = Number(restaurant.discountRate ?? 0);
@@ -116,9 +157,87 @@ export function OrdersPanel({
     () => items.reduce((count, item) => count + item.quantity, 0),
     [items],
   );
+  const latestHistoryOrder = orderHistory[0] ?? null;
+  const statusOrder = currentOrder ?? latestHistoryOrder;
+  const status = getOrderStatus(statusOrder);
+  const hasPlacedOrder = Boolean(statusOrder?.id);
+
+  const loadOrderHistory = useCallback(async () => {
+    const requestId = historyLoadIdRef.current + 1;
+    historyLoadIdRef.current = requestId;
+
+    if (!cleanTenantId) {
+      setOrderHistory([]);
+      setCurrentOrder(null);
+      setHistoryErrorMessage("");
+      setIsHistoryLoading(false);
+      return;
+    }
+
+    const customerSessionId = getCustomerSessionId(cleanTenantId);
+
+    if (!customerSessionId || !cleanTenantId) {
+      setOrderHistory([]);
+      setCurrentOrder(null);
+      return;
+    }
+
+    console.log("CUSTOMER ORDERS LOAD", {
+      tenantId: cleanTenantId,
+      customerSessionId,
+    });
+
+    setIsHistoryLoading(true);
+
+    try {
+      const orders = await fetchCustomerSessionOrders(customerSessionId, cleanTenantId);
+
+      if (historyLoadIdRef.current !== requestId) {
+        return;
+      }
+
+      setOrderHistory(orders);
+      setHistoryErrorMessage("");
+
+      setCurrentOrder((current) => {
+        if (!orders[0]) {
+          return null;
+        }
+
+        return current ?? {
+          ...orders[0],
+          order_status: orders[0].order_status,
+        };
+      });
+    } catch {
+      if (historyLoadIdRef.current === requestId) {
+        setOrderHistory([]);
+        setCurrentOrder(null);
+        setHistoryErrorMessage("Unable to load your previous orders.");
+      }
+    } finally {
+      if (historyLoadIdRef.current === requestId) {
+        setIsHistoryLoading(false);
+      }
+    }
+  }, [cleanTenantId]);
 
   useEffect(() => {
-    if (!isStatusModalOpen || !currentOrder?.id) {
+    historyLoadIdRef.current += 1;
+    setOrderHistory([]);
+    setCurrentOrder(null);
+    setDetailsOrder(null);
+    setHistoryErrorMessage("");
+    setErrorMessage("");
+    setIsStatusModalOpen(false);
+  }, [cleanTenantId]);
+
+  useEffect(() => {
+    void loadOrderHistory();
+  }, [loadOrderHistory]);
+
+  useEffect(() => {
+    if (!isStatusModalOpen || !statusOrder?.id) {
       return;
     }
 
@@ -126,10 +245,14 @@ export function OrdersPanel({
 
     async function refreshStatus() {
       try {
-        const nextOrder = await fetchCustomerOrder(currentOrder?.id ?? "");
+        const nextOrder = await fetchCustomerOrder(
+          statusOrder?.id ?? "",
+          cleanTenantId,
+        );
 
         if (active) {
           setCurrentOrder(nextOrder);
+          void loadOrderHistory();
         }
       } catch {
         if (active) {
@@ -145,7 +268,12 @@ export function OrdersPanel({
       active = false;
       window.clearInterval(intervalId);
     };
-  }, [currentOrder?.id, isStatusModalOpen]);
+  }, [cleanTenantId, isStatusModalOpen, loadOrderHistory, statusOrder?.id]);
+
+  const closeStatusModal = useCallback(() => {
+    setIsStatusModalOpen(false);
+    void loadOrderHistory();
+  }, [loadOrderHistory]);
 
   useEffect(() => {
     if (!isDetailsModalOpen && !isPaymentModalOpen && !isStatusModalOpen) {
@@ -156,13 +284,25 @@ export function OrdersPanel({
       if (event.key === "Escape") {
         setIsDetailsModalOpen(false);
         setIsPaymentModalOpen(false);
-        setIsStatusModalOpen(false);
+        closeStatusModal();
+        setDetailsOrder(null);
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isDetailsModalOpen, isPaymentModalOpen, isStatusModalOpen]);
+  }, [closeStatusModal, isDetailsModalOpen, isPaymentModalOpen, isStatusModalOpen]);
+
+  function openStatusModal() {
+    if (latestHistoryOrder && !currentOrder) {
+      setCurrentOrder({
+        ...latestHistoryOrder,
+        order_status: latestHistoryOrder.order_status,
+      });
+    }
+
+    setIsStatusModalOpen(true);
+  }
 
   function openDetailsModal() {
     if (items.length === 0 || isSubmitting) {
@@ -229,8 +369,6 @@ export function OrdersPanel({
       return;
     }
 
-    const cleanTenantId = tenantId.trim();
-
     if (!cleanTenantId) {
       setErrorMessage("Unable to place order because the restaurant tenant is missing.");
       return;
@@ -240,9 +378,16 @@ export function OrdersPanel({
     setErrorMessage("");
 
     try {
+      const customerSessionId = getCustomerSessionId(cleanTenantId);
+
+      console.log("CUSTOMER ORDER CREATE", {
+        tenantId: cleanTenantId,
+        customerSessionId,
+      });
+
       const order = await createCustomerOrder({
         tenant_id: cleanTenantId,
-        customer_session_id: makeCustomerSessionId(),
+        customer_session_id: customerSessionId,
         customer_name: detailsForm.customerName.trim(),
         customer_phone: detailsForm.mobileNumber.trim(),
         order_type: detailsForm.orderType || "dine_in",
@@ -274,6 +419,7 @@ export function OrdersPanel({
       setIsPaymentModalOpen(false);
       setPaymentForm({ cardNumber: "", expiry: "", cvc: "" });
       onOrderSuccess();
+      await loadOrderHistory();
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -319,6 +465,65 @@ export function OrdersPanel({
     </div>
   );
 
+  const orderHistoryTable = orderHistory.length ? (
+    <div className="mt-6">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="text-xl font-black text-[#7a2a24]">Your Orders</h3>
+        {isHistoryLoading ? (
+          <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#8e7364]">
+            Loading
+          </span>
+        ) : null}
+      </div>
+      <div className="overflow-x-auto rounded-[1.4rem] border border-[#eadfce] bg-[#fffdf9]">
+        <table className="min-w-[980px] w-full border-collapse text-left text-sm">
+          <thead className="bg-[#f0eadf] text-xs uppercase tracking-[0.16em] text-[#7a6050]">
+            <tr>
+              <th className="px-4 py-3">Order No</th>
+              <th className="px-4 py-3">Placed At</th>
+              <th className="px-4 py-3">Items Bought</th>
+              <th className="px-4 py-3">Qty</th>
+              <th className="px-4 py-3">Order Type</th>
+              <th className="px-4 py-3">Order Status</th>
+              <th className="px-4 py-3">Payment</th>
+              <th className="px-4 py-3">Total</th>
+              <th className="px-4 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#eadfce] text-[#7a6050]">
+            {orderHistory.map((order) => (
+              <tr key={order.id || order.order_number}>
+                <td className="px-4 py-3 font-bold text-[#7a2a24]">
+                  {order.order_number || order.id}
+                </td>
+                <td className="px-4 py-3">{formatDateTime(order.placed_at)}</td>
+                <td className="whitespace-pre-line px-4 py-3">
+                  {getOrderItemsText(order)}
+                </td>
+                <td className="px-4 py-3">{getOrderQuantity(order)}</td>
+                <td className="px-4 py-3">{order.order_type}</td>
+                <td className="px-4 py-3">{order.order_status}</td>
+                <td className="px-4 py-3">{order.payment_status}</td>
+                <td className="px-4 py-3 font-bold text-[#2b8a38]">
+                  {formatPrice(order.total_amount)}
+                </td>
+                <td className="px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => setDetailsOrder(order)}
+                    className="rounded-full border border-[#d8cab8] bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[#7a2a24] transition hover:bg-[#f8f1e7]"
+                  >
+                    View Details
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <section className="rounded-[2rem] border border-[#dfd5c7] bg-[#fffaf4] p-4 shadow-[0_18px_48px_rgba(108,79,55,0.08)] sm:p-6">
       <div className="flex items-center justify-between">
@@ -327,7 +532,11 @@ export function OrdersPanel({
             Orders
           </p>
           <h2 className="mt-2 text-2xl font-black text-[#7a2a24]">
-            {items.length ? "Current selections" : "No items added yet"}
+            {items.length
+              ? "Current selections"
+              : orderHistory.length
+                ? "Your Orders"
+                : "No items added yet"}
           </h2>
         </div>
         <div className="rounded-full bg-[#f0eadf] px-4 py-2 text-sm font-semibold text-[#7a6050]">
@@ -413,6 +622,14 @@ export function OrdersPanel({
         </p>
       )}
 
+      {historyErrorMessage ? (
+        <p className="mt-3 text-sm font-semibold text-[#b03a34]">
+          {historyErrorMessage}
+        </p>
+      ) : null}
+
+      {orderHistoryTable}
+
       {successMessage ? (
         <p className="mt-3 text-center text-sm font-semibold text-[#2b8a38]">
           {successMessage}
@@ -425,13 +642,15 @@ export function OrdersPanel({
         </p>
       ) : null}
 
-      <button
-        type="button"
-        onClick={() => setIsStatusModalOpen(true)}
-        className="mt-4 w-full rounded-2xl border border-[#d8cab8] bg-white px-4 py-3 text-base font-bold text-[#7a2a24] transition duration-200 hover:bg-[#f8f1e7]"
-      >
-        View Order Status
-      </button>
+      {hasPlacedOrder ? (
+        <button
+          type="button"
+          onClick={openStatusModal}
+          className="mt-4 w-full rounded-2xl border border-[#d8cab8] bg-white px-4 py-3 text-base font-bold text-[#7a2a24] transition duration-200 hover:bg-[#f8f1e7]"
+        >
+          View Order Status
+        </button>
+      ) : null}
 
       {isDetailsModalOpen ? (
         <div
@@ -640,10 +859,120 @@ export function OrdersPanel({
         </div>
       ) : null}
 
+      {detailsOrder ? (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-[rgba(73,48,37,0.42)] px-4 py-6 backdrop-blur-[2px]"
+          onClick={() => setDetailsOrder(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="order-history-details-title"
+            className="max-h-[88vh] w-full max-w-5xl overflow-y-auto rounded-[2rem] border border-[#ddcfc0] bg-[#fffaf4] p-5 shadow-[0_30px_70px_rgba(77,45,34,0.24)] sm:p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[0.78rem] font-bold uppercase tracking-[0.24em] text-[#3d9238]">
+                  Order Details
+                </p>
+                <h3
+                  id="order-history-details-title"
+                  className="mt-2 text-2xl font-black text-[#7a2a24]"
+                >
+                  {detailsOrder.order_number || detailsOrder.id}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailsOrder(null)}
+                className="grid h-10 w-10 place-items-center rounded-full border border-[#ddcfc0] bg-white text-xl font-black text-[#b03a34] transition hover:bg-[#fff1ee]"
+                aria-label="Close order details"
+              >
+                x
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-3 rounded-[1.4rem] bg-[#f6efe5] p-4 text-sm text-[#7a6050] sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <div className="font-bold text-[#7a2a24]">Customer</div>
+                <div>{detailsOrder.customer_name || "-"}</div>
+              </div>
+              <div>
+                <div className="font-bold text-[#7a2a24]">Phone</div>
+                <div>{detailsOrder.customer_phone || "-"}</div>
+              </div>
+              <div>
+                <div className="font-bold text-[#7a2a24]">Order Type</div>
+                <div>{detailsOrder.order_type || "-"}</div>
+              </div>
+              <div>
+                <div className="font-bold text-[#7a2a24]">Order Status</div>
+                <div>{detailsOrder.order_status || "-"}</div>
+              </div>
+              <div>
+                <div className="font-bold text-[#7a2a24]">Payment</div>
+                <div>{detailsOrder.payment_status || "-"}</div>
+              </div>
+              <div>
+                <div className="font-bold text-[#7a2a24]">Total</div>
+                <div>{formatPrice(detailsOrder.total_amount)}</div>
+              </div>
+              <div className="sm:col-span-2">
+                <div className="font-bold text-[#7a2a24]">Item Notes</div>
+                <div>
+                  {detailsOrder.items
+                    .map((item) => item.item_note)
+                    .filter(Boolean)
+                    .join(", ") || "-"}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 overflow-x-auto rounded-[1.4rem] border border-[#eadfce] bg-[#fffdf9]">
+              <table className="min-w-[920px] w-full border-collapse text-left text-sm">
+                <thead className="bg-[#f0eadf] text-xs uppercase tracking-[0.16em] text-[#7a6050]">
+                  <tr>
+                    <th className="px-4 py-3">Food Name</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">Sub Category</th>
+                    <th className="px-4 py-3">Serving Size</th>
+                    <th className="px-4 py-3">Unit Price</th>
+                    <th className="px-4 py-3">Qty</th>
+                    <th className="px-4 py-3">Line Total</th>
+                    <th className="px-4 py-3">Prep Time</th>
+                    <th className="px-4 py-3">Note</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#eadfce] text-[#7a6050]">
+                  {detailsOrder.items.map((item, index) => (
+                    <tr key={item.id || `${item.menu_item_id}-${index}`}>
+                      <td className="px-4 py-3 font-bold text-[#7a2a24]">
+                        {item.food_name}
+                      </td>
+                      <td className="px-4 py-3">{item.category_name || "-"}</td>
+                      <td className="px-4 py-3">{item.sub_category_name || "-"}</td>
+                      <td className="px-4 py-3">{item.serving_size || "-"}</td>
+                      <td className="px-4 py-3">{formatPrice(item.unit_price)}</td>
+                      <td className="px-4 py-3">{item.quantity}</td>
+                      <td className="px-4 py-3">{formatPrice(item.line_total)}</td>
+                      <td className="px-4 py-3">
+                        {item.prep_time_min ? `${item.prep_time_min} min` : "-"}
+                      </td>
+                      <td className="px-4 py-3">{item.item_note || "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {isStatusModalOpen ? (
         <div
           className="fixed inset-0 z-40 flex items-center justify-center bg-[rgba(73,48,37,0.42)] px-4 py-6 backdrop-blur-[2px]"
-          onClick={() => setIsStatusModalOpen(false)}
+          onClick={closeStatusModal}
         >
           <div
             role="dialog"
@@ -663,7 +992,7 @@ export function OrdersPanel({
               </div>
               <button
                 type="button"
-                onClick={() => setIsStatusModalOpen(false)}
+                onClick={closeStatusModal}
                 className="grid h-10 w-10 place-items-center rounded-full border border-[#ddcfc0] bg-white text-xl font-black text-[#b03a34] transition hover:bg-[#fff1ee]"
                 aria-label="Close order status"
               >
@@ -671,7 +1000,7 @@ export function OrdersPanel({
               </button>
             </div>
 
-            {!currentOrder ? (
+            {!statusOrder ? (
               <p className="mt-6 rounded-[1.3rem] bg-[#f6efe5] px-4 py-3 text-sm font-semibold text-[#7a6050]">
                 No order has been placed yet.
               </p>
@@ -735,7 +1064,7 @@ export function OrdersPanel({
 
             <button
               type="button"
-              onClick={() => setIsStatusModalOpen(false)}
+              onClick={closeStatusModal}
               className="mt-6 w-full rounded-2xl bg-[#188a24] px-4 py-3 text-base font-bold text-white transition duration-200 hover:bg-[#116b1b]"
             >
               Close

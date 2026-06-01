@@ -1,5 +1,7 @@
 import type {
   ContactInfo,
+  CustomerOrderHistory,
+  CustomerOrderHistoryItem,
   CustomerMenuData,
   MenuCategory,
   MenuItem,
@@ -486,18 +488,20 @@ function normalizeCategory(rawCategory: unknown): MenuCategory | null {
     for (const item of directMappedItems) {
       const subcategoryName = item.subCategoryName || "Items";
       const subcategoryId = makeSubcategoryId(id, subcategoryName);
-      const subcategory =
-        groupedItems.get(subcategoryId) ??
-        ({
+      let subcategory = groupedItems.get(subcategoryId);
+
+      if (!subcategory) {
+        subcategory = {
           id: subcategoryId,
           name: subcategoryName,
           description: `${subcategoryName} selections.`,
           defaultExpanded: true,
           items: [],
-        } satisfies Subcategory);
+        };
+        groupedItems.set(subcategoryId, subcategory);
+      }
 
       subcategory.items.push(item);
-      groupedItems.set(subcategoryId, subcategory);
     }
 
     subcategories.push(...groupedItems.values());
@@ -577,15 +581,19 @@ function groupFlatItems(rawItems: ApiRecord[]) {
     const subcategoryName = item.subCategoryName || "Items";
     const categoryId = makeCategoryId(categoryName);
     const subcategoryId = makeSubcategoryId(categoryId, subcategoryName);
-    const category =
-      categories.get(categoryId) ??
-      ({
+    let category = categories.get(categoryId);
+
+    if (!category) {
+      category = {
         id: categoryId,
         name: categoryName,
         accentLabel: categoryName,
         description: `${categoryName} dishes from the current menu.`,
         subcategories: [],
-      } satisfies MenuCategory);
+      };
+      categories.set(categoryId, category);
+    }
+
     let subcategory = category.subcategories.find(
       (entry) => entry.id === subcategoryId,
     );
@@ -602,7 +610,6 @@ function groupFlatItems(rawItems: ApiRecord[]) {
     }
 
     subcategory.items.push(item);
-    categories.set(categoryId, category);
   }
 
   return Array.from(categories.values());
@@ -672,6 +679,26 @@ function buildCustomerMenuUrl(params?: CustomerMenuFetchParams) {
   return `${API_BASE_URL}/customer-menu${queryString ? `?${queryString}` : ""}`;
 }
 
+function buildCustomerSessionOrdersUrl(customerSessionId: string, tenantId: string) {
+  const query = new URLSearchParams({
+    tenantId: tenantId.trim(),
+  });
+
+  return `${API_BASE_URL}/customer-orders/session/${encodeURIComponent(
+    customerSessionId,
+  )}?${query.toString()}`;
+}
+
+function buildCustomerOrderUrl(orderId: string, tenantId: string) {
+  const query = new URLSearchParams({
+    tenantId: tenantId.trim(),
+  });
+
+  return `${API_BASE_URL}/customer-orders/${encodeURIComponent(
+    orderId,
+  )}?${query.toString()}`;
+}
+
 export async function fetchCustomerMenuData(params?: CustomerMenuFetchParams) {
   let response: Response;
   const headers = new Headers();
@@ -727,6 +754,155 @@ export function mapCustomerOrderRecord(payload: unknown): CustomerOrderRecord {
   };
 }
 
+function getPayloadArray(payload: unknown): unknown[] {
+  const data = unwrapPayload(payload);
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (!isRecord(data)) {
+    return [];
+  }
+
+  for (const key of [
+    "orders",
+    "customerOrders",
+    "customer_orders",
+    "items",
+    "results",
+  ]) {
+    if (Array.isArray(data[key])) {
+      return data[key] as unknown[];
+    }
+  }
+
+  return [];
+}
+
+function mapCustomerOrderHistoryItem(payload: unknown): CustomerOrderHistoryItem {
+  const item = isRecord(payload) ? payload : {};
+  const quantity = asNumber(item.quantity, 0);
+  const unitPrice = asNumber(item.unit_price ?? item.unitPrice, 0);
+
+  return {
+    id: asString(item.id ?? item.order_item_id ?? item.orderItemId),
+    menu_item_id: asString(item.menu_item_id ?? item.menuItemId),
+    food_name: asString(item.food_name ?? item.foodName ?? item.name, "Item"),
+    category_name: asString(item.category_name ?? item.categoryName),
+    sub_category_name: asString(
+      item.sub_category_name ?? item.subCategoryName ?? item.subcategory_name,
+    ),
+    serving_size: asString(item.serving_size ?? item.servingSize ?? item.serving),
+    unit_price: unitPrice,
+    quantity,
+    line_total: asNumber(
+      item.line_total ?? item.lineTotal,
+      unitPrice * quantity,
+    ),
+    prep_time_min: asNumber(
+      item.prep_time_min ?? item.prepTimeMin ?? item.prepTime,
+      0,
+    ),
+    image_url: asString(item.image_url ?? item.imageUrl ?? item.image),
+    item_note: asString(item.item_note ?? item.itemNote ?? item.note),
+  };
+}
+
+export function mapCustomerOrderHistory(payload: unknown): CustomerOrderHistory {
+  const order = getPayloadRecord(payload);
+  const id = asString(order.id ?? order.order_id ?? order.orderId);
+  const payment = isRecord(order.payment) ? order.payment : {};
+  const rawItems = Array.isArray(order.items)
+    ? order.items
+    : Array.isArray(order.order_items)
+      ? order.order_items
+      : Array.isArray(order.orderItems)
+        ? order.orderItems
+        : [];
+
+  return {
+    id,
+    order_number: asString(
+      order.order_number ?? order.orderNumber ?? order.number,
+      id,
+    ),
+    customer_name: asString(order.customer_name ?? order.customerName),
+    customer_phone: asString(order.customer_phone ?? order.customerPhone),
+    order_type: asString(order.order_type ?? order.orderType, "dine_in"),
+    order_status: asString(
+      order.order_status ?? order.orderStatus ?? order.status,
+      "accepted",
+    ),
+    payment_status: asString(
+      order.payment_status ?? order.paymentStatus ?? payment.status,
+      "unpaid",
+    ),
+    subtotal: asNumber(order.subtotal ?? order.sub_total ?? order.subTotal),
+    tax_amount: asNumber(order.tax_amount ?? order.taxAmount),
+    service_charge_amount: asNumber(
+      order.service_charge_amount ?? order.serviceChargeAmount,
+    ),
+    discount_amount: asNumber(order.discount_amount ?? order.discountAmount),
+    total_amount: asNumber(order.total_amount ?? order.totalAmount ?? order.total),
+    placed_at: asString(
+      order.placed_at ?? order.placedAt ?? order.created_at ?? order.createdAt,
+    ),
+    items: rawItems.map(mapCustomerOrderHistoryItem),
+  };
+}
+
+function sortCustomerOrders(orders: CustomerOrderHistory[]) {
+  return [...orders].sort((left, right) => {
+    const leftTime = Date.parse(left.placed_at);
+    const rightTime = Date.parse(right.placed_at);
+
+    return (Number.isFinite(rightTime) ? rightTime : 0) -
+      (Number.isFinite(leftTime) ? leftTime : 0);
+  });
+}
+
+export async function fetchCustomerSessionOrders(
+  customerSessionId: string,
+  tenantId: string,
+) {
+  let response: Response;
+  const cleanTenantId = tenantId.trim();
+
+  if (!cleanTenantId) {
+    throw new CustomerMenuApiError(
+      "Unable to load your previous orders.",
+      "invalid",
+    );
+  }
+
+  try {
+    response = await fetch(
+      buildCustomerSessionOrdersUrl(customerSessionId, cleanTenantId),
+      {
+        cache: "no-store",
+      },
+    );
+  } catch {
+    throw new CustomerMenuApiError(
+      "Unable to load your previous orders.",
+      "network",
+    );
+  }
+
+  if (!response.ok) {
+    throw new CustomerMenuApiError(
+      "Unable to load your previous orders.",
+      "http",
+    );
+  }
+
+  const text = await response.text();
+  const data = tryParseJson(text);
+
+  return sortCustomerOrders(getPayloadArray(data).map(mapCustomerOrderHistory));
+}
+
 export async function createCustomerOrder(payload: CreateCustomerOrderPayload) {
   let response: Response;
 
@@ -760,14 +936,21 @@ export async function createCustomerOrder(payload: CreateCustomerOrderPayload) {
   return mapCustomerOrderRecord(data);
 }
 
-export async function fetchCustomerOrder(orderId: string) {
+export async function fetchCustomerOrder(orderId: string, tenantId: string) {
   let response: Response;
+  const cleanTenantId = tenantId.trim();
+
+  if (!cleanTenantId) {
+    throw new CustomerMenuApiError(
+      "Unable to refresh order status right now.",
+      "invalid",
+    );
+  }
 
   try {
-    response = await fetch(
-      `${API_BASE_URL}/customer-orders/${encodeURIComponent(orderId)}`,
-      { cache: "no-store" },
-    );
+    response = await fetch(buildCustomerOrderUrl(orderId, cleanTenantId), {
+      cache: "no-store",
+    });
   } catch {
     throw new CustomerMenuApiError(
       "Unable to refresh order status right now.",

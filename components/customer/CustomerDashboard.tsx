@@ -74,9 +74,9 @@ function getTenantIdFromLocation() {
   }
 
   const params = new URLSearchParams(window.location.search);
-  const queryTenantId = params.get("tenantId") ?? params.get("tenant") ?? "";
+  const queryTenantId = (params.get("tenantId") ?? params.get("tenant") ?? "").trim();
 
-  if (queryTenantId.trim()) {
+  if (queryTenantId) {
     return queryTenantId;
   }
 
@@ -105,18 +105,19 @@ function getStoredTenantId() {
 
   try {
     const user = JSON.parse(storedUser) as { tenantId?: unknown };
+
     if (typeof user.tenantId === "string") {
-      return user.tenantId;
+      return user.tenantId.trim();
     }
 
     if (typeof user.tenantId === "number") {
       return String(user.tenantId);
     }
-
-    return "";
   } catch {
     return "";
   }
+
+  return "";
 }
 
 function getCustomerMenuErrorMessage(error: unknown) {
@@ -283,7 +284,7 @@ export function CustomerDashboard() {
   const orderTenantId =
     getQueryTenantIdFromLocation() ||
     data.restaurant.id ||
-    getStoredTenantId();
+    "";
   const activeCategoryItemCount = activeCategory.subcategories.reduce(
     (count, subcategory) => count + subcategory.items.length,
     0,
