@@ -229,12 +229,12 @@ export function OrdersPageView({ settings }: OrdersPageViewProps) {
         order={selectedOrder}
         settings={settings}
         onClose={() => setSelectedOrder(null)}
-        onOrderUpdated={(nextOrder) => {
+        onOrderUpdated={async (nextOrder) => {
           setSelectedOrder(nextOrder);
           setOrders((current) =>
             current.map((order) => (order.id === nextOrder.id ? nextOrder : order)),
           );
-          void loadOrders(false);
+          await loadOrders(false);
         }}
       />
     </>

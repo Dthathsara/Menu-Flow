@@ -1,12 +1,11 @@
 import { createAuthenticatedAxios } from "@/lib/auth-session";
+import { API_BASE_URL } from "@/lib/api-config";
 
 import type {
   MenuCategory,
   MenuItemFormValues,
   MenuItemRecord,
 } from "@/components/manager/manage-menu/types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
 export const MENU_API_ENDPOINTS = {
   menuItems: `${API_BASE_URL}/menu-items`,

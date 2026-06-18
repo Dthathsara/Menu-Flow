@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Brand } from "@/components/common/Brand";
 import { ClientCompanyCard } from "./ClientCompanyCard";
@@ -79,6 +80,10 @@ export function Sidebar({
 }: SidebarProps) {
   const router = useRouter();
   const [reportsExpanded, setReportsExpanded] = useState(activeKey === "reports");
+
+  useEffect(() => {
+    console.debug("[sidebar] restaurantProfile prop", restaurantProfile);
+  }, [restaurantProfile]);
 
   if (overlay && !open) {
     return null;

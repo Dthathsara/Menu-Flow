@@ -32,6 +32,7 @@ export const customerMenuData: CustomerMenuData = {
       "A polished, manager-editable hero area ready for restaurant branding, promotions, or seasonal cover images.",
     heroNote: "Chef-curated menu with live-ready layout blocks",
     bannerLabel: "Today's Signature Menu",
+    restaurantImageUrl: "/customer/placeholder-food.svg",
     kitchenHours: "Kitchen open until 11:00 PM",
   },
   contact: {

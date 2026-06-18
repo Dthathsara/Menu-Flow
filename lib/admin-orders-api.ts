@@ -1,4 +1,5 @@
 import { authFetch, NetworkError, SessionExpiredError } from "@/lib/auth-session";
+import { API_BASE_URL } from "@/lib/api-config";
 import type {
   OrderItem,
   OrderRecord,
@@ -8,8 +9,6 @@ import type {
   PaymentStatus,
   PaymentStatusFilter,
 } from "@/components/manager/orders/types";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
 
 type ApiRecord = Record<string, unknown>;
 
@@ -34,6 +33,10 @@ function asString(value: unknown, fallback = "") {
   }
 
   return fallback;
+}
+
+function asNullableString(value: unknown): string | null {
+  return typeof value === "string" && value ? value : null;
 }
 
 function asNumber(value: unknown, fallback = 0) {
@@ -168,6 +171,12 @@ export function mapAdminOrder(payload: unknown): OrderRecord {
     placed_at: asString(
       order.placed_at ?? order.placedAt ?? order.created_at ?? order.createdAt,
     ),
+    updated_at: asString(order.updated_at ?? order.updatedAt),
+    acceptedAt: asNullableString(order.accepted_at ?? order.acceptedAt),
+    preparingAt: asNullableString(order.preparing_at ?? order.preparingAt),
+    readyAt: asNullableString(order.ready_at ?? order.readyAt),
+    deliveredAt: asNullableString(order.delivered_at ?? order.deliveredAt),
+    cancelledAt: asNullableString(order.cancelled_at ?? order.cancelledAt),
     order_type: asString(order.order_type ?? order.orderType),
     order_status: normalizeOrderStatus(
       order.order_status ?? order.orderStatus ?? order.status,

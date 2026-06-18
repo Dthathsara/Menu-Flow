@@ -8,6 +8,7 @@ import { primaryButtonClassName } from "@/components/common/buttons";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
+import { normalizeAuthUser } from "@/lib/auth-session";
 import {
   cn,
   getAuthInlineLinkClasses,
@@ -19,7 +20,7 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface LoginModalProps {
   open: boolean;
@@ -88,27 +89,54 @@ export function LoginModal({
     setStatusMessage("");
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        businessEmail: form.email.trim().toLowerCase(),
-        password: form.password,
-      });
+      const email = form.email.trim().toLowerCase();
+      const password = form.password;
+
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
+        {
+          email,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: false,
+        },
+      );
 
       window.localStorage.setItem("accessToken", response.data.accessToken);
       window.localStorage.setItem("refreshToken", response.data.refreshToken);
-      window.localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      console.log("LOGIN RESPONSE:", response.data);
-
+      window.localStorage.setItem(
+        "user",
+        JSON.stringify(normalizeAuthUser(response.data.user)),
+      );
       setStatusType("success");
       setStatusMessage("Login successful.");
       router.push("/manager");
     } catch (error) {
       setStatusType("error");
-      setStatusMessage(
-        axios.isAxiosError(error) && error.response?.status === 401
-          ? "Invalid email or password. Please try again."
-          : "Login failed. Please try again.",
-      );
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const message =
+            error.response.data?.message ||
+            error.response.data?.error ||
+            "Login failed. Please try again.";
+
+          setStatusMessage(
+            Array.isArray(message) ? message.join(", ") : String(message),
+          );
+        } else if (error.request) {
+          setStatusMessage(
+            "Cannot connect to backend. Make sure NestJS is running on port 3001 and CORS is enabled.",
+          );
+        } else {
+          setStatusMessage(error.message);
+        }
+      } else {
+        setStatusMessage("Login failed. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

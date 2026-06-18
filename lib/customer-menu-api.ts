@@ -10,8 +10,9 @@ import type {
   Subcategory,
 } from "@/types/customer";
 import { getAccessToken, refreshAccessToken } from "@/lib/auth-session";
+import { API_BASE_URL } from "@/lib/api-config";
+import { getSafeImageSrcFromCandidates } from "@/lib/image-url";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
 const FALLBACK_IMAGE = "/customer/placeholder-food.svg";
 const SERVING_SIZES: ServingSize[] = ["Small", "Medium", "Large"];
 
@@ -223,7 +224,8 @@ function buildServingPrices(item: ApiRecord) {
 
 function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
   const restaurant: ApiRecord = isRecord(rawRestaurant) ? rawRestaurant : {};
-  const name = asNonEmptyString(restaurant.name, "MenuFlow");
+  const hotelName = asNonEmptyString(restaurant.hotelName ?? restaurant.hotel_name);
+  const name = asNonEmptyString(restaurant.name ?? hotelName, "MenuFlow");
   const businessType = asNonEmptyString(
     restaurant.businessType ?? restaurant.business_type,
     "Menu",
@@ -250,9 +252,10 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
   const address = asString(
     restaurant.address ?? restaurant.businessAddress ?? restaurant.business_address,
   );
-  const email = asString(
-    restaurant.email ?? restaurant.businessEmail ?? restaurant.business_email,
+  const businessEmail = asString(
+    restaurant.businessEmail ?? restaurant.business_email,
   );
+  const email = asString(restaurant.email);
   const phone = asString(
     restaurant.phone ??
       restaurant.contactPersonMobileNumber ??
@@ -266,10 +269,23 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
   return {
     id: asString(restaurant.id ?? restaurant.tenantId ?? restaurant.tenant_id) || null,
     name,
+    hotelName,
     businessType,
     location,
     address,
     email,
+    businessEmail,
+    restaurantImageUrl: getSafeImageSrcFromCandidates([
+      restaurant.restaurantImageUrl,
+      restaurant.restaurant_image_url,
+      restaurant.restaurantImage,
+      restaurant.restaurant_image,
+      restaurant.logoUrl,
+      restaurant.logo_url,
+      restaurant.logo,
+      restaurant.image,
+      restaurant.avatar,
+    ], FALLBACK_IMAGE),
     phone,
     kitchenOpenTime,
     kitchenCloseTime,
@@ -323,9 +339,9 @@ function mapContact(rawContact: unknown, rawRestaurant: unknown): ContactInfo {
     ),
     email: asString(
       contact.email ??
-        restaurant.email ??
         restaurant.businessEmail ??
-        restaurant.business_email,
+        restaurant.business_email ??
+        restaurant.email,
     ),
     address: asString(
       contact.address ??

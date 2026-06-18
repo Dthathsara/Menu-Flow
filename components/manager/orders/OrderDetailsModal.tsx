@@ -20,7 +20,13 @@ import {
 import type { ManagerSettings } from "../managerTypes";
 import { SessionExpiredError } from "@/lib/auth-session";
 import { fetchAdminOrder, updateAdminOrderStatus } from "@/lib/admin-orders-api";
-import { EDITABLE_ORDER_STATUSES, formatStatusLabel, getOrderItemCount } from "./order-data";
+import {
+  EDITABLE_ORDER_STATUSES,
+  formatStatusLabel,
+  getAllowedOrderStatusTransitions,
+  getOrderItemCount,
+  isOrderStatusTransitionAllowed,
+} from "./order-data";
 import {
   DetailKeyValue,
   SecondaryPanel,
@@ -36,11 +42,27 @@ interface OrderDetailsModalProps {
   order: OrderRecord | null;
   settings: ManagerSettings;
   onClose: () => void;
-  onOrderUpdated: (order: OrderRecord) => void;
+  onOrderUpdated: (order: OrderRecord) => void | Promise<void>;
 }
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+const ORDER_STATUS_TIMELINE: Array<{
+  label: string;
+  status: OrderStatus;
+  timeField:
+    | "acceptedAt"
+    | "preparingAt"
+    | "readyAt"
+    | "deliveredAt"
+    | "cancelledAt";
+}> = [
+  { label: "Accepted", status: "accepted", timeField: "acceptedAt" },
+  { label: "Preparing", status: "preparing", timeField: "preparingAt" },
+  { label: "Ready", status: "ready", timeField: "readyAt" },
+  { label: "Delivered", status: "delivered", timeField: "deliveredAt" },
+  { label: "Cancelled", status: "cancelled", timeField: "cancelledAt" },
+];
 
 export function OrderDetailsModal({
   open,
@@ -60,6 +82,7 @@ export function OrderDetailsModal({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const closingRef = useRef(false);
+  const detailsRequestIdRef = useRef(0);
   const titleId = useId();
 
   useEffect(() => {
@@ -97,6 +120,8 @@ export function OrderDetailsModal({
     let active = true;
     const orderId = order.id;
     const hasFallbackDetails = order.items.length > 0;
+    const requestId = detailsRequestIdRef.current + 1;
+    detailsRequestIdRef.current = requestId;
 
     async function loadDetails() {
       setIsLoadingDetails(true);
@@ -104,12 +129,12 @@ export function OrderDetailsModal({
       try {
         const nextOrder = await fetchAdminOrder(orderId);
 
-        if (active) {
+        if (active && detailsRequestIdRef.current === requestId) {
           setModalOrder(nextOrder);
           setErrorMessage("");
         }
       } catch (error) {
-        if (active) {
+        if (active && detailsRequestIdRef.current === requestId) {
           setErrorMessage(
             hasFallbackDetails
               ? ""
@@ -119,7 +144,7 @@ export function OrderDetailsModal({
           );
         }
       } finally {
-        if (active) {
+        if (active && detailsRequestIdRef.current === requestId) {
           setIsLoadingDetails(false);
         }
       }
@@ -197,23 +222,31 @@ export function OrderDetailsModal({
   }, [open, order, requestClose]);
 
   async function handleStatusChange(nextStatus: OrderStatus) {
-    if (!modalOrder || nextStatus === modalOrder.order_status || isUpdatingStatus) {
+    if (!modalOrder || isUpdatingStatus) {
+      return;
+    }
+
+    if (
+      !isOrderStatusTransitionAllowed(modalOrder.order_status, nextStatus)
+    ) {
+      setErrorMessage(
+        "Invalid status transition. Please follow the order flow.",
+      );
       return;
     }
 
     setIsUpdatingStatus(true);
     setErrorMessage("");
+    detailsRequestIdRef.current += 1;
+    setIsLoadingDetails(false);
 
     try {
-      const nextOrder = await updateAdminOrderStatus(modalOrder.id, nextStatus);
-      const mergedOrder = {
-        ...modalOrder,
-        ...nextOrder,
-        items: nextOrder.items.length ? nextOrder.items : modalOrder.items,
-      };
+      await updateAdminOrderStatus(modalOrder.id, nextStatus);
+      const freshOrder = await fetchAdminOrder(modalOrder.id);
 
-      setModalOrder(mergedOrder);
-      onOrderUpdated(mergedOrder);
+      console.log("FRESH ORDER AFTER STATUS UPDATE", freshOrder);
+      setModalOrder(freshOrder);
+      await onOrderUpdated(freshOrder);
     } catch (error) {
       setErrorMessage(
         error instanceof SessionExpiredError
@@ -230,6 +263,10 @@ export function OrderDetailsModal({
   }
 
   const totalItems = getOrderItemCount(modalOrder);
+  const allowedStatusTransitions = getAllowedOrderStatusTransitions(
+    modalOrder.order_status,
+  );
+  const isFinalStatus = allowedStatusTransitions.length === 0;
 
   return createPortal(
     <div
@@ -463,7 +500,7 @@ export function OrderDetailsModal({
                     onChange={(event) =>
                       void handleStatusChange(event.target.value as OrderStatus)
                     }
-                    disabled={isUpdatingStatus}
+                    disabled={isUpdatingStatus || isFinalStatus}
                     className={cn(
                       "w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition",
                       settings.scheme === "dark"
@@ -472,7 +509,11 @@ export function OrderDetailsModal({
                     )}
                   >
                     {EDITABLE_ORDER_STATUSES.map((status) => (
-                      <option key={status} value={status}>
+                      <option
+                        key={status}
+                        value={status}
+                        disabled={!allowedStatusTransitions.includes(status)}
+                      >
                         {formatStatusLabel(status)}
                       </option>
                     ))}
@@ -483,6 +524,79 @@ export function OrderDetailsModal({
                     Updating status...
                   </p>
                 ) : null}
+                {isFinalStatus ? (
+                  <p className={cn("mt-3 text-sm", getMutedTextClasses(settings.scheme))}>
+                    {formatStatusLabel(modalOrder.order_status)} is a final status.
+                  </p>
+                ) : null}
+              </SecondaryPanel>
+
+              <SecondaryPanel settings={settings} className="p-4 sm:p-5">
+                <div className={getManagerSectionTitleClasses()}>
+                  Order Status Timeline
+                </div>
+                <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
+                  Status changes recorded by the backend.
+                </div>
+
+                <div className="mt-5 space-y-2">
+                  {ORDER_STATUS_TIMELINE.map(
+                    ({ label, status, timeField }) => {
+                      const changedAt = modalOrder[timeField];
+                      const isCurrent = modalOrder.order_status === status;
+
+                      return (
+                        <div
+                          key={status}
+                          className={cn(
+                            "flex flex-col gap-1 rounded-xl border px-4 py-3 transition sm:flex-row sm:items-center sm:justify-between sm:gap-4",
+                            isCurrent
+                              ? settings.scheme === "dark"
+                                ? "border-blue-400/35 bg-blue-500/12 ring-1 ring-inset ring-blue-400/15"
+                                : "border-blue-200 bg-blue-50 ring-1 ring-inset ring-blue-100"
+                              : settings.scheme === "dark"
+                                ? "border-white/10 bg-white/[0.035]"
+                                : "border-slate-200 bg-slate-50/80",
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "size-2 shrink-0 rounded-full",
+                                isCurrent
+                                  ? "bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.14)]"
+                                  : settings.scheme === "dark"
+                                    ? "bg-slate-600"
+                                    : "bg-slate-300",
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="text-sm font-semibold">
+                              {label}
+                            </span>
+                            {isCurrent ? (
+                              <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-blue-500">
+                                Current
+                              </span>
+                            ) : null}
+                          </div>
+                          <span
+                            className={cn(
+                              "text-sm sm:text-right",
+                              changedAt
+                                ? "font-medium"
+                                : getMutedTextClasses(settings.scheme),
+                            )}
+                          >
+                            {changedAt
+                              ? formatStatusChangedAt(changedAt)
+                              : "Not updated"}
+                          </span>
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
               </SecondaryPanel>
             </div>
           </div>
@@ -515,4 +629,20 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span className="font-semibold">{value}</span>
     </div>
   );
+}
+
+function formatStatusChangedAt(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not updated";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }

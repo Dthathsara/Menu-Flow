@@ -38,7 +38,7 @@ type LoggedInUser = {
   contactPersonName?: string;
   firstName?: string;
   lastName?: string;
-  businessEmail?: string;
+  email?: string;
 };
 
 interface StatCardItem {
@@ -342,7 +342,7 @@ function getDisplayName(user: LoggedInUser | null) {
     user?.contactPersonName ||
     (user?.firstName && user?.lastName
       ? `${user.firstName} ${user.lastName}`
-      : user?.businessEmail || "User")
+      : user?.email || "User")
   );
 }
 

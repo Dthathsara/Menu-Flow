@@ -12,7 +12,7 @@ export function ContactPanel({ restaurant, contact }: ContactPanelProps) {
       ? `Daily ${restaurant.kitchenOpenTime || ""} - ${restaurant.kitchenCloseTime || ""}`.trim()
       : "");
   const phone = restaurant.phone || "Not provided";
-  const email = restaurant.email || "Not provided";
+  const email = restaurant.businessEmail || restaurant.email || "Not provided";
   const address = restaurant.address || "Not provided";
 
   return (

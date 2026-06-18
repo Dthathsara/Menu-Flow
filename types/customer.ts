@@ -50,10 +50,13 @@ export interface ContactInfo {
 export interface RestaurantInfo {
   id?: string | null;
   name: string;
+  hotelName?: string;
   businessType?: string;
   location?: string;
   address?: string;
   email?: string;
+  businessEmail?: string;
+  restaurantImageUrl: string;
   phone?: string;
   kitchenOpenTime?: string;
   kitchenCloseTime?: string;

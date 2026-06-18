@@ -13,7 +13,6 @@ type StoredUser = {
   id?: string;
   tenantId?: string;
   email?: string;
-  businessEmail?: string;
   hotelName?: string;
   businessType?: string;
   businessLocation?: string;
@@ -59,6 +58,8 @@ export function ProfileDropdown({
     const timeoutId = window.setTimeout(() => {
       const storedUser = localStorage.getItem("user");
 
+      console.debug("[profile-dropdown] stored user snapshot", storedUser);
+
       if (storedUser) {
         try {
           setUser(JSON.parse(storedUser));
@@ -70,6 +71,8 @@ export function ProfileDropdown({
 
     function handleUserUpdated(event: Event) {
       const detail = (event as CustomEvent<StoredUser>).detail;
+
+      console.debug("[profile-dropdown] user-updated event", detail);
 
       if (detail) {
         setUser(detail);
@@ -84,12 +87,16 @@ export function ProfileDropdown({
     };
   }, []);
 
+  useEffect(() => {
+    console.debug("[profile-dropdown] user state changed", user);
+  }, [user]);
+
   const displayName = user?.contactPersonName || "";
   const displayRole = user?.role || "";
-  const displayEmail = user?.businessEmail || "";
+  const displayEmail = user?.email || "";
   const initials =
     (user?.contactPersonName ||
-      user?.businessEmail ||
+      user?.email ||
       "?")[0].toUpperCase();
 
   function handleOpenProfileModal() {

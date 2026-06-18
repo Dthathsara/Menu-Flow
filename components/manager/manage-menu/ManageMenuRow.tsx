@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getImageUrl } from "@/lib/image-url";
 import { PencilIcon, TrashIcon } from "../icons";
 import {
   cn,
@@ -29,6 +30,8 @@ export function ManageMenuRow({
   onEdit,
   onRemove,
 }: ManageMenuRowProps) {
+  const safeImageSrc = getImageUrl(item.image);
+
   return (
     <tr
       className={cn(
@@ -41,9 +44,9 @@ export function ManageMenuRow({
     >
       <td className={getManagerTableCellPaddingClasses()}>
         <div className="relative size-14 overflow-hidden rounded-lg border border-white/10 bg-slate-200/40 shadow-[0_10px_22px_rgba(15,23,42,0.08)]">
-          {item.image ? (
+          {item.image?.trim() ? (
             <Image
-              src={item.image}
+              src={safeImageSrc}
               alt={item.name}
               fill
               unoptimized

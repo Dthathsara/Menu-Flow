@@ -31,6 +31,12 @@ export interface OrderRecord {
   customer_name: string;
   customer_phone: string;
   placed_at: string;
+  updated_at: string;
+  acceptedAt?: string | null;
+  preparingAt?: string | null;
+  readyAt?: string | null;
+  deliveredAt?: string | null;
+  cancelledAt?: string | null;
   order_type: string;
   order_status: OrderStatus;
   payment_status: PaymentStatus;

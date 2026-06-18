@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useId } from "react";
+import { getSafeImageSrc } from "@/lib/image-url";
 import { ImageIcon, UploadIcon } from "../icons";
 import { getManagerBodyTextClasses, getManagerLabelClasses } from "../managerUtils";
 import type { Scheme } from "../managerTypes";
@@ -17,6 +18,7 @@ export function ImageUploadField({
   onChange,
 }: ImageUploadFieldProps) {
   const inputId = useId();
+  const safePreview = getSafeImageSrc(preview);
   const focusClasses =
     scheme === "dark"
       ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#061533]"
@@ -44,9 +46,9 @@ export function ImageUploadField({
                 : "border-slate-200 bg-slate-100"
             }`}
           >
-            {preview ? (
+            {preview?.trim() ? (
               <Image
-                src={preview}
+                src={safePreview}
                 alt="Menu item preview"
                 fill
                 unoptimized

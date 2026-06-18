@@ -4,8 +4,9 @@ import type { FormEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { primaryButtonClassName } from "@/components/common/buttons";
+import { apiUrl } from "@/lib/api-config";
 import { getApiErrorMessage } from "@/lib/error-handler";
-import { authJson, SessionExpiredError } from "@/lib/auth-session";
+import { authJson, normalizeAuthUser, SessionExpiredError } from "@/lib/auth-session";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
@@ -15,41 +16,22 @@ import {
   type AuthTheme,
 } from "@/components/common/theme";
 
-const PROFILE_ME_URL = "/backend/auth/me";
+const PROFILE_ME_URL = apiUrl("/auth/me");
 
 type UserProfile = {
   id?: string;
   email?: string;
-  businessEmail?: string;
-  hotelName?: string;
-  businessType?: string;
-  businessLocation?: string;
-  businessAddress?: string;
-  kitchenOpenTime?: string;
-  kitchenCloseTime?: string;
   contactPersonName?: string;
   contactPersonMobileNumber?: string;
-  taxRate?: number | string;
-  serviceChargeRate?: number | string;
-  discountRate?: number | string | null;
   firstName?: string;
   lastName?: string;
   role?: string;
 };
 
 type ProfileForm = {
-  hotelName: string;
-  businessType: string;
-  businessLocation: string;
-  businessAddress: string;
-  businessEmail: string;
-  kitchenOpenTime: string;
-  kitchenCloseTime: string;
+  email: string;
   contactPersonName: string;
   contactPersonMobileNumber: string;
-  taxRate: string;
-  serviceChargeRate: string;
-  discountRate: string;
   oldPassword: string;
   newPassword: string;
   confirmPassword: string;
@@ -70,7 +52,7 @@ function readStoredUser(): UserProfile | null {
   }
 
   try {
-    return JSON.parse(storedUser) as UserProfile;
+    return normalizeAuthUser(JSON.parse(storedUser) as UserProfile);
   } catch {
     return null;
   }
@@ -84,34 +66,19 @@ function getUserPayload(data: unknown): UserProfile | null {
   const record = data as Record<string, unknown>;
 
   if (record.user && typeof record.user === "object") {
-    return record.user as UserProfile;
+    return normalizeAuthUser(record.user as UserProfile);
   }
 
-  return record as UserProfile;
+  return normalizeAuthUser(record as UserProfile);
 }
 
 function buildForm(user: UserProfile | null): ProfileForm {
   return {
-    hotelName: user?.hotelName || "",
-    businessType: user?.businessType || "",
-    businessLocation: user?.businessLocation || "",
-    businessAddress: user?.businessAddress || "",
-    businessEmail: user?.businessEmail || user?.email || "",
-    kitchenOpenTime: user?.kitchenOpenTime || "",
-    kitchenCloseTime: user?.kitchenCloseTime || "",
+    email: user?.email ?? "",
     contactPersonName:
       user?.contactPersonName ||
       [user?.firstName, user?.lastName].filter(Boolean).join(" "),
     contactPersonMobileNumber: user?.contactPersonMobileNumber || "",
-    taxRate: user?.taxRate === undefined || user?.taxRate === null ? "" : String(user.taxRate),
-    serviceChargeRate:
-      user?.serviceChargeRate === undefined || user?.serviceChargeRate === null
-        ? ""
-        : String(user.serviceChargeRate),
-    discountRate:
-      user?.discountRate === undefined || user?.discountRate === null
-        ? ""
-        : String(user.discountRate),
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -131,18 +98,9 @@ export function ProfileModal({
   onUserUpdated,
   theme = "dark",
 }: ProfileModalProps) {
-  const hotelNameId = useId();
-  const businessTypeId = useId();
-  const businessLocationId = useId();
-  const businessAddressId = useId();
-  const kitchenOpenTimeId = useId();
-  const kitchenCloseTimeId = useId();
-  const businessEmailId = useId();
+  const emailId = useId();
   const contactNameId = useId();
   const mobileNumberId = useId();
-  const taxRateId = useId();
-  const serviceChargeRateId = useId();
-  const discountRateId = useId();
   const oldPasswordId = useId();
   const newPasswordId = useId();
   const confirmPasswordId = useId();
@@ -232,12 +190,8 @@ export function ProfileModal({
       Boolean(form.newPassword) ||
       Boolean(form.confirmPassword);
 
-    if (!form.hotelName.trim()) {
-      nextErrors.hotelName = "Business / Hotel name is required.";
-    }
-
-    if (!form.businessEmail.trim()) {
-      nextErrors.businessEmail = "Business email is required.";
+    if (!form.email.trim()) {
+      nextErrors.email = "Email is required.";
     }
 
     if (!form.contactPersonName.trim()) {
@@ -246,29 +200,6 @@ export function ProfileModal({
 
     if (!form.contactPersonMobileNumber.trim()) {
       nextErrors.contactPersonMobileNumber = "Contact person mobile number is required.";
-    }
-
-    const taxRate = Number(form.taxRate);
-    const serviceChargeRate = Number(form.serviceChargeRate);
-    const discountRate = form.discountRate.trim() ? Number(form.discountRate) : null;
-
-    if (!form.taxRate.trim() || !Number.isFinite(taxRate) || taxRate < 0) {
-      nextErrors.taxRate = "Tax percentage must be 0 or higher.";
-    }
-
-    if (
-      !form.serviceChargeRate.trim() ||
-      !Number.isFinite(serviceChargeRate) ||
-      serviceChargeRate < 0
-    ) {
-      nextErrors.serviceChargeRate = "Service charge percentage must be 0 or higher.";
-    }
-
-    if (
-      form.discountRate.trim() &&
-      (discountRate === null || !Number.isFinite(discountRate) || discountRate < 0)
-    ) {
-      nextErrors.discountRate = "Discount percentage must be 0 or higher.";
     }
 
     if (wantsPasswordChange) {
@@ -298,25 +229,16 @@ export function ProfileModal({
     setStatusMessage("");
 
     try {
-      const payload: Record<string, string | number | null> = {
-        hotelName: form.hotelName.trim(),
-        businessType: form.businessType.trim(),
-        businessLocation: form.businessLocation.trim(),
-        businessAddress: form.businessAddress.trim(),
-        businessEmail: form.businessEmail.trim().toLowerCase(),
-        kitchenOpenTime: form.kitchenOpenTime.trim(),
-        kitchenCloseTime: form.kitchenCloseTime.trim(),
+      const payload: Record<string, string> = {
+        email: form.email.trim().toLowerCase(),
         contactPersonName: form.contactPersonName.trim(),
         contactPersonMobileNumber: form.contactPersonMobileNumber.trim(),
-        taxRate,
-        serviceChargeRate,
-        discountRate,
       };
 
       if (wantsPasswordChange) {
         payload.oldPassword = form.oldPassword;
         payload.newPassword = form.newPassword;
-        payload.confirmPassword = form.confirmPassword;
+        payload.confirmNewPassword = form.confirmPassword;
       }
 
       const profileResponse = await authJson<unknown>(PROFILE_ME_URL, {
@@ -332,18 +254,9 @@ export function ProfileModal({
       const nextUser = {
         ...(storedUser || {}),
         ...(apiUser || {}),
-        hotelName: form.hotelName.trim(),
-        businessType: form.businessType.trim(),
-        businessLocation: form.businessLocation.trim(),
-        businessAddress: form.businessAddress.trim(),
-        businessEmail: form.businessEmail.trim().toLowerCase(),
-        kitchenOpenTime: form.kitchenOpenTime.trim(),
-        kitchenCloseTime: form.kitchenCloseTime.trim(),
+        email: form.email.trim().toLowerCase(),
         contactPersonName: form.contactPersonName.trim(),
         contactPersonMobileNumber: form.contactPersonMobileNumber.trim(),
-        taxRate,
-        serviceChargeRate,
-        discountRate,
       };
 
       window.localStorage.setItem("user", JSON.stringify(nextUser));
@@ -394,105 +307,21 @@ export function ProfileModal({
             Profile
           </h3>
           <div className="space-y-5">
-            <div className="grid gap-5 sm:grid-cols-2">
-            <AuthInputField
-              id={hotelNameId}
-              theme={theme}
-              label="Business / Hotel name"
-              value={form.hotelName}
-              autoComplete="organization"
-              placeholder="Enter your business name"
-              error={errors.hotelName}
-              onChange={(hotelName) =>
-                setForm((current) => ({ ...current, hotelName }))
-              }
-            />
-
-            <AuthInputField
-              id={businessTypeId}
-              theme={theme}
-              label="Business type"
-              value={form.businessType}
-              autoComplete="organization-title"
-              placeholder="Cafe / Restaurant / Hotel"
-              error={errors.businessType}
-              onChange={(businessType) =>
-                setForm((current) => ({ ...current, businessType }))
-              }
-            />
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-            <AuthInputField
-              id={businessLocationId}
-              theme={theme}
-              label="Location"
-              value={form.businessLocation}
-              autoComplete="street-address"
-              placeholder="Negombo Lagoon Front"
-              error={errors.businessLocation}
-              onChange={(businessLocation) =>
-                setForm((current) => ({ ...current, businessLocation }))
-              }
-            />
-
-            <AuthInputField
-              id={businessAddressId}
-              theme={theme}
-              label="Address"
-              value={form.businessAddress}
-              autoComplete="street-address"
-              placeholder="Full business address"
-              error={errors.businessAddress}
-              onChange={(businessAddress) =>
-                setForm((current) => ({ ...current, businessAddress }))
-              }
-            />
-            </div>
-
             <div className="grid gap-5 sm:grid-cols-3">
             <AuthInputField
-              id={businessEmailId}
+              id={emailId}
               theme={theme}
-              label="Business email"
+              label="Email"
               type="email"
-              value={form.businessEmail}
+              value={form.email}
               autoComplete="email"
               placeholder="team@restaurant.com"
-              error={errors.businessEmail}
-              onChange={(businessEmail) =>
-                setForm((current) => ({ ...current, businessEmail }))
+              error={errors.email}
+              onChange={(email) =>
+                setForm((current) => ({ ...current, email }))
               }
             />
 
-            <AuthInputField
-              id={kitchenOpenTimeId}
-              theme={theme}
-              label="Kitchen open time"
-              value={form.kitchenOpenTime}
-              autoComplete="off"
-              placeholder="11:00 AM"
-              error={errors.kitchenOpenTime}
-              onChange={(kitchenOpenTime) =>
-                setForm((current) => ({ ...current, kitchenOpenTime }))
-              }
-            />
-
-            <AuthInputField
-              id={kitchenCloseTimeId}
-              theme={theme}
-              label="Kitchen close time"
-              value={form.kitchenCloseTime}
-              autoComplete="off"
-              placeholder="11:00 PM"
-              error={errors.kitchenCloseTime}
-              onChange={(kitchenCloseTime) =>
-                setForm((current) => ({ ...current, kitchenCloseTime }))
-              }
-            />
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2">
             <AuthInputField
               id={contactNameId}
               theme={theme}
@@ -509,7 +338,7 @@ export function ProfileModal({
             <AuthInputField
               id={mobileNumberId}
               theme={theme}
-              label="Contact person mobile number"
+              label="Contact person mobile no."
               type="tel"
               value={form.contactPersonMobileNumber}
               autoComplete="tel"
@@ -518,50 +347,6 @@ export function ProfileModal({
               error={errors.contactPersonMobileNumber}
               onChange={(contactPersonMobileNumber) =>
                 setForm((current) => ({ ...current, contactPersonMobileNumber }))
-              }
-            />
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-3">
-            <AuthInputField
-              id={taxRateId}
-              theme={theme}
-              label="Tax percentage"
-              type="number"
-              value={form.taxRate}
-              inputMode="decimal"
-              placeholder="5"
-              error={errors.taxRate}
-              onChange={(taxRate) =>
-                setForm((current) => ({ ...current, taxRate }))
-              }
-            />
-
-            <AuthInputField
-              id={serviceChargeRateId}
-              theme={theme}
-              label="Service charge percentage"
-              type="number"
-              value={form.serviceChargeRate}
-              inputMode="decimal"
-              placeholder="3"
-              error={errors.serviceChargeRate}
-              onChange={(serviceChargeRate) =>
-                setForm((current) => ({ ...current, serviceChargeRate }))
-              }
-            />
-
-            <AuthInputField
-              id={discountRateId}
-              theme={theme}
-              label="Discount percentage"
-              type="number"
-              value={form.discountRate}
-              inputMode="decimal"
-              placeholder="0"
-              error={errors.discountRate}
-              onChange={(discountRate) =>
-                setForm((current) => ({ ...current, discountRate }))
               }
             />
             </div>

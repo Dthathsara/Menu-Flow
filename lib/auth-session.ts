@@ -4,8 +4,9 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { API_BASE_URL } from "@/lib/api-config";
+import { getSafeImageSrcFromCandidates } from "@/lib/image-url";
 
-const AUTH_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
 const LAST_ACTIVITY_KEY = "menuflow:lastActivityAt";
 const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
 const PROACTIVE_REFRESH_MS = 22 * 60 * 1000;
@@ -27,6 +28,25 @@ export class NetworkError extends Error {
   ) {
     super(message);
     this.name = "NetworkError";
+  }
+}
+
+export class ApiResponseError extends Error {
+  response: {
+    status: number;
+    data: unknown;
+  };
+
+  request: RequestInfo | URL;
+
+  constructor(message: string, response: Response, data: unknown, request: RequestInfo | URL) {
+    super(message);
+    this.name = "ApiResponseError";
+    this.response = {
+      status: response.status,
+      data,
+    };
+    this.request = request;
   }
 }
 
@@ -65,6 +85,46 @@ function clearStoredSession() {
   window.localStorage.removeItem("user");
 }
 
+export function normalizeAuthUser(user: any) {
+  if (!user) {
+    return null;
+  }
+
+  return {
+    id: user.id ?? "",
+    email: user.email ?? "",
+    businessEmail: user.businessEmail ?? user.business_email ?? "",
+    role: user.role ?? "MANAGER",
+    tenantId: user.tenantId ?? user.tenant_id ?? "",
+    hotelName: user.hotelName ?? user.hotel_name ?? "",
+    contactPersonName:
+      user.contactPersonName ?? user.contact_person_name ?? "",
+    contactPersonMobileNumber:
+      user.contactPersonMobileNumber ??
+      user.contact_person_mobile_number ??
+      "",
+    businessType: user.businessType ?? user.business_type ?? "",
+    businessLocation: user.businessLocation ?? user.business_location ?? "",
+    businessAddress: user.businessAddress ?? user.business_address ?? "",
+    kitchenOpenTime: user.kitchenOpenTime ?? user.kitchen_open_time ?? "",
+    kitchenCloseTime: user.kitchenCloseTime ?? user.kitchen_close_time ?? "",
+    taxRate: Number(user.taxRate ?? user.tax_rate ?? 5),
+    serviceChargeRate: Number(user.serviceChargeRate ?? user.service_charge_rate ?? 3),
+    discountRate: user.discountRate ?? user.discount_rate ?? null,
+    restaurantImageUrl: getSafeImageSrcFromCandidates([
+      user.restaurantImageUrl,
+      user.restaurant_image_url,
+      user.restaurantImage,
+      user.restaurant_image,
+      user.logoUrl,
+      user.logo_url,
+      user.logo,
+      user.image,
+      user.avatar,
+    ]),
+  };
+}
+
 function getRefreshToken() {
   if (typeof window === "undefined") {
     return "";
@@ -101,9 +161,10 @@ function storeAuthResponse(data: unknown) {
   }
 
   if (record.user && typeof record.user === "object") {
-    window.localStorage.setItem("user", JSON.stringify(record.user));
+    const user = normalizeAuthUser(record.user);
+    window.localStorage.setItem("user", JSON.stringify(user));
     window.dispatchEvent(
-      new CustomEvent("menuflow:user-updated", { detail: record.user }),
+      new CustomEvent("menuflow:user-updated", { detail: user }),
     );
   }
 
@@ -143,7 +204,7 @@ export async function refreshAccessToken() {
   }
 
   refreshPromise = axios
-    .post(`${AUTH_API_BASE_URL}/auth/refresh`, { refreshToken })
+    .post(`${API_BASE_URL}/auth/refresh`, { refreshToken })
     .then((response) => {
       const accessToken = storeAuthResponse(response.data);
 
@@ -252,7 +313,7 @@ export async function authJson<T>(input: RequestInfo | URL, init: RequestInit = 
           )
         : "Request failed.";
 
-    throw new Error(message);
+    throw new ApiResponseError(message, response, data, input);
   }
 
   return data as T;

@@ -32,6 +32,27 @@ export const EDITABLE_ORDER_STATUSES: OrderStatus[] = [
   "cancelled",
 ];
 
+const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
+  accepted: ["preparing", "cancelled"],
+  preparing: ["ready", "cancelled"],
+  ready: ["delivered", "cancelled"],
+  delivered: [],
+  cancelled: [],
+};
+
+export function getAllowedOrderStatusTransitions(
+  currentStatus: OrderStatus,
+) {
+  return ORDER_STATUS_TRANSITIONS[currentStatus];
+}
+
+export function isOrderStatusTransitionAllowed(
+  currentStatus: OrderStatus,
+  nextStatus: OrderStatus,
+) {
+  return ORDER_STATUS_TRANSITIONS[currentStatus].includes(nextStatus);
+}
+
 export function getOrderItemCount(order: OrderRecord) {
   return order.items.length;
 }

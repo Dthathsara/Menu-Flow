@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LANGUAGE_OPTIONS, MANAGER_NAV_ITEMS } from "./managerConfig";
 import { HorizontalShell } from "./HorizontalShell";
 import { VerticalShell } from "./VerticalShell";
 import { DEFAULT_RESTAURANT_PROFILE } from "./settings/settings.data";
 import type { RestaurantProfile } from "./settings/settings.types";
+import { fetchRestaurantProfile, mapRestaurantProfile } from "@/lib/users-api";
 import { cn, getShellBackgroundClasses } from "./managerUtils";
 import { useManagerSettings } from "./useManagerSettings";
 import type { LanguageOption, ManagerNavKey } from "./managerTypes";
@@ -32,6 +33,43 @@ export function ManagerDashboard({
   );
   const [navigationOpen, setNavigationOpen] = useState(false);
   const { settings, toggleScheme } = useManagerSettings();
+
+  useEffect(() => {
+    let isActive = true;
+
+    const storedUser = window.localStorage.getItem("user");
+    console.debug("[manager-dashboard] stored user snapshot", storedUser);
+
+    if (storedUser) {
+      try {
+        setRestaurantProfile((current) => ({
+          ...current,
+          ...mapRestaurantProfile(JSON.parse(storedUser)),
+        }));
+      } catch {
+        // Ignore malformed local session data and fall back to the API.
+      }
+    }
+
+    void fetchRestaurantProfile()
+      .then((profile) => {
+        console.debug("[manager-dashboard] fetched restaurant profile", profile);
+        if (isActive) {
+          setRestaurantProfile(profile);
+        }
+      })
+      .catch((error) => {
+        console.log("RESTAURANT PROFILE LOAD ERROR:", error);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    console.debug("[manager-dashboard] restaurantProfile state changed", restaurantProfile);
+  }, [restaurantProfile]);
 
   const activeItem =
     MANAGER_NAV_ITEMS.find((item) => item.key === activeNav) ?? MANAGER_NAV_ITEMS[0];

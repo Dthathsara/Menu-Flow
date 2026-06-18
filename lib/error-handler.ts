@@ -42,7 +42,7 @@ function cleanMessage(message: string) {
     lower.includes("business email already registered") ||
     lower.includes("business email is already registered")
   ) {
-    return "Business email is already registered. Please use another email or log in.";
+    return "This email is already registered. Please use another email or log in.";
   }
 
   if (
