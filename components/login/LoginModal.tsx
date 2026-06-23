@@ -8,6 +8,7 @@ import { primaryButtonClassName } from "@/components/common/buttons";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
+import { apiUrl } from "@/lib/api-config";
 import { normalizeAuthUser } from "@/lib/auth-session";
 import {
   cn,
@@ -19,8 +20,6 @@ import {
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface LoginModalProps {
   open: boolean;
@@ -93,7 +92,7 @@ export function LoginModal({
       const password = form.password;
 
       const response = await axios.post(
-        `${API_URL}/auth/login`,
+        apiUrl("/auth/login"),
         {
           email,
           password,
@@ -118,6 +117,15 @@ export function LoginModal({
     } catch (error) {
       setStatusType("error");
       if (axios.isAxiosError(error)) {
+        if (process.env.NODE_ENV === "development") {
+          console.error("LOGIN REQUEST FAILED", {
+            message: error.message,
+            status: error.response?.status,
+            data: error.response?.data,
+            url: error.config?.url,
+          });
+        }
+
         if (error.response) {
           const message =
             error.response.data?.message ||

@@ -1,0 +1,25 @@
+
+> menu-flow@0.1.0 dev
+> next dev -p 3000
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.11.1:3000
+- Environments: .env.local
+✓ Ready in 1045ms
+Creating turbopack project {
+  dir: 'C:\\Users\\Dulnith\\Desktop\\MenuFlow front-end\\menu-flow',
+  testMode: true
+}
+
+ GET / 200 in 3.8s (next.js: 2.8s, application-code: 1006ms)
+ GET / 200 in 177ms (next.js: 9ms, application-code: 168ms)
+ GET /manager 200 in 2.5s (next.js: 2.4s, application-code: 106ms)
+ GET /manager/settings 200 in 1232ms (next.js: 1156ms, application-code: 76ms)
+ GET /manager/manage-menu 200 in 1480ms (next.js: 1414ms, application-code: 66ms)
+ GET /manager/qr-codes 200 in 1263ms (next.js: 1174ms, application-code: 89ms)
+ GET /manager/manage-menu 200 in 93ms (next.js: 13ms, application-code: 80ms)
+ GET /customer?tenantId=7deaaeaa-1ddd-4044-ab40-086da00d7cc5 200 in 1417ms (next.js: 1175ms, application-code: 242ms)
+ GET / 200 in 211ms (next.js: 14ms, application-code: 198ms)
+ GET /manager 200 in 98ms (next.js: 33ms, application-code: 66ms)
+ GET /manager/qr-codes 200 in 102ms (next.js: 25ms, application-code: 77ms)

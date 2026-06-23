@@ -74,10 +74,19 @@ export interface RestaurantInfo {
   kitchenHours: string;
 }
 
+export interface QrContext {
+  generatedQrCodeId: string;
+  qrId: string;
+  qrToken: string;
+  tableNumber: string;
+  section: string;
+}
+
 export interface CustomerMenuData {
   restaurant: RestaurantInfo;
   contact: ContactInfo;
   categories: MenuCategory[];
+  qrContext?: QrContext;
 }
 
 export interface CartItem {

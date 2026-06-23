@@ -20,7 +20,7 @@ export const DEFAULT_RESTAURANT_PROFILE: RestaurantProfile = {
   taxRate: "5",
   serviceChargeRate: "3",
   discountRate: "",
-  restaurantImageUrl: "/customer/placeholder-food.svg",
+  restaurantImageUrl: "",
 };
 
 export const BUSINESS_TYPE_OPTIONS: readonly SettingsSelectOption<SettingsBusinessType>[] = [

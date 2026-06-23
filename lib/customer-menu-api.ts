@@ -5,6 +5,7 @@ import type {
   CustomerMenuData,
   MenuCategory,
   MenuItem,
+  QrContext,
   RestaurantInfo,
   ServingSize,
   Subcategory,
@@ -19,6 +20,7 @@ const SERVING_SIZES: ServingSize[] = ["Small", "Medium", "Large"];
 export interface CustomerMenuFetchParams {
   slug?: string;
   tenantId?: string;
+  qrToken?: string;
 }
 
 export interface CustomerOrderItemPayload {
@@ -40,6 +42,10 @@ export interface CreateCustomerOrderPayload {
   customer_name: string;
   customer_phone: string;
   order_type: "dine_in" | "takeaway" | "delivery";
+  qr_token?: string;
+  qr_code_id?: string;
+  table_number?: string;
+  section?: string;
   item_note?: string;
   items: CustomerOrderItemPayload[];
   payment: {
@@ -361,6 +367,39 @@ function mapContact(rawContact: unknown, rawRestaurant: unknown): ContactInfo {
   };
 }
 
+function mapQrContext(rawQrContext: unknown): QrContext | undefined {
+  if (!isRecord(rawQrContext)) {
+    return undefined;
+  }
+
+  const generatedQrCodeId = asString(
+    rawQrContext.generatedQrCodeId ??
+      rawQrContext.generated_qr_code_id ??
+      rawQrContext.generatedQrId ??
+      rawQrContext.generated_qr_id ??
+      rawQrContext.qrCodeId ??
+      rawQrContext.qr_code_id ??
+      rawQrContext.qrId ??
+      rawQrContext.qr_id ??
+      rawQrContext.id,
+  );
+  const qrId = asString(
+    rawQrContext.qrId ??
+      rawQrContext.qr_id ??
+      rawQrContext.qrCodeId ??
+      rawQrContext.qr_code_id ??
+      generatedQrCodeId,
+  );
+
+  return {
+    generatedQrCodeId,
+    qrId,
+    qrToken: asString(rawQrContext.qrToken ?? rawQrContext.qr_token),
+    tableNumber: asString(rawQrContext.tableNumber ?? rawQrContext.table_number),
+    section: asString(rawQrContext.section),
+  };
+}
+
 function makeCategoryId(categoryName: string) {
   return slugify(categoryName) || "menu";
 }
@@ -667,10 +706,19 @@ export function mapCustomerMenuData(payload: unknown): CustomerMenuData {
   const rawRestaurant = isRecord(data.restaurant) ? data.restaurant : data;
   const restaurant = mapRestaurant(rawRestaurant);
   const contact = mapContact(data.contact, rawRestaurant);
+  const qrContext = mapQrContext(
+    data.qrContext ??
+      data.qr_context ??
+      data.generatedQrCode ??
+      data.generated_qr_code ??
+      data.qrCode ??
+      data.qr_code,
+  );
   const menuData = filterCustomerMenuData({
     restaurant,
     contact,
     categories,
+    qrContext,
   });
 
   if (!menuData.categories.length) {
@@ -689,6 +737,10 @@ function buildCustomerMenuUrl(params?: CustomerMenuFetchParams) {
 
   if (params?.tenantId?.trim()) {
     query.set("tenantId", params.tenantId.trim());
+  }
+
+  if (params?.qrToken?.trim()) {
+    query.set("qrToken", params.qrToken.trim());
   }
 
   const queryString = query.toString();

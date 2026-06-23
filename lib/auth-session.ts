@@ -50,6 +50,18 @@ export class ApiResponseError extends Error {
   }
 }
 
+function authString(value: unknown, fallback = "") {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return String(value);
+  }
+
+  return fallback;
+}
+
 function getNow() {
   return Date.now();
 }
@@ -85,42 +97,53 @@ function clearStoredSession() {
   window.localStorage.removeItem("user");
 }
 
-export function normalizeAuthUser(user: any) {
-  if (!user) {
+export function normalizeAuthUser(user: unknown) {
+  if (!user || typeof user !== "object") {
     return null;
   }
 
+  const authUser = user as Record<string, unknown>;
+
   return {
-    id: user.id ?? "",
-    email: user.email ?? "",
-    businessEmail: user.businessEmail ?? user.business_email ?? "",
-    role: user.role ?? "MANAGER",
-    tenantId: user.tenantId ?? user.tenant_id ?? "",
-    hotelName: user.hotelName ?? user.hotel_name ?? "",
+    id: authString(authUser.id),
+    email: authString(authUser.email),
+    businessEmail: authString(authUser.businessEmail ?? authUser.business_email),
+    role: authString(authUser.role, "MANAGER"),
+    tenantId: authString(authUser.tenantId ?? authUser.tenant_id),
+    hotelName: authString(authUser.hotelName ?? authUser.hotel_name),
     contactPersonName:
-      user.contactPersonName ?? user.contact_person_name ?? "",
+      authString(authUser.contactPersonName ?? authUser.contact_person_name),
     contactPersonMobileNumber:
-      user.contactPersonMobileNumber ??
-      user.contact_person_mobile_number ??
-      "",
-    businessType: user.businessType ?? user.business_type ?? "",
-    businessLocation: user.businessLocation ?? user.business_location ?? "",
-    businessAddress: user.businessAddress ?? user.business_address ?? "",
-    kitchenOpenTime: user.kitchenOpenTime ?? user.kitchen_open_time ?? "",
-    kitchenCloseTime: user.kitchenCloseTime ?? user.kitchen_close_time ?? "",
-    taxRate: Number(user.taxRate ?? user.tax_rate ?? 5),
-    serviceChargeRate: Number(user.serviceChargeRate ?? user.service_charge_rate ?? 3),
-    discountRate: user.discountRate ?? user.discount_rate ?? null,
+      authString(
+        authUser.contactPersonMobileNumber ??
+          authUser.contact_person_mobile_number,
+      ),
+    businessType: authString(authUser.businessType ?? authUser.business_type),
+    businessLocation: authString(
+      authUser.businessLocation ?? authUser.business_location,
+    ),
+    businessAddress: authString(
+      authUser.businessAddress ?? authUser.business_address,
+    ),
+    kitchenOpenTime: authString(
+      authUser.kitchenOpenTime ?? authUser.kitchen_open_time,
+    ),
+    kitchenCloseTime: authString(
+      authUser.kitchenCloseTime ?? authUser.kitchen_close_time,
+    ),
+    taxRate: Number(authUser.taxRate ?? authUser.tax_rate ?? 5),
+    serviceChargeRate: Number(authUser.serviceChargeRate ?? authUser.service_charge_rate ?? 3),
+    discountRate: authUser.discountRate ?? authUser.discount_rate ?? null,
     restaurantImageUrl: getSafeImageSrcFromCandidates([
-      user.restaurantImageUrl,
-      user.restaurant_image_url,
-      user.restaurantImage,
-      user.restaurant_image,
-      user.logoUrl,
-      user.logo_url,
-      user.logo,
-      user.image,
-      user.avatar,
+      authUser.restaurantImageUrl,
+      authUser.restaurant_image_url,
+      authUser.restaurantImage,
+      authUser.restaurant_image,
+      authUser.logoUrl,
+      authUser.logo_url,
+      authUser.logo,
+      authUser.image,
+      authUser.avatar,
     ]),
   };
 }

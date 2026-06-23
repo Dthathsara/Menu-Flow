@@ -4,11 +4,10 @@ import { createPortal } from "react-dom";
 import { useEffect, useId, useRef, useState } from "react";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
 import {
-  fetchRestaurantProfile,
   updateRestaurantProfile,
   uploadRestaurantImage,
 } from "@/lib/users-api";
-import { getRestaurantImageUrl } from "@/lib/image-url";
+import { RestaurantProfileImage } from "../RestaurantProfileImage";
 import { UploadIcon, XIcon } from "../icons";
 import {
   cn,
@@ -53,11 +52,9 @@ export function EditRestaurantProfileModal({
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"success" | "error">("success");
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const previewObjectUrlRef = useRef<string | null>(null);
   const fileInputId = useId();
-  const safeImageSrc = getRestaurantImageUrl(form.restaurantImageUrl);
 
   useEffect(() => {
     if (!open) {
@@ -70,42 +67,10 @@ export function EditRestaurantProfileModal({
       return;
     }
 
-    let isActive = true;
     setForm(profile);
     setSelectedImageFile(null);
     setStatusMessage("");
     setStatusType("success");
-    setIsLoading(true);
-
-    async function loadRestaurantProfile() {
-      try {
-        const nextProfile = await fetchRestaurantProfile();
-
-        if (!isActive) {
-          return;
-        }
-
-        setForm(nextProfile);
-      } catch (error) {
-        if (!isActive) {
-          return;
-        }
-
-        console.log("RESTAURANT PROFILE LOAD ERROR:", error);
-        setStatusType("error");
-        setStatusMessage("Unable to load restaurant profile.");
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadRestaurantProfile();
-
-    return () => {
-      isActive = false;
-    };
   }, [open, profile]);
 
   useEffect(() => {
@@ -150,7 +115,6 @@ export function EditRestaurantProfileModal({
   function handleSelectFile(file: File | null) {
     if (!file) {
       setSelectedImageFile(null);
-      console.debug("[restaurant-profile] file cleared");
       return;
     }
 
@@ -158,11 +122,6 @@ export function EditRestaurantProfileModal({
       setSelectedImageFile(null);
       setStatusType("error");
       setStatusMessage("Please select a valid image file.");
-      console.debug("[restaurant-profile] rejected file", {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      });
       return;
     }
 
@@ -176,12 +135,6 @@ export function EditRestaurantProfileModal({
     setStatusMessage("");
     setStatusType("success");
     setForm((current) => ({ ...current, restaurantImageUrl: nextUrl }));
-    console.debug("[restaurant-profile] selected file", {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      previewUrl: nextUrl,
-    });
   }
 
   async function handleSave() {
@@ -190,55 +143,13 @@ export function EditRestaurantProfileModal({
     setStatusType("success");
 
     try {
-      console.debug("[restaurant-profile] submitting save", {
-        restaurantImageUrl: form.restaurantImageUrl,
-        hasSelectedImageFile: Boolean(selectedImageFile),
-      });
-
-      console.log("PROFILE PAYLOAD", form);
       const savedProfile = await updateRestaurantProfile(form);
-      console.debug("[restaurant-profile] save response", savedProfile);
+      const nextProfile = selectedImageFile
+        ? await uploadRestaurantImage(selectedImageFile)
+        : savedProfile;
 
-      if (selectedImageFile) {
-        await uploadRestaurantImage(selectedImageFile);
-      }
-
-      const refreshedProfile = await fetchRestaurantProfile();
-      console.debug("[restaurant-profile] refreshed profile", refreshedProfile);
-      const storedUser = window.localStorage.getItem("user");
-      let storedUserObject: Record<string, unknown> = {};
-
-      if (storedUser) {
-        try {
-          storedUserObject = JSON.parse(storedUser) as Record<string, unknown>;
-        } catch {
-          storedUserObject = {};
-        }
-      }
-
-      const nextUser = {
-        ...storedUserObject,
-        ...refreshedProfile,
-      };
-
-      console.debug("[restaurant-profile] user state update", nextUser);
-
-      if (storedUser) {
-        try {
-          window.localStorage.setItem("user", JSON.stringify(nextUser));
-        } catch {
-          window.localStorage.setItem("user", JSON.stringify(refreshedProfile));
-        }
-      } else {
-        window.localStorage.setItem("user", JSON.stringify(refreshedProfile));
-      }
-
-      window.dispatchEvent(
-        new CustomEvent("menuflow:user-updated", { detail: nextUser }),
-      );
-
-      onSave(refreshedProfile);
-      setForm(refreshedProfile);
+      onSave(nextProfile);
+      setForm(nextProfile);
       setSelectedImageFile(null);
       if (previewObjectUrlRef.current) {
         URL.revokeObjectURL(previewObjectUrlRef.current);
@@ -246,29 +157,7 @@ export function EditRestaurantProfileModal({
       }
       setStatusType("success");
       setStatusMessage("Restaurant profile updated successfully.");
-    } catch (error) {
-      console.error("FULL SAVE ERROR", error);
-
-      if (
-        error &&
-        typeof error === "object" &&
-        "response" in error &&
-        error.response
-      ) {
-        const response = error.response as { status?: unknown; data?: unknown };
-        console.error("STATUS", response.status);
-        console.error("DATA", response.data);
-      }
-
-      if (
-        error &&
-        typeof error === "object" &&
-        "request" in error &&
-        error.request
-      ) {
-        console.error("REQUEST", error.request);
-      }
-
+    } catch {
       setStatusType("error");
       setStatusMessage("Unable to save restaurant profile.");
     } finally {
@@ -324,14 +213,13 @@ export function EditRestaurantProfileModal({
 
           <div className={cn("min-h-0 overflow-y-auto px-6 py-6", settings.scheme === "dark" ? "bg-slate-950/98" : "bg-white/98")}>
             <div className="relative h-40 overflow-hidden rounded-[22px] border border-blue-400/20">
-              {safeImageSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={safeImageSrc}
-                  alt={form.hotelName || "Restaurant profile image"}
-                  className="h-full w-full object-cover"
-                />
-              ) : null}
+              <RestaurantProfileImage
+                src={form.restaurantImageUrl}
+                alt={form.hotelName || "Restaurant profile image"}
+                className="h-full w-full"
+                eager
+                priority
+              />
               <div className="absolute inset-0 bg-linear-to-t from-slate-950/18 via-transparent to-transparent" />
             </div>
 
@@ -515,12 +403,6 @@ export function EditRestaurantProfileModal({
               />
             </div>
 
-            {isLoading ? (
-              <p className={cn("mt-4 text-sm", getManagerLabelClasses(settings.scheme))}>
-                Loading restaurant profile...
-              </p>
-            ) : null}
-
             {isSaving ? (
               <p className={cn("mt-4 text-sm", getManagerLabelClasses(settings.scheme))}>
                 Uploading restaurant image and saving profile...
@@ -550,7 +432,7 @@ export function EditRestaurantProfileModal({
             <button
               type="button"
               onClick={handleSave}
-              disabled={isLoading || isSaving}
+              disabled={isSaving}
               className={cn(getManagerPrimaryButtonClasses(settings.scheme), "h-10 rounded-[14px] px-5 text-[14px]")}
             >
               {isSaving ? "Saving..." : "Save Profile"}

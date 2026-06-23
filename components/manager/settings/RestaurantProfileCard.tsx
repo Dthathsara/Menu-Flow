@@ -1,4 +1,4 @@
-import { getRestaurantImageUrl } from "@/lib/image-url";
+import { RestaurantProfileImage } from "../RestaurantProfileImage";
 import { cn, getManagerPrimaryButtonClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import type { RestaurantProfile } from "./settings.types";
@@ -19,7 +19,6 @@ export function RestaurantProfileCard({
   profile,
   onEdit,
 }: RestaurantProfileCardProps) {
-  const safeImageSrc = getRestaurantImageUrl(profile.restaurantImageUrl);
   const displayName = profile.hotelName || "Restaurant";
 
   return (
@@ -27,11 +26,12 @@ export function RestaurantProfileCard({
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative h-[118px] w-full overflow-hidden rounded-[18px] border border-blue-400/25 sm:w-[172px]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={safeImageSrc}
+            <RestaurantProfileImage
+              src={profile.restaurantImageUrl}
               alt={displayName}
-              className="h-full w-full object-cover"
+              className="h-full w-full"
+              eager
+              priority
             />
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/18 via-transparent to-transparent" />
           </div>

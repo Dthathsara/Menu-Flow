@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "@/lib/api-config";
 
-export const DEFAULT_IMAGE_PLACEHOLDER_SRC = "/customer/placeholder-food.svg";
+export const DEFAULT_IMAGE_PLACEHOLDER_SRC =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='420' viewBox='0 0 640 420'%3E%3Crect width='640' height='420' fill='%23e5e7eb'/%3E%3Cpath d='M192 292h256l-78-96-58 70-42-48-78 74Z' fill='%2394a3b8'/%3E%3Ccircle cx='244' cy='156' r='34' fill='%23cbd5e1'/%3E%3C/svg%3E";
 
 const ALLOWED_IMAGE_PROTOCOLS = new Set(["http:", "https:", "blob:", "data:"]);
 const BACKEND_UPLOADS_PREFIX = "/uploads/";

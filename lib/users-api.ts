@@ -78,9 +78,7 @@ export function mapRestaurantProfile(payload: unknown): RestaurantProfile {
 }
 
 export async function fetchRestaurantProfile() {
-  console.debug("[restaurant-profile] GET", RESTAURANT_PROFILE_URL);
   const response = await authJson<unknown>(RESTAURANT_PROFILE_URL);
-  console.debug("[restaurant-profile] GET response", response);
   return mapRestaurantProfile(response);
 }
 
@@ -99,10 +97,6 @@ export async function updateRestaurantProfile(profile: RestaurantProfile) {
       profile.discountRate.trim() === "" ? "" : String(Number(profile.discountRate)),
   };
 
-  console.debug("[restaurant-profile] PATCH", RESTAURANT_PROFILE_URL, {
-    fields: Object.keys(payload),
-  });
-
   const response = await authJson<unknown>(RESTAURANT_PROFILE_URL, {
     method: "PATCH",
     headers: {
@@ -110,8 +104,6 @@ export async function updateRestaurantProfile(profile: RestaurantProfile) {
     },
     body: JSON.stringify(payload),
   });
-
-  console.debug("[restaurant-profile] PATCH response", response);
 
   const record = unwrapUserProfile(response);
   const hasProfileData = [
@@ -138,21 +130,10 @@ export async function uploadRestaurantImage(file: File) {
   const payload = new FormData();
   payload.append("image", file);
 
-  console.debug("[restaurant-profile] PATCH", RESTAURANT_IMAGE_URL, {
-    field: "image",
-    file: {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-    },
-  });
-
   const response = await authJson<unknown>(RESTAURANT_IMAGE_URL, {
     method: "PATCH",
     body: payload,
   });
-
-  console.debug("[restaurant-profile] image PATCH response", response);
 
   return mapRestaurantProfile(response);
 }

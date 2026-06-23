@@ -20,6 +20,7 @@ import type {
   CustomerMenuData,
   MenuCategory,
   MenuItem,
+  QrContext,
   ServingSize,
   TabId,
 } from "@/types/customer";
@@ -81,6 +82,15 @@ function getTenantIdFromLocation() {
   }
 
   return getStoredTenantId();
+}
+
+function getQrTokenFromLocation() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return (params.get("qrToken") ?? params.get("qr") ?? "").trim();
 }
 
 function getQueryTenantIdFromLocation() {
@@ -171,6 +181,7 @@ export function CustomerDashboard() {
     {},
   );
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [qrContext, setQrContext] = useState<QrContext | undefined>(undefined);
   const [modalState, setModalState] = useState<ModalState | null>(null);
   const [orderConfirmation, setOrderConfirmation] =
     useState<OrderConfirmationState | null>(null);
@@ -189,9 +200,17 @@ export function CustomerDashboard() {
       const nextData = await fetchCustomerMenuData({
         slug: getMenuSlugFromLocation(),
         tenantId: getTenantIdFromLocation(),
+        qrToken: getQrTokenFromLocation(),
       });
 
       setData(nextData);
+      setQrContext({
+        generatedQrCodeId: nextData.qrContext?.generatedQrCodeId ?? "",
+        qrId: nextData.qrContext?.qrId ?? nextData.qrContext?.generatedQrCodeId ?? "",
+        qrToken: nextData.qrContext?.qrToken || getQrTokenFromLocation(),
+        tableNumber: nextData.qrContext?.tableNumber ?? "",
+        section: nextData.qrContext?.section ?? "",
+      });
       setErrorMessage("");
       setActiveCategoryId((currentCategoryId) =>
         nextData.categories.some((category) => category.id === currentCategoryId)
@@ -628,6 +647,11 @@ export function CustomerDashboard() {
             subtotal={orderSubtotal}
             restaurant={data.restaurant}
             tenantId={orderTenantId?.trim() ?? ""}
+            qrToken={qrContext?.qrToken ?? ""}
+            generatedQrCodeId={qrContext?.generatedQrCodeId ?? ""}
+            qrId={qrContext?.qrId ?? ""}
+            tableNumber={qrContext?.tableNumber ?? ""}
+            section={qrContext?.section ?? ""}
             onOrderSuccess={() => setCartItems([])}
             onEdit={handleEditItem}
             onRemove={requestRemoveCartItem}

@@ -1,4 +1,4 @@
-import { getRestaurantImageUrl } from "@/lib/image-url";
+import { RestaurantProfileImage } from "./RestaurantProfileImage";
 import { cn } from "./managerUtils";
 import { DEFAULT_RESTAURANT_PROFILE } from "./settings/settings.data";
 import type { RestaurantProfile } from "./settings/settings.types";
@@ -12,7 +12,6 @@ export function ClientCompanyCard({
   inverted = false,
   profile = DEFAULT_RESTAURANT_PROFILE,
 }: ClientCompanyCardProps) {
-  const safeImageSrc = getRestaurantImageUrl(profile.restaurantImageUrl);
   const displayName = profile.hotelName || "Restaurant";
 
   return (
@@ -31,11 +30,12 @@ export function ClientCompanyCard({
         )}
       >
         <div className="relative h-full w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={safeImageSrc}
+          <RestaurantProfileImage
+            src={profile.restaurantImageUrl}
             alt={displayName}
-            className="h-full w-full object-cover"
+            className="h-full w-full"
+            eager
+            priority
           />
           <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/20 to-transparent px-3 py-2">
             <div className="text-white leading-tight">

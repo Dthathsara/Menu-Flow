@@ -20,6 +20,11 @@ interface OrdersPanelProps {
   subtotal: number;
   restaurant: RestaurantInfo;
   tenantId: string;
+  qrToken?: string;
+  generatedQrCodeId?: string;
+  qrId?: string;
+  tableNumber?: string;
+  section?: string;
   onOrderSuccess: () => void;
   onEdit: (item: CartItem) => void;
   onRemove: (item: CartItem) => void;
@@ -115,6 +120,11 @@ export function OrdersPanel({
   subtotal,
   restaurant,
   tenantId,
+  qrToken = "",
+  generatedQrCodeId = "",
+  qrId = "",
+  tableNumber = "",
+  section = "",
   onOrderSuccess,
   onEdit,
   onRemove,
@@ -391,6 +401,10 @@ export function OrdersPanel({
         customer_name: detailsForm.customerName.trim(),
         customer_phone: detailsForm.mobileNumber.trim(),
         order_type: detailsForm.orderType || "dine_in",
+        qr_token: qrToken.trim() || undefined,
+        qr_code_id: (generatedQrCodeId || qrId).trim() || undefined,
+        table_number: tableNumber.trim() || undefined,
+        section: section.trim() || undefined,
         item_note: detailsForm.note.trim() || undefined,
         items: items.map((item) => ({
           menu_item_id: item.itemId,

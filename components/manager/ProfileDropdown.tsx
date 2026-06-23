@@ -58,8 +58,6 @@ export function ProfileDropdown({
     const timeoutId = window.setTimeout(() => {
       const storedUser = localStorage.getItem("user");
 
-      console.debug("[profile-dropdown] stored user snapshot", storedUser);
-
       if (storedUser) {
         try {
           setUser(JSON.parse(storedUser));
@@ -71,8 +69,6 @@ export function ProfileDropdown({
 
     function handleUserUpdated(event: Event) {
       const detail = (event as CustomEvent<StoredUser>).detail;
-
-      console.debug("[profile-dropdown] user-updated event", detail);
 
       if (detail) {
         setUser(detail);
@@ -86,10 +82,6 @@ export function ProfileDropdown({
       window.removeEventListener("menuflow:user-updated", handleUserUpdated);
     };
   }, []);
-
-  useEffect(() => {
-    console.debug("[profile-dropdown] user state changed", user);
-  }, [user]);
 
   const displayName = user?.contactPersonName || "";
   const displayRole = user?.role || "";

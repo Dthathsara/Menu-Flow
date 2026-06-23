@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { LANGUAGE_OPTIONS, MANAGER_NAV_ITEMS } from "./managerConfig";
 import { HorizontalShell } from "./HorizontalShell";
 import { VerticalShell } from "./VerticalShell";
-import { DEFAULT_RESTAURANT_PROFILE } from "./settings/settings.data";
-import type { RestaurantProfile } from "./settings/settings.types";
-import { fetchRestaurantProfile, mapRestaurantProfile } from "@/lib/users-api";
 import { cn, getShellBackgroundClasses } from "./managerUtils";
+import { useRestaurantProfile } from "./RestaurantProfileProvider";
 import { useManagerSettings } from "./useManagerSettings";
 import type { LanguageOption, ManagerNavKey } from "./managerTypes";
 import type { ReportTab } from "./reports/reports.types";
@@ -21,10 +20,11 @@ export function ManagerDashboard({
   initialActiveNav = "dashboard",
   initialReportTab = "users",
 }: ManagerDashboardProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [activeNav, setActiveNav] = useState<ManagerNavKey>(initialActiveNav);
   const [activeReportTab, setActiveReportTab] = useState<ReportTab>(initialReportTab);
-  const [restaurantProfile, setRestaurantProfile] =
-    useState<RestaurantProfile>(DEFAULT_RESTAURANT_PROFILE);
+  const { restaurantProfile, setRestaurantProfile } = useRestaurantProfile();
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
     LANGUAGE_OPTIONS[0],
   );
@@ -34,45 +34,18 @@ export function ManagerDashboard({
   const [navigationOpen, setNavigationOpen] = useState(false);
   const { settings, toggleScheme } = useManagerSettings();
 
-  useEffect(() => {
-    let isActive = true;
-
-    const storedUser = window.localStorage.getItem("user");
-    console.debug("[manager-dashboard] stored user snapshot", storedUser);
-
-    if (storedUser) {
-      try {
-        setRestaurantProfile((current) => ({
-          ...current,
-          ...mapRestaurantProfile(JSON.parse(storedUser)),
-        }));
-      } catch {
-        // Ignore malformed local session data and fall back to the API.
-      }
-    }
-
-    void fetchRestaurantProfile()
-      .then((profile) => {
-        console.debug("[manager-dashboard] fetched restaurant profile", profile);
-        if (isActive) {
-          setRestaurantProfile(profile);
-        }
-      })
-      .catch((error) => {
-        console.log("RESTAURANT PROFILE LOAD ERROR:", error);
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    console.debug("[manager-dashboard] restaurantProfile state changed", restaurantProfile);
-  }, [restaurantProfile]);
+  const pathActiveNav = getManagerNavKeyFromPathname(pathname);
+  const currentActiveNav = activeNav === pathActiveNav ? activeNav : pathActiveNav;
+  const currentReportTab =
+    currentActiveNav === "reports"
+      ? searchParams.get("tab") === "orders"
+        ? "orders"
+        : "users"
+      : activeReportTab;
 
   const activeItem =
-    MANAGER_NAV_ITEMS.find((item) => item.key === activeNav) ?? MANAGER_NAV_ITEMS[0];
+    MANAGER_NAV_ITEMS.find((item) => item.key === currentActiveNav) ??
+    MANAGER_NAV_ITEMS[0];
 
   function handleToggleDropdown(dropdown: "language" | "profile") {
     setActiveDropdown((current) => (current === dropdown ? null : dropdown));
@@ -88,9 +61,9 @@ export function ManagerDashboard({
     settings,
     navItems: MANAGER_NAV_ITEMS,
     activeItem,
-    activeKey: activeNav,
+    activeKey: currentActiveNav,
     initialReportTab,
-    reportTab: activeReportTab,
+    reportTab: currentReportTab,
     restaurantProfile,
     selectedLanguage,
     languages: LANGUAGE_OPTIONS,
@@ -130,4 +103,28 @@ export function ManagerDashboard({
       </div>
     </div>
   );
+}
+
+function getManagerNavKeyFromPathname(pathname: string): ManagerNavKey {
+  switch (pathname) {
+    case "/manager/orders":
+      return "orders";
+    case "/manager/manage-menu":
+      return "manage-menu";
+    case "/manager/qr-codes":
+      return "generate-qr";
+    case "/manager/users":
+      return "users";
+    case "/manager/reports":
+      return "reports";
+    case "/manager/billing":
+      return "billing";
+    case "/manager/invoices":
+      return "invoices";
+    case "/manager/settings":
+      return "settings";
+    case "/manager":
+    default:
+      return "dashboard";
+  }
 }

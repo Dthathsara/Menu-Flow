@@ -17,8 +17,12 @@ import type { QrCodeRecord } from "./types";
 interface QrLibrarySectionProps {
   settings: ManagerSettings;
   items: QrCodeRecord[];
+  isLoading: boolean;
   searchValue: string;
+  selectedSection: string;
+  sections: string[];
   onSearchChange: (value: string) => void;
+  onSectionChange: (value: string) => void;
   onDownload: (item: QrCodeRecord) => void;
   onDelete: (item: QrCodeRecord) => void;
 }
@@ -26,8 +30,12 @@ interface QrLibrarySectionProps {
 export function QrLibrarySection({
   settings,
   items,
+  isLoading,
   searchValue,
+  selectedSection,
+  sections,
   onSearchChange,
+  onSectionChange,
   onDownload,
   onDelete,
 }: QrLibrarySectionProps) {
@@ -46,7 +54,7 @@ export function QrLibrarySection({
           </div>
 
           <span className={cn(getManagerAccentPillClasses(settings.scheme, "brand"), "h-8 w-fit items-center px-4")}>
-            SORTED BY TABLE AND BRANCH
+            SORTED BY TABLE AND SECTION
           </span>
         </div>
 
@@ -58,11 +66,31 @@ export function QrLibrarySection({
               <input
                 value={searchValue}
                 onChange={(event) => onSearchChange(event.target.value)}
-                placeholder="Search by Table Number, Section, or Branch"
+                placeholder="Search by Table Number, Section, or URL"
                 className="w-full bg-transparent text-[14px] outline-none placeholder:text-inherit"
                 aria-label="Search QR codes"
               />
             </div>
+          </label>
+
+          <label className="min-w-0 xl:w-64">
+            <span className="sr-only">Filter by section</span>
+            <select
+              value={selectedSection}
+              onChange={(event) => onSectionChange(event.target.value)}
+              className={cn(
+                getManagerControlShellClasses(settings.scheme),
+                "h-12 w-full rounded-[14px] px-4 text-[14px] outline-none",
+              )}
+              aria-label="Filter QR codes by section"
+            >
+              <option value="All Sections">All Sections</option>
+              {sections.map((section) => (
+                <option key={section} value={section}>
+                  {section}
+                </option>
+              ))}
+            </select>
           </label>
 
           <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
@@ -71,7 +99,14 @@ export function QrLibrarySection({
         </div>
       </div>
 
-      {items.length ? (
+      {isLoading ? (
+        <div className={cn("mt-5 border-dashed px-5 py-14 text-center", getManagerPanelShellClasses(settings.scheme))}>
+          <div className={cn("text-[1.2rem] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>Loading QR codes...</div>
+          <p className={cn("mt-2 text-[14px]", getMutedTextClasses(settings.scheme))}>
+            Loading the table QR library from the backend.
+          </p>
+        </div>
+      ) : items.length ? (
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {items.map((item) => (
             <QrCard
