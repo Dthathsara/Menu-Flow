@@ -10,8 +10,9 @@ function createServingPrices(basePrice: number) {
   } satisfies Record<ServingSize, number>;
 }
 
-function createItem(item: Omit<MenuItem, "servingPrices">): MenuItem {
+function createItem(item: Omit<MenuItem, "servingPrices" | "prepTime"> & { prepTime?: number }): MenuItem {
   return {
+    prepTime: 12,
     ...item,
     servingPrices: createServingPrices(item.basePrice),
   };
@@ -20,6 +21,9 @@ function createItem(item: Omit<MenuItem, "servingPrices">): MenuItem {
 export const customerMenuData: CustomerMenuData = {
   restaurant: {
     name: "Letona Cafe",
+    businessType: "Cafe",
+    kitchenCloseTime: "11:00 PM",
+    status: "Kitchen open until 11:00 PM",
     titlePrefix: "Letona",
     titleAccent: "Cafe",
     tagline: "restaurant by the beach",
@@ -28,6 +32,7 @@ export const customerMenuData: CustomerMenuData = {
       "A polished, manager-editable hero area ready for restaurant branding, promotions, or seasonal cover images.",
     heroNote: "Chef-curated menu with live-ready layout blocks",
     bannerLabel: "Today's Signature Menu",
+    restaurantImageUrl: "/customer/placeholder-food.svg",
     kitchenHours: "Kitchen open until 11:00 PM",
   },
   contact: {

@@ -1,8 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { createPortal } from "react-dom";
 import { useEffect, useId, useRef, useState } from "react";
+import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
+import {
+  updateRestaurantProfile,
+  uploadRestaurantImage,
+} from "@/lib/users-api";
+import { RestaurantProfileImage } from "../RestaurantProfileImage";
 import { UploadIcon, XIcon } from "../icons";
 import {
   cn,
@@ -33,21 +38,39 @@ export function EditRestaurantProfileModal({
   onClose,
   onSave,
 }: EditRestaurantProfileModalProps) {
-  const [name, setName] = useState(profile.name);
-  const [location, setLocation] = useState(profile.location);
-  const [previewSrc, setPreviewSrc] = useState(profile.imageSrc);
+  const hotelNameId = useId();
+  const businessEmailId = useId();
+  const businessTypeId = useId();
+  const businessLocationId = useId();
+  const businessAddressId = useId();
+  const kitchenOpenTimeId = useId();
+  const kitchenCloseTimeId = useId();
+  const taxRateId = useId();
+  const serviceChargeRateId = useId();
+  const discountRateId = useId();
+  const [form, setForm] = useState<RestaurantProfile>(profile);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusType, setStatusType] = useState<"success" | "error">("success");
+  const [isSaving, setIsSaving] = useState(false);
   const previewObjectUrlRef = useRef<string | null>(null);
   const fileInputId = useId();
-  const isBlobPreview = previewSrc.startsWith("blob:");
 
   useEffect(() => {
     if (!open) {
+      if (previewObjectUrlRef.current) {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+        previewObjectUrlRef.current = null;
+      }
+
+      setSelectedImageFile(null);
       return;
     }
 
-    setName(profile.name);
-    setLocation(profile.location);
-    setPreviewSrc(profile.imageSrc);
+    setForm(profile);
+    setSelectedImageFile(null);
+    setStatusMessage("");
+    setStatusType("success");
   }, [open, profile]);
 
   useEffect(() => {
@@ -91,6 +114,14 @@ export function EditRestaurantProfileModal({
 
   function handleSelectFile(file: File | null) {
     if (!file) {
+      setSelectedImageFile(null);
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setSelectedImageFile(null);
+      setStatusType("error");
+      setStatusMessage("Please select a valid image file.");
       return;
     }
 
@@ -100,20 +131,43 @@ export function EditRestaurantProfileModal({
 
     const nextUrl = URL.createObjectURL(file);
     previewObjectUrlRef.current = nextUrl;
-    setPreviewSrc(nextUrl);
+    setSelectedImageFile(file);
+    setStatusMessage("");
+    setStatusType("success");
+    setForm((current) => ({ ...current, restaurantImageUrl: nextUrl }));
   }
 
-  function handleSave() {
-    onSave({
-      name,
-      location,
-      imageSrc: previewSrc,
-    });
+  async function handleSave() {
+    setIsSaving(true);
+    setStatusMessage("");
+    setStatusType("success");
+
+    try {
+      const savedProfile = await updateRestaurantProfile(form);
+      const nextProfile = selectedImageFile
+        ? await uploadRestaurantImage(selectedImageFile)
+        : savedProfile;
+
+      onSave(nextProfile);
+      setForm(nextProfile);
+      setSelectedImageFile(null);
+      if (previewObjectUrlRef.current) {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+        previewObjectUrlRef.current = null;
+      }
+      setStatusType("success");
+      setStatusMessage("Restaurant profile updated successfully.");
+    } catch {
+      setStatusType("error");
+      setStatusMessage("Unable to save restaurant profile.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/65 px-6 py-8 backdrop-blur-md"
+      className="fixed inset-0 z-9999 flex items-center justify-center bg-black/65 px-6 py-8 backdrop-blur-md"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose();
@@ -125,11 +179,11 @@ export function EditRestaurantProfileModal({
         aria-modal="true"
         aria-labelledby="edit-restaurant-profile-title"
         className={cn(
-          "w-full max-w-[810px] overflow-hidden rounded-[24px] border",
+          "w-full max-w-202.5 overflow-hidden rounded-3xl border",
           getManagerModalSurfaceClasses(settings.scheme),
         )}
       >
-        <div className="flex max-h-[calc(100vh-80px)] flex-col overflow-hidden rounded-[24px]">
+        <div className="flex max-h-[calc(100vh-80px)] flex-col overflow-hidden rounded-3xl">
           <div
             className={cn(
               "flex shrink-0 items-start justify-between gap-4 border-b px-6 py-5",
@@ -158,38 +212,159 @@ export function EditRestaurantProfileModal({
           </div>
 
           <div className={cn("min-h-0 overflow-y-auto px-6 py-6", settings.scheme === "dark" ? "bg-slate-950/98" : "bg-white/98")}>
-            <div className="relative h-[160px] overflow-hidden rounded-[22px] border border-blue-400/20">
-              <Image
-                src={previewSrc}
-                alt={name}
-                fill
-                sizes="(max-width: 820px) 100vw, 760px"
-                className="object-cover"
-                unoptimized={isBlobPreview}
+            <div className="relative h-40 overflow-hidden rounded-[22px] border border-blue-400/20">
+              <RestaurantProfileImage
+                src={form.restaurantImageUrl}
+                alt={form.hotelName || "Restaurant profile image"}
+                className="h-full w-full"
+                eager
+                priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-slate-950/18 via-transparent to-transparent" />
             </div>
 
             <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="settings-restaurant-name" className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
-                  Restaurant Name
+                <label htmlFor={hotelNameId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Business / Hotel name
                 </label>
                 <input
-                  id="settings-restaurant-name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  id={hotelNameId}
+                  value={form.hotelName}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, hotelName: event.target.value }))
+                  }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
               </div>
               <div>
-                <label htmlFor="settings-restaurant-location" className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                <label htmlFor={businessEmailId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Business email
+                </label>
+                <input
+                  id={businessEmailId}
+                  type="email"
+                  value={form.businessEmail}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, businessEmail: event.target.value }))
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor={businessTypeId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Business type
+                </label>
+                <input
+                  id={businessTypeId}
+                  value={form.businessType}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, businessType: event.target.value }))
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+              <div>
+                <label htmlFor={businessLocationId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
                   Location
                 </label>
                 <input
-                  id="settings-restaurant-location"
-                  value={location}
-                  onChange={(event) => setLocation(event.target.value)}
+                  id={businessLocationId}
+                  value={form.businessLocation}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, businessLocation: event.target.value }))
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label htmlFor={businessAddressId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                Address
+              </label>
+              <input
+                id={businessAddressId}
+                value={form.businessAddress}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, businessAddress: event.target.value }))
+                }
+                className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+              />
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor={kitchenOpenTimeId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Kitchen open time
+                </label>
+                <input
+                  id={kitchenOpenTimeId}
+                  value={form.kitchenOpenTime}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, kitchenOpenTime: event.target.value }))
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+              <div>
+                <label htmlFor={kitchenCloseTimeId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Kitchen close time
+                </label>
+                <input
+                  id={kitchenCloseTimeId}
+                  value={form.kitchenCloseTime}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, kitchenCloseTime: event.target.value }))
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <label htmlFor={taxRateId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Tax percentage
+                </label>
+                <input
+                  id={taxRateId}
+                  type="number"
+                  value={form.taxRate}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, taxRate: event.target.value }))
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+              <div>
+                <label htmlFor={serviceChargeRateId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Service charge percentage
+                </label>
+                <input
+                  id={serviceChargeRateId}
+                  type="number"
+                  value={form.serviceChargeRate}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, serviceChargeRate: event.target.value }))
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+              <div>
+                <label htmlFor={discountRateId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Discount percentage
+                </label>
+                <input
+                  id={discountRateId}
+                  type="number"
+                  value={form.discountRate}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, discountRate: event.target.value }))
+                  }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
               </div>
@@ -202,31 +377,45 @@ export function EditRestaurantProfileModal({
                 className={cn(
                   "flex cursor-pointer flex-col gap-3 rounded-[20px] border border-dashed px-4 py-4 transition-all duration-200 ease-out sm:flex-row sm:items-center",
                   settings.scheme === "dark"
-                    ? "border-blue-400/30 bg-slate-950/30 hover:border-blue-400/50 hover:bg-white/[0.03]"
+                    ? "border-blue-400/30 bg-slate-950/30 hover:border-blue-400/50 hover:bg-white/3"
                     : "border-blue-300/70 bg-slate-50/70 hover:border-blue-400 hover:bg-white",
                 )}
               >
                 <span className={cn(getSettingsGhostButtonClasses(settings.scheme), "w-fit")}>
                   <UploadIcon className="size-4" />
-                  Upload Image
+                  Choose Image
                 </span>
                 <span className="min-w-0">
                   <span className={cn("block text-[15px] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>
-                    Choose a banner image
+                    Choose a restaurant image
                   </span>
                   <span className={cn("mt-1 block text-[14px] leading-6", settings.scheme === "dark" ? "text-slate-400" : "text-slate-500")}>
-                    Drag and drop an image here, or click to browse. Max 2MB.
+                    Click to browse an image file. The preview updates immediately.
                   </span>
                 </span>
               </label>
               <input
                 id={fileInputId}
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
                 className="sr-only"
                 onChange={(event) => handleSelectFile(event.target.files?.[0] ?? null)}
               />
             </div>
+
+            {isSaving ? (
+              <p className={cn("mt-4 text-sm", getManagerLabelClasses(settings.scheme))}>
+                Uploading restaurant image and saving profile...
+              </p>
+            ) : null}
+
+            {statusType === "error" ? (
+              <div className="mt-4">
+                <ErrorMessage message={statusMessage} />
+              </div>
+            ) : statusMessage ? (
+              <p className="mt-4 text-sm text-emerald-400">{statusMessage}</p>
+            ) : null}
           </div>
 
           <div
@@ -243,9 +432,10 @@ export function EditRestaurantProfileModal({
             <button
               type="button"
               onClick={handleSave}
+              disabled={isSaving}
               className={cn(getManagerPrimaryButtonClasses(settings.scheme), "h-10 rounded-[14px] px-5 text-[14px]")}
             >
-              Save Profile
+              {isSaving ? "Saving..." : "Save Profile"}
             </button>
           </div>
         </div>

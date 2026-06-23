@@ -21,8 +21,11 @@ import type { GenerateQrFormValues } from "./types";
 
 interface GenerateQrModalProps {
   settings: ManagerSettings;
+  sections: string[];
+  isSubmitting?: boolean;
+  errorMessage?: string;
   onClose: () => void;
-  onSubmit: (values: GenerateQrFormValues) => void;
+  onSubmit: (values: GenerateQrFormValues) => Promise<boolean> | boolean;
 }
 
 const FOCUSABLE_SELECTOR =
@@ -37,6 +40,9 @@ function createEmptyFormValues(): GenerateQrFormValues {
 
 export function GenerateQrModal({
   settings,
+  sections,
+  isSubmitting = false,
+  errorMessage = "",
   onClose,
   onSubmit,
 }: GenerateQrModalProps) {
@@ -48,6 +54,7 @@ export function GenerateQrModal({
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const closingRef = useRef(false);
   const titleId = useId();
+  const sectionSuggestionsId = useId();
   const requestClose = useCallback(() => {
     if (closingRef.current) {
       return;
@@ -126,15 +133,17 @@ export function GenerateQrModal({
     };
   }, [requestClose]);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    onSubmit({
+    const saved = await onSubmit({
       tableNumber: values.tableNumber.trim(),
       section: values.section.trim(),
     });
 
-    requestClose();
+    if (saved) {
+      requestClose();
+    }
   }
 
   const inputClassName = cn(getManagerTextInputClasses(settings.scheme), "h-12 rounded-[14px] text-[14px]");
@@ -210,6 +219,7 @@ export function GenerateQrModal({
                   placeholder="e.g. T-09"
                   className={inputClassName}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -222,6 +232,7 @@ export function GenerateQrModal({
                 </label>
                 <input
                   id="section"
+                  list={sectionSuggestionsId}
                   value={values.section}
                   onChange={(event) =>
                     setValues((current) => ({
@@ -232,9 +243,21 @@ export function GenerateQrModal({
                   placeholder="e.g. Indoor / Outdoor"
                   className={inputClassName}
                   required
+                  disabled={isSubmitting}
                 />
+                <datalist id={sectionSuggestionsId}>
+                  {sections.map((section) => (
+                    <option key={section} value={section} />
+                  ))}
+                </datalist>
               </div>
             </div>
+
+            {errorMessage ? (
+              <div className="mt-4 rounded-[14px] border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
+                {errorMessage}
+              </div>
+            ) : null}
           </div>
 
           <div className={getManagerModalFooterClasses(settings.scheme)}>
@@ -242,6 +265,7 @@ export function GenerateQrModal({
               type="button"
               onClick={requestClose}
               className={cn(getManagerSecondaryButtonClasses(settings.scheme), "h-11 rounded-[14px] px-5 text-[14px]")}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
@@ -249,8 +273,9 @@ export function GenerateQrModal({
             <button
               type="submit"
               className={cn(getManagerPrimaryButtonClasses(settings.scheme), "h-11 rounded-[14px] px-5 text-[14px]")}
+              disabled={isSubmitting}
             >
-              Generate QR Code
+              {isSubmitting ? "Generating..." : "Generate QR Code"}
             </button>
           </div>
         </form>

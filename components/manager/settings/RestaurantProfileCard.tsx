@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { RestaurantProfileImage } from "../RestaurantProfileImage";
 import { cn, getManagerPrimaryButtonClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import type { RestaurantProfile } from "./settings.types";
@@ -19,29 +19,28 @@ export function RestaurantProfileCard({
   profile,
   onEdit,
 }: RestaurantProfileCardProps) {
-  const isBlobImage = profile.imageSrc.startsWith("blob:");
+  const displayName = profile.hotelName || "Restaurant";
 
   return (
     <div className={cn("mt-6 p-4 sm:p-5", getSettingsPanelClasses(settings.scheme))}>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative h-[118px] w-full overflow-hidden rounded-[18px] border border-blue-400/25 sm:w-[172px]">
-            <Image
-              src={profile.imageSrc}
-              alt={profile.name}
-              fill
-              sizes="(max-width: 640px) 100vw, 172px"
-              className="object-cover"
-              unoptimized={isBlobImage}
+            <RestaurantProfileImage
+              src={profile.restaurantImageUrl}
+              alt={displayName}
+              className="h-full w-full"
+              eager
+              priority
             />
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/18 via-transparent to-transparent" />
           </div>
 
           <div className="min-w-0">
             <h3 className={cn("text-[1.15rem] font-semibold sm:text-[1.2rem]", getSettingsStrongTextClasses(settings.scheme))}>
-              {profile.name}
+              {displayName}
             </h3>
-            <p className={cn("mt-2", getSettingsMutedTextClasses(settings.scheme))}>{profile.location}</p>
+            <p className={cn("mt-2", getSettingsMutedTextClasses(settings.scheme))}>{profile.businessLocation}</p>
             <p className={cn("mt-3 max-w-3xl", getSettingsMutedTextClasses(settings.scheme))}>
               This profile appears on the manager sidebar, customer QR menu, receipts,
               and order pages.

@@ -8,6 +8,7 @@ import {
   getManagerTableActionButtonClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
+import { formatStatusLabel } from "./order-data";
 import type { OrderStatus, PaymentStatus } from "./types";
 
 export function formatCurrency(amount: number) {
@@ -15,6 +16,10 @@ export function formatCurrency(amount: number) {
 }
 
 export function formatDisplayDate(value: string) {
+  if (!value || Number.isNaN(new Date(value).getTime())) {
+    return "N/A";
+  }
+
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "2-digit",
@@ -23,6 +28,10 @@ export function formatDisplayDate(value: string) {
 }
 
 export function formatDisplayTime(value: string) {
+  if (!value || Number.isNaN(new Date(value).getTime())) {
+    return "N/A";
+  }
+
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -132,7 +141,7 @@ export function StatusBadge({
         className,
       )}
     >
-      {value}
+      {formatStatusLabel(value)}
     </span>
   );
 }
@@ -187,19 +196,19 @@ export function secondaryButtonClassName(settings: ManagerSettings) {
 }
 
 function getOrderStatusBadgeClasses(status: OrderStatus, scheme: ManagerSettings["scheme"]) {
-  if (status === "Accepted") {
+  if (status === "accepted") {
     return scheme === "dark"
       ? "bg-sky-500/16 text-sky-100 ring-1 ring-inset ring-sky-400/28"
       : "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-200";
   }
 
-  if (status === "Preparing") {
+  if (status === "preparing") {
     return scheme === "dark"
       ? "bg-amber-500/16 text-amber-100 ring-1 ring-inset ring-amber-400/28"
       : "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200";
   }
 
-  if (status === "Ready") {
+  if (status === "ready") {
     return scheme === "dark"
       ? "bg-violet-500/16 text-violet-100 ring-1 ring-inset ring-violet-400/28"
       : "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200";
@@ -214,7 +223,7 @@ function getPaymentStatusBadgeClasses(
   status: PaymentStatus,
   scheme: ManagerSettings["scheme"],
 ) {
-  if (status === "Pending") {
+  if (status === "unpaid" || status === "failed") {
     return scheme === "dark"
       ? "bg-rose-500/14 text-rose-100 ring-1 ring-inset ring-rose-400/24"
       : "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200";

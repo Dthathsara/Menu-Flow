@@ -13,6 +13,7 @@ interface DeleteMenuItemDialogProps {
   open: boolean;
   settings: ManagerSettings;
   itemName?: string;
+  isDeleting?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -21,6 +22,7 @@ export function DeleteMenuItemDialog({
   open,
   settings,
   itemName,
+  isDeleting = false,
   onClose,
   onConfirm,
 }: DeleteMenuItemDialogProps) {
@@ -62,7 +64,7 @@ export function DeleteMenuItemDialog({
         </h3>
         <p className={cn("mt-2", getManagerBodyTextClasses(settings.scheme))}>
           <span className="font-semibold text-current">{itemName}</span> will be removed from the
-          current menu list. This action only affects local state for now.
+          current menu list and deleted from the database.
         </p>
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -70,6 +72,7 @@ export function DeleteMenuItemDialog({
             type="button"
             onClick={onClose}
             className={getManagerSecondaryButtonClasses(settings.scheme)}
+            disabled={isDeleting}
           >
             Cancel
           </button>
@@ -77,12 +80,13 @@ export function DeleteMenuItemDialog({
           <button
             type="button"
             onClick={onConfirm}
+            disabled={isDeleting}
             className={cn(
               getManagerPrimaryButtonClasses(settings.scheme),
               "bg-rose-500 shadow-[0_16px_34px_rgba(244,63,94,0.24)] hover:bg-rose-600 hover:shadow-[0_22px_40px_rgba(244,63,94,0.28)]",
             )}
           >
-            Remove Item
+            {isDeleting ? "Removing..." : "Remove Item"}
           </button>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ManagerDashboard } from "@/components/manager/ManagerDashboard";
 
 export const metadata: Metadata = {
   title: "MenuFlow | Manager Billing",
@@ -8,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ManagerBillingPage() {
-  return <ManagerDashboard initialActiveNav="billing" />;
+  return null;
 }

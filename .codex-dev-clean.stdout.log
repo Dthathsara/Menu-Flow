@@ -1,0 +1,19 @@
+
+> menu-flow@0.1.0 dev:clean
+> npm run kill:3000 && next dev -p 3000
+
+
+> menu-flow@0.1.0 kill:3000
+> C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | Where-Object { $_ -and $_ -ne $PID } | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.11.1:3000
+- Environments: .env.local
+✓ Ready in 1302ms
+Creating turbopack project {
+  dir: 'C:\\Users\\Dulnith\\Desktop\\MenuFlow front-end\\menu-flow',
+  testMode: true
+}
+
+ GET /manager/qr-codes 200 in 863ms (next.js: 492ms, application-code: 371ms)

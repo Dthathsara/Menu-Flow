@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { XIcon } from "../icons";
 import {
   cn,
@@ -17,10 +18,14 @@ import {
   getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
+import { SessionExpiredError } from "@/lib/auth-session";
+import { fetchAdminOrder, updateAdminOrderStatus } from "@/lib/admin-orders-api";
 import {
-  calculateOrderGrandTotal,
-  calculateOrderSubtotal,
+  EDITABLE_ORDER_STATUSES,
+  formatStatusLabel,
+  getAllowedOrderStatusTransitions,
   getOrderItemCount,
+  isOrderStatusTransitionAllowed,
 } from "./order-data";
 import {
   DetailKeyValue,
@@ -30,31 +35,59 @@ import {
   formatDisplayDate,
   formatDisplayTime,
 } from "./shared";
-import type { OrderRecord } from "./types";
+import type { OrderRecord, OrderStatus } from "./types";
 
 interface OrderDetailsModalProps {
   open: boolean;
   order: OrderRecord | null;
   settings: ManagerSettings;
   onClose: () => void;
+  onOrderUpdated: (order: OrderRecord) => void | Promise<void>;
 }
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+const ORDER_STATUS_TIMELINE: Array<{
+  label: string;
+  status: OrderStatus;
+  timeField:
+    | "acceptedAt"
+    | "preparingAt"
+    | "readyAt"
+    | "deliveredAt"
+    | "cancelledAt";
+}> = [
+  { label: "Accepted", status: "accepted", timeField: "acceptedAt" },
+  { label: "Preparing", status: "preparing", timeField: "preparingAt" },
+  { label: "Ready", status: "ready", timeField: "readyAt" },
+  { label: "Delivered", status: "delivered", timeField: "deliveredAt" },
+  { label: "Cancelled", status: "cancelled", timeField: "cancelledAt" },
+];
 
 export function OrderDetailsModal({
   open,
   order,
   settings,
   onClose,
+  onOrderUpdated,
 }: OrderDetailsModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [modalOrder, setModalOrder] = useState<OrderRecord | null>(order);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const closeTimeoutRef = useRef<number | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const closingRef = useRef(false);
+  const detailsRequestIdRef = useRef(0);
   const titleId = useId();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const requestClose = useCallback(() => {
     if (closingRef.current) {
@@ -73,6 +106,56 @@ export function OrderDetailsModal({
       onClose();
     }, 180);
   }, [onClose]);
+
+  useEffect(() => {
+    setModalOrder(order);
+    setErrorMessage("");
+  }, [order]);
+
+  useEffect(() => {
+    if (!open || !order) {
+      return;
+    }
+
+    let active = true;
+    const orderId = order.id;
+    const hasFallbackDetails = order.items.length > 0;
+    const requestId = detailsRequestIdRef.current + 1;
+    detailsRequestIdRef.current = requestId;
+
+    async function loadDetails() {
+      setIsLoadingDetails(true);
+
+      try {
+        const nextOrder = await fetchAdminOrder(orderId);
+
+        if (active && detailsRequestIdRef.current === requestId) {
+          setModalOrder(nextOrder);
+          setErrorMessage("");
+        }
+      } catch (error) {
+        if (active && detailsRequestIdRef.current === requestId) {
+          setErrorMessage(
+            hasFallbackDetails
+              ? ""
+              : error instanceof SessionExpiredError
+                ? "Your session has expired. Please log in again."
+                : "Unable to load order details. Please try again.",
+          );
+        }
+      } finally {
+        if (active && detailsRequestIdRef.current === requestId) {
+          setIsLoadingDetails(false);
+        }
+      }
+    }
+
+    void loadDetails();
+
+    return () => {
+      active = false;
+    };
+  }, [open, order]);
 
   useEffect(() => {
     if (!open || !order) {
@@ -138,19 +221,58 @@ export function OrderDetailsModal({
     };
   }, [open, order, requestClose]);
 
-  if (!open || !order) {
+  async function handleStatusChange(nextStatus: OrderStatus) {
+    if (!modalOrder || isUpdatingStatus) {
+      return;
+    }
+
+    if (
+      !isOrderStatusTransitionAllowed(modalOrder.order_status, nextStatus)
+    ) {
+      setErrorMessage(
+        "Invalid status transition. Please follow the order flow.",
+      );
+      return;
+    }
+
+    setIsUpdatingStatus(true);
+    setErrorMessage("");
+    detailsRequestIdRef.current += 1;
+    setIsLoadingDetails(false);
+
+    try {
+      await updateAdminOrderStatus(modalOrder.id, nextStatus);
+      const freshOrder = await fetchAdminOrder(modalOrder.id);
+
+      console.log("FRESH ORDER AFTER STATUS UPDATE", freshOrder);
+      setModalOrder(freshOrder);
+      await onOrderUpdated(freshOrder);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof SessionExpiredError
+          ? "Your session has expired. Please log in again."
+          : "Unable to update order status. Please try again.",
+      );
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  }
+
+  if (!isMounted || !open || !order || !modalOrder) {
     return null;
   }
 
-  const subtotal = calculateOrderSubtotal(order.items);
-  const grandTotal = calculateOrderGrandTotal(order);
-  const totalItems = getOrderItemCount(order);
+  const totalItems = getOrderItemCount(modalOrder);
+  const allowedStatusTransitions = getAllowedOrderStatusTransitions(
+    modalOrder.order_status,
+  );
+  const isFinalStatus = allowedStatusTransitions.length === 0;
 
-  return (
+  return createPortal(
     <div
       className={cn(
-        "fixed inset-0 z-[80] flex items-center justify-center p-4 transition-all duration-200 ease-out",
-        isVisible ? "bg-black/60 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none",
+        "fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-slate-950/70 px-4 py-6 backdrop-blur-sm transition-opacity duration-200",
+        isVisible ? "opacity-100" : "opacity-0",
       )}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
@@ -164,116 +286,91 @@ export function OrderDetailsModal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "flex max-h-[calc(100vh-2rem)] max-w-5xl flex-col transition-all duration-200 ease-out",
           getManagerModalSurfaceClasses(settings.scheme),
-          isVisible
-            ? "translate-y-0 scale-100 opacity-100"
-            : "translate-y-3 scale-[0.985] opacity-0",
+          "flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden transition-all duration-200",
+          isVisible ? "translate-y-0 scale-100 opacity-100" : "translate-y-3 scale-[0.98] opacity-0",
         )}
       >
-        <div className={getManagerModalHeaderClasses(settings.scheme)}>
-          <div className="min-w-0">
-            <h2 id={titleId} className={getManagerModalTitleClasses()}>
-              {order.orderId}
-            </h2>
-            <p className={getManagerSectionSubtitleClasses(settings.scheme)}>
-              Full order breakdown, itemized billing, and payment progress.
+        <div
+          className={cn(
+            getManagerModalHeaderClasses(settings.scheme),
+            "sticky top-0 z-[10000] shrink-0",
+          )}
+        >
+          <div className="min-w-0 pr-3">
+            <p
+              className={cn(
+                "text-[11px] font-semibold uppercase tracking-[0.26em]",
+                getMutedTextClasses(settings.scheme),
+              )}
+            >
+              Order Details
             </p>
+            <h3 id={titleId} className={cn("mt-2 truncate", getManagerModalTitleClasses())}>
+              {modalOrder.order_number}
+            </h3>
           </div>
-
           <button
             ref={closeButtonRef}
             type="button"
             onClick={requestClose}
-            className={getManagerIconButtonClasses(settings.scheme, true)}
-            aria-label={`Close details for ${order.orderId}`}
+            className={cn(
+              getManagerIconButtonClasses(settings.scheme),
+              "relative z-[10000] shrink-0",
+            )}
+            aria-label="Close order details"
           >
-            <XIcon className="size-4" />
+            <XIcon className="size-5" />
           </button>
         </div>
 
-        <div className={getManagerModalBodyClasses(settings.scheme)}>
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
+        <div className={cn(getManagerModalBodyClasses(settings.scheme), "min-h-0 flex-1 space-y-5 overflow-y-auto pb-8")}>
+          {errorMessage ? (
+            <p className="rounded-xl bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-500">
+              {errorMessage}
+            </p>
+          ) : null}
+
+          {isLoadingDetails ? (
+            <p className={getManagerSectionSubtitleClasses(settings.scheme)}>
+              Loading latest order details...
+            </p>
+          ) : null}
+
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)]">
             <div className="space-y-5">
               <SecondaryPanel settings={settings} className="p-4 sm:p-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <div className={getManagerSectionTitleClasses()}>General Details</div>
                     <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
-                      Staff assignment, timestamps, and customer metadata.
+                      Real customer order record from the admin orders API.
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <StatusBadge settings={settings} type="order" value={order.orderStatus} />
-                    <StatusBadge
-                      settings={settings}
-                      type="payment"
-                      value={order.paymentStatus}
-                    />
-                  </div>
+                  <StatusBadge settings={settings} type="order" value={modalOrder.order_status} />
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <DetailKeyValue label="Order ID" value={order.orderId} settings={settings} />
-                  <DetailKeyValue
-                    label="Table Number"
-                    value={order.tableNumber}
-                    settings={settings}
-                  />
-                  <DetailKeyValue
-                    label="Customer Name"
-                    value={order.customerName}
-                    settings={settings}
-                  />
-                  <DetailKeyValue
-                    label="Order Date"
-                    value={formatDisplayDate(order.createdAt)}
-                    settings={settings}
-                  />
-                  <DetailKeyValue
-                    label="Ordered Time"
-                    value={formatDisplayTime(order.createdAt)}
-                    settings={settings}
-                  />
-                  <DetailKeyValue
-                    label="Delivered Time"
-                    value={
-                      order.deliveredAt
-                        ? formatDisplayTime(order.deliveredAt)
-                        : "Not delivered yet"
-                    }
-                    settings={settings}
-                  />
-                  <DetailKeyValue
-                    label="Waiter Name"
-                    value={order.waiterName}
-                    settings={settings}
-                  />
-                  <DetailKeyValue
-                    label="Waiter Mobile Number"
-                    value={order.waiterPhoneNumber}
-                    settings={settings}
-                  />
+                  <DetailKeyValue label="Order ID" value={modalOrder.order_number} settings={settings} />
+                  <DetailKeyValue label="Table Number" value={modalOrder.table_id || "N/A"} settings={settings} />
+                  <DetailKeyValue label="Customer Name" value={modalOrder.customer_name || "N/A"} settings={settings} />
+                  <DetailKeyValue label="Customer Phone" value={modalOrder.customer_phone || "N/A"} settings={settings} />
+                  <DetailKeyValue label="Order Date" value={formatDisplayDate(modalOrder.placed_at)} settings={settings} />
+                  <DetailKeyValue label="Ordered Time" value={formatDisplayTime(modalOrder.placed_at)} settings={settings} />
+                  <DetailKeyValue label="Order Type" value={modalOrder.order_type || "N/A"} settings={settings} />
                   <DetailKeyValue
                     label="Order Status"
-                    value={
-                      <StatusBadge
-                        settings={settings}
-                        type="order"
-                        value={order.orderStatus}
-                      />
-                    }
+                    value={<StatusBadge settings={settings} type="order" value={modalOrder.order_status} />}
                     settings={settings}
                   />
                   <DetailKeyValue
                     label="Payment Status"
-                    value={
-                      <StatusBadge
-                        settings={settings}
-                        type="payment"
-                        value={order.paymentStatus}
-                      />
-                    }
+                    value={<StatusBadge settings={settings} type="payment" value={modalOrder.payment_status} />}
+                    settings={settings}
+                  />
+                  <DetailKeyValue
+                    label="Customer Note"
+                    value={modalOrder.item_note || "N/A"}
                     settings={settings}
                   />
                 </div>
@@ -284,7 +381,7 @@ export function OrderDetailsModal({
                   <div>
                     <div className={getManagerSectionTitleClasses()}>Items</div>
                     <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
-                      {totalItems} item{totalItems === 1 ? "" : "s"} ordered across the ticket.
+                      {totalItems} item{totalItems === 1 ? "" : "s"} from database order_items.
                     </div>
                   </div>
                 </div>
@@ -296,20 +393,24 @@ export function OrderDetailsModal({
                         className={cn("border-b border-black/5", getManagerTableHeaderClasses(settings.scheme))}
                       >
                         <th className="py-3 pr-4">Item Name</th>
+                        <th className="py-3 pr-4">Serving Size</th>
                         <th className="py-3 pr-4">Quantity</th>
                         <th className="py-3 pr-4">Unit Price</th>
-                        <th className="py-3 text-right">Line Total</th>
+                        <th className="py-3 pr-4">Line Total</th>
+                        <th className="py-3 pr-4">Prep Time</th>
+                        <th className="py-3 text-right">Note</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {order.items.map((item) => (
-                        <tr key={item.id} className="border-b border-black/5 last:border-b-0">
+                      {modalOrder.items.map((item, index) => (
+                        <tr key={item.id || `${item.menu_item_id}-${index}`} className="border-b border-black/5 last:border-b-0">
                           <td className="py-3 pr-4 font-medium">{item.name}</td>
+                          <td className="py-3 pr-4">{item.serving_size || "N/A"}</td>
                           <td className="py-3 pr-4">{item.quantity}</td>
-                          <td className="py-3 pr-4">{formatCurrency(item.unitPrice)}</td>
-                          <td className="py-3 text-right font-semibold">
-                            {formatCurrency(item.quantity * item.unitPrice)}
-                          </td>
+                          <td className="py-3 pr-4">{formatCurrency(item.unit_price)}</td>
+                          <td className="py-3 pr-4 font-semibold">{formatCurrency(item.line_total)}</td>
+                          <td className="py-3 pr-4">{item.prep_time_min ? `${item.prep_time_min} min` : "N/A"}</td>
+                          <td className="py-3 text-right">{item.note || "N/A"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -317,9 +418,9 @@ export function OrderDetailsModal({
                 </div>
 
                 <div className="mt-4 grid gap-3 md:hidden">
-                  {order.items.map((item) => (
+                  {modalOrder.items.map((item, index) => (
                     <div
-                      key={item.id}
+                      key={item.id || `${item.menu_item_id}-${index}`}
                       className={cn(
                         "rounded-[14px] border p-3",
                         settings.scheme === "dark"
@@ -328,14 +429,22 @@ export function OrderDetailsModal({
                       )}
                     >
                       <div className="font-medium">{item.name}</div>
+                      <div className="mt-2 text-[15px]">
+                        {item.serving_size || "N/A"} · Qty {item.quantity}
+                      </div>
                       <div className="mt-2 flex items-center justify-between gap-3 text-[15px]">
                         <span className={getMutedTextClasses(settings.scheme)}>
-                          {item.quantity} x {formatCurrency(item.unitPrice)}
+                          {formatCurrency(item.unit_price)}
                         </span>
                         <span className="font-semibold">
-                          {formatCurrency(item.quantity * item.unitPrice)}
+                          {formatCurrency(item.line_total)}
                         </span>
                       </div>
+                      {item.note ? (
+                        <div className={cn("mt-2 text-sm", getMutedTextClasses(settings.scheme))}>
+                          {item.note}
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -346,16 +455,22 @@ export function OrderDetailsModal({
               <SecondaryPanel settings={settings} className="p-4 sm:p-5">
                 <div className={getManagerSectionTitleClasses()}>Billing Summary</div>
                 <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
-                  Breakdown of the final bill including tax and service.
+                  Payment status is read-only and comes from the database.
                 </div>
 
                 <div className="mt-5 space-y-3">
-                  <SummaryRow label="Total Amount" value={formatCurrency(subtotal)} />
-                  <SummaryRow label="Tax Amount" value={formatCurrency(order.taxAmount)} />
+                  <SummaryRow label="Subtotal" value={formatCurrency(modalOrder.subtotal)} />
+                  <SummaryRow label="Tax Amount" value={formatCurrency(modalOrder.tax_amount)} />
                   <SummaryRow
                     label="Service Charges"
-                    value={formatCurrency(order.serviceCharge)}
+                    value={formatCurrency(modalOrder.service_charge_amount)}
                   />
+                  {modalOrder.discount_amount > 0 ? (
+                    <SummaryRow
+                      label="Discount Amount"
+                      value={`- ${formatCurrency(modalOrder.discount_amount)}`}
+                    />
+                  ) : null}
                   <div
                     className={cn(
                       "flex items-center justify-between rounded-[14px] border px-4 py-4",
@@ -365,42 +480,134 @@ export function OrderDetailsModal({
                     )}
                   >
                     <span className="text-[15px] font-semibold">Grand Total</span>
-                    <span className="text-[1.2rem] font-bold">{formatCurrency(grandTotal)}</span>
+                    <span className="text-[1.2rem] font-bold">
+                      {formatCurrency(modalOrder.total_amount)}
+                    </span>
                   </div>
                 </div>
               </SecondaryPanel>
 
               <SecondaryPanel settings={settings} className="p-4 sm:p-5">
-                <div className={getManagerSectionTitleClasses()}>Service Contact</div>
+                <div className={getManagerSectionTitleClasses()}>Update Order Status</div>
                 <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
-                  Assigned floor support for this order.
+                  Updates are sent to the backend status endpoint.
                 </div>
 
-                <div className="mt-5 space-y-4">
-                  <DetailKeyValue label="Waiter Name" value={order.waiterName} settings={settings} />
-                  <DetailKeyValue
-                    label="Mobile Number"
-                    value={order.waiterPhoneNumber}
-                    settings={settings}
-                  />
-                  <DetailKeyValue
-                    label="Payment Status"
-                    value={
-                      <StatusBadge
-                        settings={settings}
-                        type="payment"
-                        value={order.paymentStatus}
-                      />
+                <label className="mt-5 block">
+                  <span className="sr-only">Order status</span>
+                  <select
+                    value={modalOrder.order_status}
+                    onChange={(event) =>
+                      void handleStatusChange(event.target.value as OrderStatus)
                     }
-                    settings={settings}
-                  />
+                    disabled={isUpdatingStatus || isFinalStatus}
+                    className={cn(
+                      "w-full rounded-xl border px-4 py-3 text-sm font-semibold outline-none transition",
+                      settings.scheme === "dark"
+                        ? "border-white/10 bg-slate-950 text-slate-100"
+                        : "border-slate-200 bg-white text-slate-900",
+                    )}
+                  >
+                    {EDITABLE_ORDER_STATUSES.map((status) => (
+                      <option
+                        key={status}
+                        value={status}
+                        disabled={!allowedStatusTransitions.includes(status)}
+                      >
+                        {formatStatusLabel(status)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {isUpdatingStatus ? (
+                  <p className={cn("mt-3 text-sm", getMutedTextClasses(settings.scheme))}>
+                    Updating status...
+                  </p>
+                ) : null}
+                {isFinalStatus ? (
+                  <p className={cn("mt-3 text-sm", getMutedTextClasses(settings.scheme))}>
+                    {formatStatusLabel(modalOrder.order_status)} is a final status.
+                  </p>
+                ) : null}
+              </SecondaryPanel>
+
+              <SecondaryPanel settings={settings} className="p-4 sm:p-5">
+                <div className={getManagerSectionTitleClasses()}>
+                  Order Status Timeline
+                </div>
+                <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
+                  Status changes recorded by the backend.
+                </div>
+
+                <div className="mt-5 space-y-2">
+                  {ORDER_STATUS_TIMELINE.map(
+                    ({ label, status, timeField }) => {
+                      const changedAt = modalOrder[timeField];
+                      const isCurrent = modalOrder.order_status === status;
+
+                      return (
+                        <div
+                          key={status}
+                          className={cn(
+                            "flex flex-col gap-1 rounded-xl border px-4 py-3 transition sm:flex-row sm:items-center sm:justify-between sm:gap-4",
+                            isCurrent
+                              ? settings.scheme === "dark"
+                                ? "border-blue-400/35 bg-blue-500/12 ring-1 ring-inset ring-blue-400/15"
+                                : "border-blue-200 bg-blue-50 ring-1 ring-inset ring-blue-100"
+                              : settings.scheme === "dark"
+                                ? "border-white/10 bg-white/[0.035]"
+                                : "border-slate-200 bg-slate-50/80",
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={cn(
+                                "size-2 shrink-0 rounded-full",
+                                isCurrent
+                                  ? "bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.14)]"
+                                  : settings.scheme === "dark"
+                                    ? "bg-slate-600"
+                                    : "bg-slate-300",
+                              )}
+                              aria-hidden="true"
+                            />
+                            <span className="text-sm font-semibold">
+                              {label}
+                            </span>
+                            {isCurrent ? (
+                              <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-blue-500">
+                                Current
+                              </span>
+                            ) : null}
+                          </div>
+                          <span
+                            className={cn(
+                              "text-sm sm:text-right",
+                              changedAt
+                                ? "font-medium"
+                                : getMutedTextClasses(settings.scheme),
+                            )}
+                          >
+                            {changedAt
+                              ? formatStatusChangedAt(changedAt)
+                              : "Not updated"}
+                          </span>
+                        </div>
+                      );
+                    },
+                  )}
                 </div>
               </SecondaryPanel>
             </div>
           </div>
         </div>
 
-        <div className={getManagerModalFooterClasses(settings.scheme)}>
+        <div
+          className={cn(
+            getManagerModalFooterClasses(settings.scheme),
+            "sticky bottom-0 z-[10000] shrink-0",
+          )}
+        >
           <button
             type="button"
             onClick={requestClose}
@@ -410,7 +617,8 @@ export function OrderDetailsModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -421,4 +629,20 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span className="font-semibold">{value}</span>
     </div>
   );
+}
+
+function formatStatusChangedAt(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not updated";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 }
