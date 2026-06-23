@@ -137,7 +137,9 @@ export function LoginModal({
           );
         } else if (error.request) {
           setStatusMessage(
-            "Cannot connect to backend. Make sure NestJS is running on port 3001 and CORS is enabled.",
+            process.env.NODE_ENV === "production"
+              ? "Cannot connect to server. Please check backend API URL or try again later."
+              : "Cannot connect to backend. Make sure NestJS is running on port 3001 and CORS is enabled.",
           );
         } else {
           setStatusMessage(error.message);

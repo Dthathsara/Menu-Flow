@@ -91,6 +91,24 @@ function getCustomerBaseUrl() {
   return (process.env.NEXT_PUBLIC_CUSTOMER_BASE_URL || "").replace(/\/+$/, "");
 }
 
+function isLocalCustomerUrlHostname(hostname: string) {
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return true;
+  }
+
+  if (hostname.startsWith("192.168.")) {
+    return true;
+  }
+
+  if (hostname.startsWith("10.")) {
+    return true;
+  }
+
+  const private172Match = /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname);
+
+  return private172Match;
+}
+
 function normalizeCustomerUrl(value: unknown, tenantId: string, qrToken: string) {
   const rawUrl = asString(value);
   const customerBaseUrl = getCustomerBaseUrl();
@@ -112,10 +130,7 @@ function normalizeCustomerUrl(value: unknown, tenantId: string, qrToken: string)
     const parsedUrl = new URL(rawUrl);
     const parsedBase = new URL(customerBaseUrl);
 
-    if (
-      parsedUrl.hostname === "localhost" ||
-      parsedUrl.hostname === "127.0.0.1"
-    ) {
+    if (isLocalCustomerUrlHostname(parsedUrl.hostname)) {
       parsedUrl.protocol = parsedBase.protocol;
       parsedUrl.host = parsedBase.host;
       return parsedUrl.toString();
