@@ -3,8 +3,12 @@
 import {
   cn,
   getManagerBodyTextClasses,
+  getManagerControlShellClasses,
+  getManagerPanelShellClasses,
   getManagerSectionSubtitleClasses,
   getManagerSectionTitleClasses,
+  getManagerStrongTextClasses,
+  getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { FilterDropdown } from "../orders/FilterDropdown";
@@ -33,6 +37,10 @@ interface StaffDirectorySectionProps {
   onView: (staff: StaffRecord) => void;
   onEdit: (staff: StaffRecord) => void;
   onDelete: (staff: StaffRecord) => void;
+  isLoading: boolean;
+  errorMessage: string;
+  totalStaffCount: number;
+  onRetry: () => void;
 }
 
 export function StaffDirectorySection({
@@ -47,7 +55,16 @@ export function StaffDirectorySection({
   onView,
   onEdit,
   onDelete,
+  isLoading,
+  errorMessage,
+  totalStaffCount,
+  onRetry,
 }: StaffDirectorySectionProps) {
+  const hasActiveFilters =
+    query.trim().length > 0 ||
+    roleFilter !== "All Roles" ||
+    statusFilter !== "All Statuses";
+
   return (
     <UsersSurfaceCard settings={settings} className="overflow-hidden" interactive>
       <div className="border-b border-black/5 px-5 py-5 sm:px-6">
@@ -72,7 +89,7 @@ export function StaffDirectorySection({
             settings={settings}
             value={query}
             onChange={onQueryChange}
-            placeholder="Search by name, email, or phone"
+            placeholder="Search by name, email, phone, NIC, or address"
           />
 
           <FilterDropdown
@@ -97,13 +114,39 @@ export function StaffDirectorySection({
         </div>
       </div>
 
-      <StaffTable
-        settings={settings}
-        staffRecords={staffRecords}
-        onView={onView}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      {errorMessage ? (
+        <div className={cn("m-5 px-5 py-10 text-center", getManagerPanelShellClasses(settings.scheme))}>
+          <div className={cn("text-[1.05rem] font-semibold", getManagerStrongTextClasses(settings.scheme))}>
+            {errorMessage}
+          </div>
+          <button
+            type="button"
+            onClick={onRetry}
+            className={cn("mt-4 rounded-[12px] px-4 py-2 text-[14px] font-semibold", getManagerControlShellClasses(settings.scheme))}
+          >
+            Retry
+          </button>
+        </div>
+      ) : isLoading ? (
+        <div className={cn("m-5 px-5 py-14 text-center", getManagerPanelShellClasses(settings.scheme))}>
+          <div className={cn("text-[1.05rem] font-semibold", getManagerStrongTextClasses(settings.scheme))}>
+            Loading staff members...
+          </div>
+          <p className={cn("mt-2 text-[14px]", getMutedTextClasses(settings.scheme))}>
+            Fetching the latest restaurant staff directory.
+          </p>
+        </div>
+      ) : (
+        <StaffTable
+          settings={settings}
+          staffRecords={staffRecords}
+          hasActiveFilters={hasActiveFilters}
+          totalStaffCount={totalStaffCount}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      )}
     </UsersSurfaceCard>
   );
 }

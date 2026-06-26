@@ -14,11 +14,11 @@ import {
 import type { Scheme } from "../managerTypes";
 import type {
   StaffFilters,
-  StaffFormValues,
   StaffRecord,
   StaffRole,
   StaffStatus,
   StaffSummaryCard,
+  StaffSummaryCounts,
 } from "./types";
 
 const AVATAR_GRADIENTS = [
@@ -128,7 +128,9 @@ export function filterStaffRecords(records: StaffRecord[], filters: StaffFilters
       !query ||
       record.fullName.toLowerCase().includes(query) ||
       record.email.toLowerCase().includes(query) ||
-      record.phone.toLowerCase().includes(query);
+      record.phone.toLowerCase().includes(query) ||
+      record.nicNumber.toLowerCase().includes(query) ||
+      record.address.toLowerCase().includes(query);
 
     const matchesRole = filters.role === "All Roles" || record.role === filters.role;
     const matchesStatus =
@@ -138,34 +140,44 @@ export function filterStaffRecords(records: StaffRecord[], filters: StaffFilters
   });
 }
 
-export function getStaffSummaryCards(records: StaffRecord[]): StaffSummaryCard[] {
-  const totalUsers = records.length;
-  const kitchenStaff = records.filter((record) => record.role === "Chef").length;
-  const serviceStaff = records.filter((record) => record.role !== "Chef").length;
-  const activeToday = records.filter((record) => record.status === "Active").length;
+export function getStaffSummaryCounts(records: StaffRecord[]): StaffSummaryCounts {
+  return {
+    totalUsers: records.length,
+    kitchenStaff: records.filter((record) => record.role === "Chef").length,
+    serviceStaff: records.filter(
+      (record) => record.role === "Waiter" || record.role === "Counter",
+    ).length,
+    activeToday: records.filter((record) => record.status === "Active").length,
+  };
+}
+
+export function getStaffSummaryCards(
+  records: StaffRecord[],
+  counts: StaffSummaryCounts = getStaffSummaryCounts(records),
+): StaffSummaryCard[] {
 
   return [
     {
       title: "TOTAL USERS",
-      value: totalUsers,
+      value: counts.totalUsers,
       note: "All restaurant staff profiles currently listed for this branch.",
       accent: "blue",
     },
     {
       title: "KITCHEN STAFF",
-      value: kitchenStaff,
+      value: counts.kitchenStaff,
       note: "Chefs handling kitchen preparation and service output.",
       accent: "amber",
     },
     {
       title: "SERVICE STAFF",
-      value: serviceStaff,
+      value: counts.serviceStaff,
       note: "Waiters and counter staff supporting guest service flow.",
       accent: "purple",
     },
     {
       title: "ACTIVE TODAY",
-      value: activeToday,
+      value: counts.activeToday,
       note: "Staff members currently marked active in the system.",
       accent: "green",
     },
@@ -193,6 +205,11 @@ function formatClockTime(value: string) {
 
 export function formatLastActiveLabel(value: string, referenceDate = new Date()) {
   const target = new Date(value);
+
+  if (!value || Number.isNaN(target.getTime())) {
+    return "Never";
+  }
+
   const normalizedTarget = new Date(target);
   normalizedTarget.setHours(0, 0, 0, 0);
 
@@ -211,27 +228,4 @@ export function formatLastActiveLabel(value: string, referenceDate = new Date())
   }
 
   return formatCalendarDate(value);
-}
-
-export function createStaffRecord(
-  values: StaffFormValues,
-  currentRecord?: StaffRecord | null,
-) {
-  const id =
-    currentRecord?.id ??
-    (typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `staff-${Date.now()}`);
-
-  return {
-    id,
-    fullName: values.fullName.trim(),
-    role: values.role,
-    email: values.email.trim().toLowerCase(),
-    phone: values.phone.trim(),
-    nicNumber: values.nicNumber.trim(),
-    address: values.address.trim(),
-    status: currentRecord?.status ?? "Active",
-    lastActive: currentRecord?.lastActive ?? new Date().toISOString(),
-  } satisfies StaffRecord;
 }

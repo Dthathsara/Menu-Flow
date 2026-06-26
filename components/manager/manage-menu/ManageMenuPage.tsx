@@ -8,6 +8,7 @@ import {
   deleteMenuItem,
   fetchMenuCategories,
   fetchMenuItems,
+  fetchMenuSubCategories,
   updateMenuItem,
 } from "@/lib/manager-menu-api";
 import { getManagerPageSectionClasses } from "../managerUtils";
@@ -112,6 +113,7 @@ function buildOptimisticItem(
     smallPrice,
     mediumPrice,
     largePrice,
+    imageUrl: values.image,
     image: values.image,
     available: values.available,
     active: currentItem?.active ?? true,
@@ -133,9 +135,20 @@ function getDistinctCategoryNames(items: readonly MenuItemRecord[]) {
   ).sort((a, b) => a.localeCompare(b));
 }
 
+function getDistinctSubCategoryNames(items: readonly MenuItemRecord[]) {
+  return Array.from(
+    new Set(
+      items
+        .map((item) => item.subCategoryName?.trim() ?? "")
+        .filter((subCategoryName) => subCategoryName.length > 0),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
+}
+
 export function ManageMenuPage({ settings }: ManageMenuPageProps) {
   const [items, setItems] = useState<MenuItemRecord[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [subCategories, setSubCategories] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [category, setCategory] = useState<MenuFilterCategory>(ALL_CATEGORIES_LABEL);
   const [availability, setAvailability] =
@@ -155,8 +168,9 @@ export function ManageMenuPage({ settings }: ManageMenuPageProps) {
     setErrorMessage("");
     setCategoryErrorMessage("");
 
-    const [categoryResult, itemResult] = await Promise.allSettled([
+    const [categoryResult, subCategoryResult, itemResult] = await Promise.allSettled([
       fetchMenuCategories(),
+      fetchMenuSubCategories(),
       fetchMenuItems(),
     ]);
 
@@ -168,8 +182,14 @@ export function ManageMenuPage({ settings }: ManageMenuPageProps) {
     const nextCategories = endpointCategories.length
       ? endpointCategories
       : getDistinctCategoryNames(nextItems);
+    const endpointSubCategories =
+      subCategoryResult.status === "fulfilled" ? subCategoryResult.value : [];
+    const nextSubCategories = endpointSubCategories.length
+      ? endpointSubCategories
+      : getDistinctSubCategoryNames(nextItems);
 
     setCategories(nextCategories);
+    setSubCategories(nextSubCategories);
     setCategory((currentCategory) =>
       currentCategory !== ALL_CATEGORIES_LABEL && !nextCategories.includes(currentCategory)
         ? ALL_CATEGORIES_LABEL
@@ -320,6 +340,9 @@ export function ManageMenuPage({ settings }: ManageMenuPageProps) {
           mode={modalMode}
           settings={settings}
           item={selectedItem}
+          categorySuggestions={categories}
+          subCategorySuggestions={subCategories}
+          menuItems={items}
           isSaving={isSaving}
           errorMessage={modalErrorMessage}
           onClose={() => {

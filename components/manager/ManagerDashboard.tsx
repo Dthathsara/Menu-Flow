@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
 import { LANGUAGE_OPTIONS, MANAGER_NAV_ITEMS } from "./managerConfig";
 import { HorizontalShell } from "./HorizontalShell";
 import { VerticalShell } from "./VerticalShell";
+import { useRestaurantProfile } from "./restaurant-profile-context";
 import { cn, getShellBackgroundClasses } from "./managerUtils";
-import { useRestaurantProfile } from "./RestaurantProfileProvider";
 import { useManagerSettings } from "./useManagerSettings";
 import type { LanguageOption, ManagerNavKey } from "./managerTypes";
 import type { ReportTab } from "./reports/reports.types";
@@ -20,11 +19,9 @@ export function ManagerDashboard({
   initialActiveNav = "dashboard",
   initialReportTab = "users",
 }: ManagerDashboardProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [activeNav, setActiveNav] = useState<ManagerNavKey>(initialActiveNav);
   const [activeReportTab, setActiveReportTab] = useState<ReportTab>(initialReportTab);
-  const { restaurantProfile, setRestaurantProfile } = useRestaurantProfile();
+  const { restaurantProfile, updateRestaurantProfile } = useRestaurantProfile();
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
     LANGUAGE_OPTIONS[0],
   );
@@ -34,18 +31,8 @@ export function ManagerDashboard({
   const [navigationOpen, setNavigationOpen] = useState(false);
   const { settings, toggleScheme } = useManagerSettings();
 
-  const pathActiveNav = getManagerNavKeyFromPathname(pathname);
-  const currentActiveNav = activeNav === pathActiveNav ? activeNav : pathActiveNav;
-  const currentReportTab =
-    currentActiveNav === "reports"
-      ? searchParams.get("tab") === "orders"
-        ? "orders"
-        : "users"
-      : activeReportTab;
-
   const activeItem =
-    MANAGER_NAV_ITEMS.find((item) => item.key === currentActiveNav) ??
-    MANAGER_NAV_ITEMS[0];
+    MANAGER_NAV_ITEMS.find((item) => item.key === activeNav) ?? MANAGER_NAV_ITEMS[0];
 
   function handleToggleDropdown(dropdown: "language" | "profile") {
     setActiveDropdown((current) => (current === dropdown ? null : dropdown));
@@ -61,9 +48,9 @@ export function ManagerDashboard({
     settings,
     navItems: MANAGER_NAV_ITEMS,
     activeItem,
-    activeKey: currentActiveNav,
+    activeKey: activeNav,
     initialReportTab,
-    reportTab: currentReportTab,
+    reportTab: activeReportTab,
     restaurantProfile,
     selectedLanguage,
     languages: LANGUAGE_OPTIONS,
@@ -80,7 +67,7 @@ export function ManagerDashboard({
       setSelectedLanguage(language);
       setActiveDropdown(null);
     },
-    onUpdateRestaurantProfile: setRestaurantProfile,
+    onUpdateRestaurantProfile: updateRestaurantProfile,
   };
 
   return (
@@ -103,28 +90,4 @@ export function ManagerDashboard({
       </div>
     </div>
   );
-}
-
-function getManagerNavKeyFromPathname(pathname: string): ManagerNavKey {
-  switch (pathname) {
-    case "/manager/orders":
-      return "orders";
-    case "/manager/manage-menu":
-      return "manage-menu";
-    case "/manager/qr-codes":
-      return "generate-qr";
-    case "/manager/users":
-      return "users";
-    case "/manager/reports":
-      return "reports";
-    case "/manager/billing":
-      return "billing";
-    case "/manager/invoices":
-      return "invoices";
-    case "/manager/settings":
-      return "settings";
-    case "/manager":
-    default:
-      return "dashboard";
-  }
 }

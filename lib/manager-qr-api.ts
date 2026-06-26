@@ -1,5 +1,5 @@
-import { createAuthenticatedAxios } from "@/lib/auth-session";
 import { API_BASE_URL } from "@/lib/api-config";
+import { createAuthenticatedAxios } from "@/lib/auth-session";
 import type {
   GenerateQrFormValues,
   QrCodeRecord,
@@ -24,14 +24,14 @@ function asString(value: unknown, fallback = "") {
     return String(value);
   }
 
-  if (value instanceof Date) {
-    return value.toISOString();
+  if (typeof value === "boolean") {
+    return String(value);
   }
 
   return fallback;
 }
 
-function asBoolean(value: unknown, fallback = false) {
+function asBoolean(value: unknown, fallback = true) {
   if (typeof value === "boolean") {
     return value;
   }
@@ -76,7 +76,7 @@ function unwrapItem(data: unknown) {
     return data;
   }
 
-  for (const key of ["qrCode", "qr_code", "generateQrCode", "item", "data"]) {
+  for (const key of ["qrCode", "qr_code", "generatedQrCode", "generated_qr_code", "item", "data"]) {
     const value = data[key];
 
     if (isRecord(value)) {
@@ -87,59 +87,47 @@ function unwrapItem(data: unknown) {
   return data;
 }
 
-function getCustomerBaseUrl() {
-  return (process.env.NEXT_PUBLIC_CUSTOMER_BASE_URL || "").replace(/\/+$/, "");
-}
+function buildCustomerUrl(rawItem: ApiRecord) {
+  const customerUrl = asString(
+    rawItem.customerUrl ?? rawItem.customer_url ?? rawItem.qrValue ?? rawItem.qr_value,
+  ).trim();
+  const customerBaseUrl = (process.env.NEXT_PUBLIC_CUSTOMER_BASE_URL || "").replace(/\/$/, "");
 
-function isLocalCustomerUrlHostname(hostname: string) {
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return true;
-  }
+  if (!customerUrl) {
+    const tenantId = asString(rawItem.tenantId ?? rawItem.tenant_id).trim();
+    const qrToken = asString(rawItem.qrToken ?? rawItem.qr_token).trim();
 
-  if (hostname.startsWith("192.168.")) {
-    return true;
-  }
+    if (customerBaseUrl && tenantId && qrToken) {
+      const fallbackUrl = new URL("/customer", customerBaseUrl);
+      fallbackUrl.searchParams.set("tenantId", tenantId);
+      fallbackUrl.searchParams.set("qrToken", qrToken);
+      fallbackUrl.searchParams.set("tab", "menu");
 
-  if (hostname.startsWith("10.")) {
-    return true;
-  }
+      return fallbackUrl.toString();
+    }
 
-  const private172Match = /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname);
-
-  return private172Match;
-}
-
-function normalizeCustomerUrl(value: unknown, tenantId: string, qrToken: string) {
-  const rawUrl = asString(value);
-  const customerBaseUrl = getCustomerBaseUrl();
-
-  if (!rawUrl && customerBaseUrl && tenantId && qrToken) {
-    const params = new URLSearchParams({ tenantId, qrToken, tab: "menu" });
-    return `${customerBaseUrl}/customer?${params.toString()}`;
-  }
-
-  if (!rawUrl) {
     return "";
   }
 
   if (!customerBaseUrl) {
-    return rawUrl;
+    return customerUrl;
   }
 
   try {
-    const parsedUrl = new URL(rawUrl);
-    const parsedBase = new URL(customerBaseUrl);
+    const parsedCustomerUrl = new URL(customerUrl);
 
-    if (isLocalCustomerUrlHostname(parsedUrl.hostname)) {
-      parsedUrl.protocol = parsedBase.protocol;
-      parsedUrl.host = parsedBase.host;
-      return parsedUrl.toString();
+    if (["localhost", "127.0.0.1", "::1"].includes(parsedCustomerUrl.hostname)) {
+      const parsedBaseUrl = new URL(customerBaseUrl);
+      parsedCustomerUrl.protocol = parsedBaseUrl.protocol;
+      parsedCustomerUrl.host = parsedBaseUrl.host;
+
+      return parsedCustomerUrl.toString();
     }
   } catch {
-    return rawUrl;
+    return customerUrl;
   }
 
-  return rawUrl;
+  return customerUrl;
 }
 
 export function mapApiQrCode(rawQrCode: unknown): QrCodeRecord | null {
@@ -147,46 +135,70 @@ export function mapApiQrCode(rawQrCode: unknown): QrCodeRecord | null {
     return null;
   }
 
-  const id = asString(rawQrCode.id);
+  const id = asString(rawQrCode.id ?? rawQrCode.qrCodeId ?? rawQrCode.qr_code_id).trim();
 
   if (!id) {
     return null;
   }
 
-  const tenantId = asString(rawQrCode.tenantId ?? rawQrCode.tenant_id);
-  const qrToken = asString(rawQrCode.qrToken ?? rawQrCode.qr_token);
-  const customerUrl = normalizeCustomerUrl(
-    rawQrCode.customerUrl ?? rawQrCode.customer_url,
-    tenantId,
-    qrToken,
-  );
-  const isActive = asBoolean(rawQrCode.isActive ?? rawQrCode.is_active, true);
+  const customerUrl = buildCustomerUrl(rawQrCode);
+  const status = asString(rawQrCode.status, asBoolean(rawQrCode.is_active ?? rawQrCode.isActive, true) ? "Active" : "Inactive");
 
   return {
     id,
-    tenantId,
+    tenantId: asString(rawQrCode.tenantId ?? rawQrCode.tenant_id),
     tableNumber: asString(rawQrCode.tableNumber ?? rawQrCode.table_number),
     section: asString(rawQrCode.section),
-    qrToken,
+    branch: asString(rawQrCode.branch ?? rawQrCode.restaurantName ?? rawQrCode.restaurant_name, "MenuFlow"),
+    qrToken: asString(rawQrCode.qrToken ?? rawQrCode.qr_token),
     customerUrl,
     qrImageUrl: asString(rawQrCode.qrImageUrl ?? rawQrCode.qr_image_url),
-    status: isActive ? "Active" : "Inactive",
-    isActive,
-    qrValue: customerUrl,
+    status,
+    isActive: asBoolean(rawQrCode.isActive ?? rawQrCode.is_active, status.toLowerCase() === "active"),
     createdAt: asString(rawQrCode.createdAt ?? rawQrCode.created_at),
     updatedAt: asString(rawQrCode.updatedAt ?? rawQrCode.updated_at),
+    qrValue: customerUrl,
   };
 }
 
-export async function fetchManagerQrCodes() {
-  const response = await managerQrApi.get("/generate-qr-codes");
+function mapSection(rawSection: unknown) {
+  if (typeof rawSection === "string" || typeof rawSection === "number") {
+    return String(rawSection).trim();
+  }
 
-  return unwrapList(response.data, ["qrCodes", "qr_codes", "items", "data"])
-    .map(mapApiQrCode)
-    .filter((item): item is QrCodeRecord => Boolean(item));
+  if (!isRecord(rawSection)) {
+    return "";
+  }
+
+  return asString(rawSection.section ?? rawSection.name ?? rawSection.sectionName ?? rawSection.section_name).trim();
 }
 
-export async function createManagerQrCode(values: GenerateQrFormValues) {
+function mapTableNumber(rawTableNumber: unknown) {
+  if (typeof rawTableNumber === "string" || typeof rawTableNumber === "number") {
+    return String(rawTableNumber).trim();
+  }
+
+  if (!isRecord(rawTableNumber)) {
+    return "";
+  }
+
+  return asString(
+    rawTableNumber.tableNumber ??
+      rawTableNumber.table_number ??
+      rawTableNumber.number ??
+      rawTableNumber.name,
+  ).trim();
+}
+
+export async function fetchQrCodes() {
+  const response = await managerQrApi.get("/generate-qr-codes");
+
+  return unwrapList(response.data, ["qrCodes", "qr_codes", "generatedQrCodes", "items", "data"])
+    .map(mapApiQrCode)
+    .filter((qrCode): qrCode is QrCodeRecord => Boolean(qrCode));
+}
+
+export async function createQrCode(values: GenerateQrFormValues) {
   const response = await managerQrApi.post("/generate-qr-codes", {
     tableNumber: values.tableNumber.trim(),
     section: values.section.trim(),
@@ -195,14 +207,24 @@ export async function createManagerQrCode(values: GenerateQrFormValues) {
   return mapApiQrCode(unwrapItem(response.data));
 }
 
-export async function deleteManagerQrCode(id: string) {
-  await managerQrApi.delete(`/generate-qr-codes/${id}`);
+export async function deleteQrCode(qrCodeId: string) {
+  await managerQrApi.delete(`/generate-qr-codes/${encodeURIComponent(qrCodeId)}`);
 }
 
-export async function fetchManagerQrSections() {
+export async function fetchQrSections() {
   const response = await managerQrApi.get("/generate-qr-codes/sections");
-
-  return unwrapList(response.data, ["sections", "data", "items"])
-    .map((section) => asString(section).trim())
+  const sections = unwrapList(response.data, ["sections", "data", "items"])
+    .map(mapSection)
     .filter(Boolean);
+
+  return Array.from(new Set(sections)).sort((a, b) => a.localeCompare(b));
+}
+
+export async function fetchQrTableNumbers() {
+  const response = await managerQrApi.get("/generate-qr-codes/table-numbers");
+  const tableNumbers = unwrapList(response.data, ["tableNumbers", "table_numbers", "data", "items"])
+    .map(mapTableNumber)
+    .filter(Boolean);
+
+  return Array.from(new Set(tableNumbers)).sort((a, b) => a.localeCompare(b));
 }

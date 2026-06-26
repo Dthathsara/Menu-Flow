@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ManagerDashboard } from "@/components/manager/ManagerDashboard";
 
 export const metadata: Metadata = {
   title: "MenuFlow | Manager Users",
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ManagerUsersPage() {
-  return null;
+  return <ManagerDashboard initialActiveNav="users" />;
 }

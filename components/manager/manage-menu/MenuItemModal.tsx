@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { ClockIcon, XIcon } from "../icons";
 import {
   cn,
@@ -24,6 +24,9 @@ interface MenuItemModalProps {
   mode: "add" | "edit";
   settings: ManagerSettings;
   item?: MenuItemRecord | null;
+  categorySuggestions: readonly string[];
+  subCategorySuggestions: readonly string[];
+  menuItems: readonly MenuItemRecord[];
   onClose: () => void;
   onSave: (values: MenuItemFormValues) => Promise<void> | void;
   isSaving?: boolean;
@@ -70,7 +73,7 @@ function createFormValues(item: MenuItemRecord | null | undefined) {
     smallPrice: String(item.smallPrice),
     mediumPrice: String(item.mediumPrice),
     largePrice: String(item.largePrice),
-    image: item.image,
+    image: item.imageUrl,
     imageFile: null,
     available: item.available,
     prepTime: String(item.prepTime),
@@ -95,6 +98,9 @@ export function MenuItemModal({
   mode,
   settings,
   item,
+  categorySuggestions,
+  subCategorySuggestions,
+  menuItems,
   onClose,
   onSave,
   isSaving = false,
@@ -105,6 +111,8 @@ export function MenuItemModal({
   );
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [localErrorMessage, setLocalErrorMessage] = useState("");
+  const categoryListId = useId();
+  const subCategoryListId = useId();
   const isDark = settings.scheme === "dark";
   const displayErrorMessage = localErrorMessage || errorMessage;
   const modalFocusClasses =
@@ -142,6 +150,25 @@ export function MenuItemModal({
       : "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500",
     modalFocusClasses,
   );
+  const filteredSubCategorySuggestions = useMemo(() => {
+    const categoryName = values.categoryName.trim().toLowerCase();
+
+    if (!categoryName) {
+      return subCategorySuggestions;
+    }
+
+    const categorySubCategories = Array.from(
+      new Set(
+        menuItems
+          .filter((menuItem) => menuItem.categoryName.trim().toLowerCase() === categoryName)
+          .map((menuItem) => menuItem.subCategoryName?.trim() ?? "")
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => a.localeCompare(b));
+
+    return categorySubCategories.length ? categorySubCategories : subCategorySuggestions;
+  }, [menuItems, subCategorySuggestions, values.categoryName]);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -241,6 +268,7 @@ export function MenuItemModal({
                       </label>
                       <input
                         id="menu-item-category"
+                        list={categoryListId}
                         value={values.categoryName}
                         onChange={(event) =>
                           setValues((current) => ({
@@ -252,6 +280,11 @@ export function MenuItemModal({
                         className={inputClasses}
                         required
                       />
+                      <datalist id={categoryListId}>
+                        {categorySuggestions.map((categoryName) => (
+                          <option key={categoryName} value={categoryName} />
+                        ))}
+                      </datalist>
                     </div>
 
                     <div className="min-w-0 space-y-2">
@@ -260,6 +293,7 @@ export function MenuItemModal({
                       </label>
                       <input
                         id="menu-item-sub-category"
+                        list={subCategoryListId}
                         value={values.subCategoryName}
                         onChange={(event) =>
                           setValues((current) => ({
@@ -270,6 +304,11 @@ export function MenuItemModal({
                         placeholder="Enter sub category name"
                         className={inputClasses}
                       />
+                      <datalist id={subCategoryListId}>
+                        {filteredSubCategorySuggestions.map((subCategoryName) => (
+                          <option key={subCategoryName} value={subCategoryName} />
+                        ))}
+                      </datalist>
                     </div>
 
                     <div className="min-w-0 space-y-2 sm:col-span-2">

@@ -8,7 +8,7 @@ import { primaryButtonClassName } from "@/components/common/buttons";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
-import { apiUrl } from "@/lib/api-config";
+import { API_BASE_URL } from "@/lib/api-config";
 import { normalizeAuthUser } from "@/lib/auth-session";
 import {
   cn,
@@ -92,7 +92,7 @@ export function LoginModal({
       const password = form.password;
 
       const response = await axios.post(
-        apiUrl("/auth/login"),
+        `${API_BASE_URL}/auth/login`,
         {
           email,
           password,
@@ -117,29 +117,21 @@ export function LoginModal({
     } catch (error) {
       setStatusType("error");
       if (axios.isAxiosError(error)) {
-        if (process.env.NODE_ENV === "development") {
-          console.error("LOGIN REQUEST FAILED", {
-            message: error.message,
-            status: error.response?.status,
-            data: error.response?.data,
-            url: error.config?.url,
-          });
-        }
-
         if (error.response) {
-          const message =
-            error.response.data?.message ||
-            error.response.data?.error ||
-            "Login failed. Please try again.";
+          if (error.response.status === 401) {
+            setStatusMessage("Invalid email or password.");
+            return;
+          }
 
-          setStatusMessage(
-            Array.isArray(message) ? message.join(", ") : String(message),
-          );
+          if (error.response.status === 404) {
+            setStatusMessage("Login API route not found. Check backend auth route.");
+            return;
+          }
+
+          setStatusMessage(getLoginApiErrorMessage(error.response.data));
         } else if (error.request) {
           setStatusMessage(
-            process.env.NODE_ENV === "production"
-              ? "Cannot connect to server. Please check backend API URL or try again later."
-              : "Cannot connect to backend. Make sure NestJS is running on port 3001 and CORS is enabled.",
+            "Cannot connect to backend. Start NestJS on port 3001 and check NEXT_PUBLIC_API_URL.",
           );
         } else {
           setStatusMessage(error.message);
@@ -233,4 +225,23 @@ export function LoginModal({
       </form>
     </AuthModalShell>
   );
+}
+
+function getLoginApiErrorMessage(data: unknown) {
+  if (!data || typeof data !== "object") {
+    return "Login failed. Please try again.";
+  }
+
+  const record = data as Record<string, unknown>;
+  const message = record.message ?? record.error;
+
+  if (Array.isArray(message)) {
+    return message.join(", ");
+  }
+
+  if (typeof message === "string" && message.trim()) {
+    return message;
+  }
+
+  return "Login failed. Please try again.";
 }

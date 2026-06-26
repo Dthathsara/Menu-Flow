@@ -5,16 +5,19 @@ import type {
   CustomerMenuData,
   MenuCategory,
   MenuItem,
-  QrContext,
   RestaurantInfo,
   ServingSize,
   Subcategory,
 } from "@/types/customer";
 import { getAccessToken, refreshAccessToken } from "@/lib/auth-session";
 import { API_BASE_URL } from "@/lib/api-config";
-import { getSafeImageSrcFromCandidates } from "@/lib/image-url";
+import {
+  getImageUrl as getSafeMenuImageUrl,
+  getSafeImageSrcFromCandidates,
+  PLACEHOLDER_FOOD_IMAGE,
+} from "@/lib/image-url";
 
-const FALLBACK_IMAGE = "/customer/placeholder-food.svg";
+const FALLBACK_IMAGE = PLACEHOLDER_FOOD_IMAGE;
 const SERVING_SIZES: ServingSize[] = ["Small", "Medium", "Large"];
 
 export interface CustomerMenuFetchParams {
@@ -42,10 +45,6 @@ export interface CreateCustomerOrderPayload {
   customer_name: string;
   customer_phone: string;
   order_type: "dine_in" | "takeaway" | "delivery";
-  qr_token?: string;
-  qr_code_id?: string;
-  table_number?: string;
-  section?: string;
   item_note?: string;
   items: CustomerOrderItemPayload[];
   payment: {
@@ -188,13 +187,15 @@ function shouldShowPublicItem(item: ApiRecord) {
 }
 
 function getImageUrl(item: ApiRecord) {
-  const rawImage = item.image_url ?? item.imageUrl ?? item.image ?? null;
-  const image =
-    rawImage && String(rawImage).trim() !== ""
-      ? String(rawImage)
-      : FALLBACK_IMAGE;
-
-  return image;
+  return getSafeMenuImageUrl(
+    asString(
+      item.imageUrl ??
+        item.image_url ??
+        item.image ??
+        item.itemImage ??
+        item.menuImage,
+    ),
+  );
 }
 
 function buildServingPrices(item: ApiRecord) {
@@ -282,16 +283,16 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
     email,
     businessEmail,
     restaurantImageUrl: getSafeImageSrcFromCandidates([
-      restaurant.restaurantImageUrl,
-      restaurant.restaurant_image_url,
-      restaurant.restaurantImage,
-      restaurant.restaurant_image,
-      restaurant.logoUrl,
-      restaurant.logo_url,
-      restaurant.logo,
-      restaurant.image,
-      restaurant.avatar,
-    ], FALLBACK_IMAGE),
+    restaurant.restaurantImageUrl,
+    restaurant.restaurant_image_url,
+    restaurant.restaurantImage,
+    restaurant.restaurant_image,
+    restaurant.logoUrl,
+    restaurant.logo_url,
+    restaurant.logo,
+    restaurant.image,
+    restaurant.avatar,
+  ], FALLBACK_IMAGE),
     phone,
     kitchenOpenTime,
     kitchenCloseTime,
@@ -364,39 +365,6 @@ function mapContact(rawContact: unknown, rawRestaurant: unknown): ContactInfo {
     ),
     reservations: asString(contact.reservations ?? restaurant.reservations),
     socials: [],
-  };
-}
-
-function mapQrContext(rawQrContext: unknown): QrContext | undefined {
-  if (!isRecord(rawQrContext)) {
-    return undefined;
-  }
-
-  const generatedQrCodeId = asString(
-    rawQrContext.generatedQrCodeId ??
-      rawQrContext.generated_qr_code_id ??
-      rawQrContext.generatedQrId ??
-      rawQrContext.generated_qr_id ??
-      rawQrContext.qrCodeId ??
-      rawQrContext.qr_code_id ??
-      rawQrContext.qrId ??
-      rawQrContext.qr_id ??
-      rawQrContext.id,
-  );
-  const qrId = asString(
-    rawQrContext.qrId ??
-      rawQrContext.qr_id ??
-      rawQrContext.qrCodeId ??
-      rawQrContext.qr_code_id ??
-      generatedQrCodeId,
-  );
-
-  return {
-    generatedQrCodeId,
-    qrId,
-    qrToken: asString(rawQrContext.qrToken ?? rawQrContext.qr_token),
-    tableNumber: asString(rawQrContext.tableNumber ?? rawQrContext.table_number),
-    section: asString(rawQrContext.section),
   };
 }
 
@@ -706,19 +674,10 @@ export function mapCustomerMenuData(payload: unknown): CustomerMenuData {
   const rawRestaurant = isRecord(data.restaurant) ? data.restaurant : data;
   const restaurant = mapRestaurant(rawRestaurant);
   const contact = mapContact(data.contact, rawRestaurant);
-  const qrContext = mapQrContext(
-    data.qrContext ??
-      data.qr_context ??
-      data.generatedQrCode ??
-      data.generated_qr_code ??
-      data.qrCode ??
-      data.qr_code,
-  );
   const menuData = filterCustomerMenuData({
     restaurant,
     contact,
     categories,
-    qrContext,
   });
 
   if (!menuData.categories.length) {

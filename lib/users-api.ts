@@ -5,6 +5,7 @@ import type { RestaurantProfile } from "@/components/manager/settings/settings.t
 
 const RESTAURANT_PROFILE_URL = apiUrl("/users/me/restaurant-profile");
 const RESTAURANT_IMAGE_URL = apiUrl("/users/me/restaurant-image");
+const RESTAURANT_PROFILE_CACHE_KEY = "menuflow:restaurantProfile";
 
 type ApiRecord = Record<string, unknown>;
 
@@ -75,6 +76,65 @@ export function mapRestaurantProfile(payload: unknown): RestaurantProfile {
       user.avatar,
     ]),
   };
+}
+
+export function getCachedRestaurantProfile() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const cachedProfile = window.localStorage.getItem(RESTAURANT_PROFILE_CACHE_KEY);
+
+  if (cachedProfile) {
+    try {
+      return mapRestaurantProfile(JSON.parse(cachedProfile));
+    } catch {
+      window.localStorage.removeItem(RESTAURANT_PROFILE_CACHE_KEY);
+    }
+  }
+
+  const storedUser = window.localStorage.getItem("user");
+
+  if (!storedUser) {
+    return null;
+  }
+
+  try {
+    return mapRestaurantProfile(JSON.parse(storedUser));
+  } catch {
+    return null;
+  }
+}
+
+export function cacheRestaurantProfile(profile: RestaurantProfile) {
+  if (typeof window === "undefined") {
+    return profile;
+  }
+
+  window.localStorage.setItem(RESTAURANT_PROFILE_CACHE_KEY, JSON.stringify(profile));
+
+  const storedUser = window.localStorage.getItem("user");
+  let storedUserObject: Record<string, unknown> = {};
+
+  if (storedUser) {
+    try {
+      storedUserObject = JSON.parse(storedUser) as Record<string, unknown>;
+    } catch {
+      storedUserObject = {};
+    }
+  }
+
+  const nextUser = {
+    ...storedUserObject,
+    ...profile,
+  };
+
+  window.localStorage.setItem("user", JSON.stringify(nextUser));
+  window.dispatchEvent(
+    new CustomEvent("menuflow:user-updated", { detail: nextUser }),
+  );
+
+  return profile;
 }
 
 export async function fetchRestaurantProfile() {

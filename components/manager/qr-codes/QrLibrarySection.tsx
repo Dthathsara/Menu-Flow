@@ -1,4 +1,4 @@
-import { SearchIcon } from "../icons";
+import { ChevronDownIcon, SearchIcon } from "../icons";
 import {
   cn,
   getManagerAccentPillClasses,
@@ -17,27 +17,35 @@ import type { QrCodeRecord } from "./types";
 interface QrLibrarySectionProps {
   settings: ManagerSettings;
   items: QrCodeRecord[];
-  isLoading: boolean;
+  totalItemCount: number;
   searchValue: string;
-  selectedSection: string;
-  sections: string[];
+  sectionValue: string;
+  sectionOptions: readonly string[];
+  isLoading: boolean;
+  errorMessage: string;
   onSearchChange: (value: string) => void;
   onSectionChange: (value: string) => void;
+  onRetry: () => void;
   onDownload: (item: QrCodeRecord) => void;
   onDelete: (item: QrCodeRecord) => void;
+  deletingId: string;
 }
 
 export function QrLibrarySection({
   settings,
   items,
-  isLoading,
+  totalItemCount,
   searchValue,
-  selectedSection,
-  sections,
+  sectionValue,
+  sectionOptions,
+  isLoading,
+  errorMessage,
   onSearchChange,
   onSectionChange,
+  onRetry,
   onDownload,
   onDelete,
+  deletingId,
 }: QrLibrarySectionProps) {
   return (
     <section className={cn("p-4 sm:p-5", getManagerCardShellClasses(settings.scheme, { interactive: true }))}>
@@ -54,7 +62,7 @@ export function QrLibrarySection({
           </div>
 
           <span className={cn(getManagerAccentPillClasses(settings.scheme, "brand"), "h-8 w-fit items-center px-4")}>
-            SORTED BY TABLE AND SECTION
+            SORTED BY TABLE AND BRANCH
           </span>
         </div>
 
@@ -73,24 +81,24 @@ export function QrLibrarySection({
             </div>
           </label>
 
-          <label className="min-w-0 xl:w-64">
+          <label className="relative min-w-0 xl:w-[220px]">
             <span className="sr-only">Filter by section</span>
             <select
-              value={selectedSection}
+              value={sectionValue}
               onChange={(event) => onSectionChange(event.target.value)}
               className={cn(
                 getManagerControlShellClasses(settings.scheme),
-                "h-12 w-full rounded-[14px] px-4 text-[14px] outline-none",
+                "h-12 w-full appearance-none rounded-[14px] pr-10 text-[14px] font-medium outline-none",
               )}
               aria-label="Filter QR codes by section"
             >
-              <option value="All Sections">All Sections</option>
-              {sections.map((section) => (
+              {sectionOptions.map((section) => (
                 <option key={section} value={section}>
                   {section}
                 </option>
               ))}
             </select>
+            <ChevronDownIcon className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           </label>
 
           <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
@@ -99,11 +107,24 @@ export function QrLibrarySection({
         </div>
       </div>
 
-      {isLoading ? (
-        <div className={cn("mt-5 border-dashed px-5 py-14 text-center", getManagerPanelShellClasses(settings.scheme))}>
-          <div className={cn("text-[1.2rem] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>Loading QR codes...</div>
+      {errorMessage ? (
+        <div className={cn("mt-5 px-5 py-10 text-center", getManagerPanelShellClasses(settings.scheme))}>
+          <div className={cn("text-[1.05rem] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>
+            {errorMessage}
+          </div>
+          <button
+            type="button"
+            onClick={onRetry}
+            className={cn("mt-4 rounded-[12px] px-4 py-2 text-[14px] font-semibold", getManagerControlShellClasses(settings.scheme))}
+          >
+            Retry
+          </button>
+        </div>
+      ) : isLoading ? (
+        <div className={cn("mt-5 px-5 py-14 text-center", getManagerPanelShellClasses(settings.scheme))}>
+          <div className={cn("text-[1.05rem] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>Loading QR codes...</div>
           <p className={cn("mt-2 text-[14px]", getMutedTextClasses(settings.scheme))}>
-            Loading the table QR library from the backend.
+            Fetching the latest table QR library.
           </p>
         </div>
       ) : items.length ? (
@@ -115,14 +136,19 @@ export function QrLibrarySection({
               item={item}
               onDownload={onDownload}
               onDelete={onDelete}
+              isDeleting={deletingId === item.id}
             />
           ))}
         </div>
       ) : (
         <div className={cn("mt-5 border-dashed px-5 py-14 text-center", getManagerPanelShellClasses(settings.scheme))}>
-          <div className={cn("text-[1.2rem] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>No QR codes found</div>
+          <div className={cn("text-[1.2rem] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>
+            {totalItemCount ? "No QR codes found" : "No QR codes yet"}
+          </div>
           <p className={cn("mt-2 text-[14px]", getMutedTextClasses(settings.scheme))}>
-            Adjust the search term or generate a new table QR code.
+            {totalItemCount
+              ? "Adjust the search term or section filter."
+              : "Generate a new table QR code to add it to the library."}
           </p>
         </div>
       )}

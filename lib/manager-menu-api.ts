@@ -1,5 +1,6 @@
 import { createAuthenticatedAxios } from "@/lib/auth-session";
 import { API_BASE_URL } from "@/lib/api-config";
+import { getImageUrl } from "@/lib/image-url";
 
 import type {
   MenuCategory,
@@ -30,22 +31,6 @@ function asString(value: unknown, fallback = "") {
 
   if (typeof value === "number") {
     return String(value);
-  }
-
-  return fallback;
-}
-
-function asBoolean(value: unknown, fallback = false) {
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    return value.toLowerCase() === "true";
-  }
-
-  if (typeof value === "number") {
-    return value !== 0;
   }
 
   return fallback;
@@ -101,10 +86,7 @@ export function mapApiCategory(rawCategory: unknown): MenuCategory | null {
   }
 
   const name = asString(
-    rawCategory.name ??
-      rawCategory.category_name ??
-      rawCategory.categoryName ??
-      rawCategory.title,
+    rawCategory.name ?? rawCategory.category_name ?? rawCategory.categoryName ?? rawCategory.title,
   );
 
   if (!name.trim()) {
@@ -117,33 +99,22 @@ export function mapApiCategory(rawCategory: unknown): MenuCategory | null {
   };
 }
 
-export function mapApiSubCategory(rawSubCategory: unknown): MenuCategory | null {
-  if (typeof rawSubCategory === "string") {
-    const name = rawSubCategory.trim();
-
-    return name ? { id: name, name } : null;
+export function mapApiSubCategory(rawSubCategory: unknown): string {
+  if (typeof rawSubCategory === "string" || typeof rawSubCategory === "number") {
+    return String(rawSubCategory).trim();
   }
 
   if (!isRecord(rawSubCategory)) {
-    return null;
+    return "";
   }
 
-  const name = asString(
+  return asString(
     rawSubCategory.name ??
       rawSubCategory.sub_category_name ??
       rawSubCategory.subCategoryName ??
       rawSubCategory.subcategory_name ??
       rawSubCategory.title,
-  );
-
-  if (!name.trim()) {
-    return null;
-  }
-
-  return {
-    id: name,
-    name,
-  };
+  ).trim();
 }
 
 export function mapApiMenuItem(rawItem: unknown): MenuItemRecord | null {
@@ -157,27 +128,36 @@ export function mapApiMenuItem(rawItem: unknown): MenuItemRecord | null {
     return null;
   }
 
-  const deletedAt = rawItem.deleted_at ?? rawItem.deletedAt;
+  const deletedAt = rawItem.deleted_at;
+  const imageUrl = getImageUrl(
+    asString(
+      rawItem.imageUrl ??
+        rawItem.image_url ??
+        rawItem.image ??
+        rawItem.itemImage ??
+        rawItem.menuImage,
+    ),
+  );
 
   return {
     id,
-    tenantId: asString(rawItem.tenant_id ?? rawItem.tenantId),
+    tenantId: asString(rawItem.tenant_id),
     name: asString(rawItem.name),
-    categoryName: asString(rawItem.category_name ?? rawItem.categoryName),
-    subCategoryName:
-      asString(rawItem.sub_category_name ?? rawItem.subCategoryName) || null,
+    categoryName: asString(rawItem.category_name),
+    subCategoryName: asString(rawItem.sub_category_name) || null,
     description: asString(rawItem.description),
-    smallPrice: Number(rawItem.small_price ?? rawItem.smallPrice ?? 0),
-    mediumPrice: Number(rawItem.medium_price ?? rawItem.mediumPrice ?? 0),
-    largePrice: Number(rawItem.large_price ?? rawItem.largePrice ?? 0),
-    prepTime: Number(rawItem.prep_time_min ?? rawItem.prepTime ?? 12),
-    available: asBoolean(rawItem.is_available ?? rawItem.available, true),
-    active: asBoolean(rawItem.is_active ?? rawItem.active, true),
-    sortOrder: Number(rawItem.sort_order ?? rawItem.sortOrder ?? 0),
-    createdAt: asString(rawItem.created_at ?? rawItem.createdAt),
-    updatedAt: asString(rawItem.updated_at ?? rawItem.updatedAt),
+    smallPrice: Number(rawItem.small_price ?? 0),
+    mediumPrice: Number(rawItem.medium_price ?? 0),
+    largePrice: Number(rawItem.large_price ?? 0),
+    prepTime: Number(rawItem.prep_time_min ?? 12),
+    available: Boolean(rawItem.is_available),
+    active: Boolean(rawItem.is_active),
+    sortOrder: Number(rawItem.sort_order ?? 0),
+    createdAt: asString(rawItem.created_at),
+    updatedAt: asString(rawItem.updated_at),
     deletedAt: typeof deletedAt === "string" ? deletedAt : null,
-    image: asString(rawItem.image_url ?? rawItem.imageUrl ?? rawItem.image),
+    imageUrl,
+    image: imageUrl,
   };
 }
 
@@ -207,22 +187,21 @@ export async function fetchMenuCategories() {
 }
 
 export async function fetchMenuSubCategories(categoryName?: string) {
-  const params = categoryName?.trim()
-    ? { categoryName: categoryName.trim() }
-    : undefined;
+  const params =
+    categoryName?.trim()
+      ? { categoryName: categoryName.trim() }
+      : undefined;
   const response = await managerMenuApi.get("/menu-items/sub-categories", {
     params,
   });
 
-  return unwrapList(response.data, [
-    "subCategories",
-    "sub_categories",
-    "subcategories",
-    "data",
-    "items",
-  ])
-    .map(mapApiSubCategory)
-    .filter((category): category is MenuCategory => Boolean(category));
+  return Array.from(
+    new Set(
+      unwrapList(response.data, ["subCategories", "sub_categories", "categories", "data", "items"])
+        .map(mapApiSubCategory)
+        .filter(Boolean),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
 }
 
 export async function fetchMenuItems() {
@@ -234,18 +213,12 @@ export async function fetchMenuItems() {
 }
 
 export async function createMenuItem(values: MenuItemFormValues) {
-  const response = await managerMenuApi.post(
-    "/menu-items",
-    buildMenuItemPayload(values),
-  );
+  const response = await managerMenuApi.post("/menu-items", buildMenuItemPayload(values));
 
   return mapApiMenuItem(unwrapItem(response.data)) ?? null;
 }
 
-export async function updateMenuItem(
-  itemId: string,
-  values: MenuItemFormValues,
-) {
+export async function updateMenuItem(itemId: string, values: MenuItemFormValues) {
   const response = await managerMenuApi.patch(
     `/menu-items/${itemId}`,
     buildMenuItemPayload(values),

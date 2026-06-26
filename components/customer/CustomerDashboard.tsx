@@ -20,7 +20,6 @@ import type {
   CustomerMenuData,
   MenuCategory,
   MenuItem,
-  QrContext,
   ServingSize,
   TabId,
 } from "@/types/customer";
@@ -181,7 +180,6 @@ export function CustomerDashboard() {
     {},
   );
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [qrContext, setQrContext] = useState<QrContext | undefined>(undefined);
   const [modalState, setModalState] = useState<ModalState | null>(null);
   const [orderConfirmation, setOrderConfirmation] =
     useState<OrderConfirmationState | null>(null);
@@ -204,13 +202,6 @@ export function CustomerDashboard() {
       });
 
       setData(nextData);
-      setQrContext({
-        generatedQrCodeId: nextData.qrContext?.generatedQrCodeId ?? "",
-        qrId: nextData.qrContext?.qrId ?? nextData.qrContext?.generatedQrCodeId ?? "",
-        qrToken: nextData.qrContext?.qrToken || getQrTokenFromLocation(),
-        tableNumber: nextData.qrContext?.tableNumber ?? "",
-        section: nextData.qrContext?.section ?? "",
-      });
       setErrorMessage("");
       setActiveCategoryId((currentCategoryId) =>
         nextData.categories.some((category) => category.id === currentCategoryId)
@@ -647,11 +638,6 @@ export function CustomerDashboard() {
             subtotal={orderSubtotal}
             restaurant={data.restaurant}
             tenantId={orderTenantId?.trim() ?? ""}
-            qrToken={qrContext?.qrToken ?? ""}
-            generatedQrCodeId={qrContext?.generatedQrCodeId ?? ""}
-            qrId={qrContext?.qrId ?? ""}
-            tableNumber={qrContext?.tableNumber ?? ""}
-            section={qrContext?.section ?? ""}
             onOrderSuccess={() => setCartItems([])}
             onEdit={handleEditItem}
             onRemove={requestRemoveCartItem}

@@ -31,7 +31,7 @@ export function RestaurantProfileCard({
               alt={displayName}
               className="h-full w-full"
               eager
-              priority
+              highPriority
             />
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/18 via-transparent to-transparent" />
           </div>

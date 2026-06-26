@@ -6,9 +6,15 @@ import { SectionTag } from "../SectionTag";
 
 interface UsersReportHeaderProps {
   settings: ManagerSettings;
+  isExporting: boolean;
+  onExport: () => void;
 }
 
-export function UsersReportHeader({ settings }: UsersReportHeaderProps) {
+export function UsersReportHeader({
+  settings,
+  isExporting,
+  onExport,
+}: UsersReportHeaderProps) {
   return (
     <section className={cn(getReportsSurfaceClasses(settings.scheme, true), "overflow-hidden p-5 sm:p-6")}>
       <div className="relative">
@@ -22,8 +28,13 @@ export function UsersReportHeader({ settings }: UsersReportHeaderProps) {
             </p>
           </div>
 
-          <button type="button" className={getReportsButtonClasses(settings.scheme)}>
-            Export Users Report
+          <button
+            type="button"
+            className={getReportsButtonClasses(settings.scheme)}
+            onClick={onExport}
+            disabled={isExporting}
+          >
+            {isExporting ? "Exporting..." : "Export Users Report"}
           </button>
         </div>
       </div>

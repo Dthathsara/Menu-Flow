@@ -50,18 +50,6 @@ export class ApiResponseError extends Error {
   }
 }
 
-function authString(value: unknown, fallback = "") {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (typeof value === "number") {
-    return String(value);
-  }
-
-  return fallback;
-}
-
 function getNow() {
   return Date.now();
 }
@@ -97,53 +85,54 @@ function clearStoredSession() {
   window.localStorage.removeItem("user");
 }
 
+function authString(value: unknown, fallback = "") {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  return fallback;
+}
+
 export function normalizeAuthUser(user: unknown) {
-  if (!user || typeof user !== "object") {
+  if (!user) {
     return null;
   }
 
-  const authUser = user as Record<string, unknown>;
+  const rawUser = user as Record<string, unknown>;
 
   return {
-    id: authString(authUser.id),
-    email: authString(authUser.email),
-    businessEmail: authString(authUser.businessEmail ?? authUser.business_email),
-    role: authString(authUser.role, "MANAGER"),
-    tenantId: authString(authUser.tenantId ?? authUser.tenant_id),
-    hotelName: authString(authUser.hotelName ?? authUser.hotel_name),
+    id: authString(rawUser.id),
+    email: authString(rawUser.email),
+    businessEmail: authString(rawUser.businessEmail ?? rawUser.business_email),
+    role: authString(rawUser.role, "MANAGER"),
+    tenantId: authString(rawUser.tenantId ?? rawUser.tenant_id),
+    hotelName: authString(rawUser.hotelName ?? rawUser.hotel_name),
     contactPersonName:
-      authString(authUser.contactPersonName ?? authUser.contact_person_name),
+      authString(rawUser.contactPersonName ?? rawUser.contact_person_name),
     contactPersonMobileNumber:
-      authString(
-        authUser.contactPersonMobileNumber ??
-          authUser.contact_person_mobile_number,
-      ),
-    businessType: authString(authUser.businessType ?? authUser.business_type),
-    businessLocation: authString(
-      authUser.businessLocation ?? authUser.business_location,
-    ),
-    businessAddress: authString(
-      authUser.businessAddress ?? authUser.business_address,
-    ),
-    kitchenOpenTime: authString(
-      authUser.kitchenOpenTime ?? authUser.kitchen_open_time,
-    ),
-    kitchenCloseTime: authString(
-      authUser.kitchenCloseTime ?? authUser.kitchen_close_time,
-    ),
-    taxRate: Number(authUser.taxRate ?? authUser.tax_rate ?? 5),
-    serviceChargeRate: Number(authUser.serviceChargeRate ?? authUser.service_charge_rate ?? 3),
-    discountRate: authUser.discountRate ?? authUser.discount_rate ?? null,
+      authString(rawUser.contactPersonMobileNumber ?? rawUser.contact_person_mobile_number),
+    businessType: authString(rawUser.businessType ?? rawUser.business_type),
+    businessLocation: authString(rawUser.businessLocation ?? rawUser.business_location),
+    businessAddress: authString(rawUser.businessAddress ?? rawUser.business_address),
+    kitchenOpenTime: authString(rawUser.kitchenOpenTime ?? rawUser.kitchen_open_time),
+    kitchenCloseTime: authString(rawUser.kitchenCloseTime ?? rawUser.kitchen_close_time),
+    taxRate: Number(rawUser.taxRate ?? rawUser.tax_rate ?? 5),
+    serviceChargeRate: Number(rawUser.serviceChargeRate ?? rawUser.service_charge_rate ?? 3),
+    discountRate: rawUser.discountRate ?? rawUser.discount_rate ?? null,
     restaurantImageUrl: getSafeImageSrcFromCandidates([
-      authUser.restaurantImageUrl,
-      authUser.restaurant_image_url,
-      authUser.restaurantImage,
-      authUser.restaurant_image,
-      authUser.logoUrl,
-      authUser.logo_url,
-      authUser.logo,
-      authUser.image,
-      authUser.avatar,
+      rawUser.restaurantImageUrl,
+      rawUser.restaurant_image_url,
+      rawUser.restaurantImage,
+      rawUser.restaurant_image,
+      rawUser.logoUrl,
+      rawUser.logo_url,
+      rawUser.logo,
+      rawUser.image,
+      rawUser.avatar,
     ]),
   };
 }

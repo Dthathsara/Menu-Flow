@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { DEFAULT_IMAGE_PLACEHOLDER_SRC, getRestaurantImageUrl } from "@/lib/image-url";
+import { useEffect, useMemo, useState } from "react";
+import {
+  getImageUrl,
+  PLACEHOLDER_FOOD_IMAGE,
+} from "@/lib/image-url";
 import { cn } from "./managerUtils";
 
 interface RestaurantProfileImageProps {
@@ -10,7 +13,11 @@ interface RestaurantProfileImageProps {
   className?: string;
   imageClassName?: string;
   eager?: boolean;
-  priority?: boolean;
+  highPriority?: boolean;
+}
+
+function isPlaceholderSrc(src: string) {
+  return src === PLACEHOLDER_FOOD_IMAGE;
 }
 
 export function RestaurantProfileImage({
@@ -19,95 +26,53 @@ export function RestaurantProfileImage({
   className,
   imageClassName,
   eager = false,
-  priority = false,
+  highPriority = false,
 }: RestaurantProfileImageProps) {
-  const nextSrc = getRestaurantImageUrl(src, "");
-  const [mounted, setMounted] = useState(false);
-  const [visibleSrc, setVisibleSrc] = useState(DEFAULT_IMAGE_PLACEHOLDER_SRC);
-  const lastValidSrcRef = useRef("");
+  const safeSrc = useMemo(() => getImageUrl(src), [src]);
+  const normalizedSrc = safeSrc;
+  const [displayedSrc, setDisplayedSrc] = useState(() => normalizedSrc);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) {
+    if (!normalizedSrc || normalizedSrc === displayedSrc) {
       return;
-    }
-
-    if (!nextSrc) {
-      setVisibleSrc(
-        lastValidSrcRef.current || DEFAULT_IMAGE_PLACEHOLDER_SRC,
-      );
-      return;
-    }
-
-    if (nextSrc === visibleSrc) {
-      return;
-    }
-
-    if (nextSrc.startsWith("blob:") || nextSrc.startsWith("data:")) {
-      const timeoutId = window.setTimeout(() => {
-        lastValidSrcRef.current = nextSrc;
-        setVisibleSrc(nextSrc);
-      }, 0);
-
-      return () => {
-        window.clearTimeout(timeoutId);
-      };
     }
 
     let cancelled = false;
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => {
+    const image = new Image();
+
+    image.decoding = "async";
+    image.onload = () => {
       if (!cancelled) {
-        lastValidSrcRef.current = nextSrc;
-        setVisibleSrc(nextSrc);
+        setDisplayedSrc(normalizedSrc);
       }
     };
-    img.onerror = () => {
-      if (!cancelled && !lastValidSrcRef.current) {
-        setVisibleSrc(DEFAULT_IMAGE_PLACEHOLDER_SRC);
+    image.onerror = () => {
+      if (!cancelled && isPlaceholderSrc(displayedSrc)) {
+        setDisplayedSrc(PLACEHOLDER_FOOD_IMAGE);
       }
     };
-    img.src = nextSrc;
+    image.src = normalizedSrc;
 
     return () => {
       cancelled = true;
     };
-  }, [nextSrc, visibleSrc]);
-
-  function handleError() {
-    if (visibleSrc === DEFAULT_IMAGE_PLACEHOLDER_SRC) {
-      return;
-    }
-
-    setVisibleSrc(
-      lastValidSrcRef.current && lastValidSrcRef.current !== visibleSrc
-        ? lastValidSrcRef.current
-        : DEFAULT_IMAGE_PLACEHOLDER_SRC,
-    );
-  }
-
-  function handleLoad() {
-    if (visibleSrc && visibleSrc !== DEFAULT_IMAGE_PLACEHOLDER_SRC) {
-      lastValidSrcRef.current = visibleSrc;
-    }
-  }
+  }, [displayedSrc, normalizedSrc]);
 
   return (
-    <div className={cn("relative overflow-hidden", className)}>
+    <div className={className}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={visibleSrc}
+        src={displayedSrc}
         alt={alt}
         className={cn("h-full w-full object-cover", imageClassName)}
         loading={eager ? "eager" : "lazy"}
         decoding="async"
-        fetchPriority={priority ? "high" : "auto"}
-        onLoad={handleLoad}
-        onError={handleError}
+        fetchPriority={highPriority ? "high" : "auto"}
+        onError={() => {
+          if (!isPlaceholderSrc(displayedSrc)) {
+            setDisplayedSrc(PLACEHOLDER_FOOD_IMAGE);
+          }
+        }}
       />
     </div>
   );

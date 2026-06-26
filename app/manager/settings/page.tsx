@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ManagerDashboard } from "@/components/manager/ManagerDashboard";
 
 export const metadata: Metadata = {
   title: "MenuFlow | Manager Settings",
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function ManagerSettingsPage() {
-  return null;
+  return <ManagerDashboard initialActiveNav="settings" />;
 }

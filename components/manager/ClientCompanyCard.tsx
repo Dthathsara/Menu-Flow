@@ -35,7 +35,7 @@ export function ClientCompanyCard({
             alt={displayName}
             className="h-full w-full"
             eager
-            priority
+            highPriority
           />
           <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/20 to-transparent px-3 py-2">
             <div className="text-white leading-tight">

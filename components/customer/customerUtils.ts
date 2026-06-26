@@ -1,4 +1,6 @@
-export const CUSTOMER_PLACEHOLDER_IMAGE = "/customer/placeholder-food.svg";
+import { getImageUrl, PLACEHOLDER_FOOD_IMAGE } from "@/lib/image-url";
+
+export const CUSTOMER_PLACEHOLDER_IMAGE = PLACEHOLDER_FOOD_IMAGE;
 
 export function formatPrice(value?: number | string | null) {
   const numeric = Number(value ?? 0);
@@ -10,11 +12,7 @@ export function formatPrice(value?: number | string | null) {
 }
 
 export function getImageSrc(image?: string | null) {
-  if (!image || image.trim() === "") {
-    return CUSTOMER_PLACEHOLDER_IMAGE;
-  }
-
-  return image;
+  return getImageUrl(image);
 }
 
 export function getSectionKey(categoryId: string, subcategoryId: string) {

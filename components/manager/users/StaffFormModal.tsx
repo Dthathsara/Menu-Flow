@@ -1,13 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { FilterDropdown } from "../orders/FilterDropdown";
-import { DEFAULT_STAFF_FORM_VALUES, STAFF_ROLE_OPTIONS } from "./staff-data";
+import {
+  DEFAULT_STAFF_FORM_VALUES,
+  STAFF_STATUS_OPTIONS,
+} from "./staff-data";
 import {
   UsersActionButton,
   UsersFieldLabel,
   UsersModalFrame,
+  UsersPanel,
   UsersTextArea,
   UsersTextInput,
 } from "./shared";
@@ -18,8 +23,11 @@ interface StaffFormModalProps {
   mode: "add" | "edit";
   settings: ManagerSettings;
   staff?: StaffRecord | null;
+  roleSuggestions: readonly string[];
+  isSaving: boolean;
+  errorMessage: string;
   onClose: () => void;
-  onSave: (values: StaffFormValues) => void;
+  onSave: (values: StaffFormValues) => void | Promise<void>;
 }
 
 function createFormValues(staff?: StaffRecord | null): StaffFormValues {
@@ -30,10 +38,13 @@ function createFormValues(staff?: StaffRecord | null): StaffFormValues {
   return {
     fullName: staff.fullName,
     role: staff.role,
+    operationalAccess: staff.operationalAccess ?? "",
     email: staff.email,
     phone: staff.phone,
     nicNumber: staff.nicNumber,
     address: staff.address,
+    status: staff.status,
+    password: "",
   };
 }
 
@@ -42,10 +53,14 @@ export function StaffFormModal({
   mode,
   settings,
   staff,
+  roleSuggestions,
+  isSaving,
+  errorMessage,
   onClose,
   onSave,
 }: StaffFormModalProps) {
   const [values, setValues] = useState<StaffFormValues>(() => createFormValues(staff));
+  const roleListId = "staff-role-suggestions";
 
   return (
     <UsersModalFrame
@@ -58,7 +73,13 @@ export function StaffFormModal({
       titleId="staff-form-modal-title"
       footer={
         <>
-          <UsersActionButton type="button" settings={settings} onClick={onClose} className="h-10 px-5">
+          <UsersActionButton
+            type="button"
+            settings={settings}
+            onClick={onClose}
+            className="h-10 px-5"
+            disabled={isSaving}
+          >
             Cancel
           </UsersActionButton>
           <UsersActionButton
@@ -67,8 +88,9 @@ export function StaffFormModal({
             tone="primary"
             settings={settings}
             className="h-10 px-5"
+            disabled={isSaving}
           >
-            Save Staff Member
+            {isSaving ? "Saving..." : "Save Staff Member"}
           </UsersActionButton>
         </>
       }
@@ -77,10 +99,24 @@ export function StaffFormModal({
         id="staff-form"
         onSubmit={(event) => {
           event.preventDefault();
-          onSave(values);
+          if (!isSaving) {
+            void onSave(values);
+          }
         }}
         className="grid gap-5"
       >
+        {errorMessage ? (
+          <UsersPanel
+            settings={settings}
+            className={cn(
+              "border-rose-400/30 bg-rose-500/10 p-4 text-[14px] font-semibold",
+              settings.scheme === "dark" ? "text-rose-200" : "text-rose-700",
+            )}
+          >
+            {errorMessage}
+          </UsersPanel>
+        ) : null}
+
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2">
             <UsersFieldLabel settings={settings} htmlFor="staff-full-name">
@@ -99,13 +135,35 @@ export function StaffFormModal({
           </div>
 
           <div className="space-y-2">
-            <UsersFieldLabel settings={settings}>Role</UsersFieldLabel>
-            <FilterDropdown
-              label="Staff role"
+            <UsersFieldLabel settings={settings} htmlFor="staff-role">
+              Role
+            </UsersFieldLabel>
+            <UsersTextInput
+              id="staff-role"
+              list={roleListId}
               settings={settings}
-              options={STAFF_ROLE_OPTIONS}
               value={values.role}
-              onChange={(role) => setValues((current) => ({ ...current, role }))}
+              onChange={(event) =>
+                setValues((current) => ({ ...current, role: event.target.value }))
+              }
+              placeholder="Enter staff role"
+              required
+            />
+            <datalist id={roleListId}>
+              {roleSuggestions.map((role) => (
+                <option key={role} value={role} />
+              ))}
+            </datalist>
+          </div>
+
+          <div className="space-y-2">
+            <UsersFieldLabel settings={settings}>Status</UsersFieldLabel>
+            <FilterDropdown
+              label="Staff status"
+              settings={settings}
+              options={STAFF_STATUS_OPTIONS}
+              value={values.status}
+              onChange={(status) => setValues((current) => ({ ...current, status }))}
             />
           </div>
 
@@ -158,7 +216,44 @@ export function StaffFormModal({
             />
           </div>
 
-          <div className="hidden md:block" aria-hidden="true" />
+          <div className="space-y-2">
+            <UsersFieldLabel settings={settings} htmlFor="staff-password">
+              Login Password
+            </UsersFieldLabel>
+            <UsersTextInput
+              id="staff-password"
+              type="password"
+              settings={settings}
+              value={values.password ?? ""}
+              onChange={(event) =>
+                setValues((current) => ({ ...current, password: event.target.value }))
+              }
+              placeholder={
+                mode === "edit"
+                  ? "Leave blank to keep current password"
+                  : "Optional login password"
+              }
+              autoComplete="new-password"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <UsersFieldLabel settings={settings} htmlFor="staff-operational-access">
+              Operational Access
+            </UsersFieldLabel>
+            <UsersTextInput
+              id="staff-operational-access"
+              settings={settings}
+              value={values.operationalAccess}
+              onChange={(event) =>
+                setValues((current) => ({
+                  ...current,
+                  operationalAccess: event.target.value,
+                }))
+              }
+              placeholder="Enter operational access"
+            />
+          </div>
         </div>
 
         <div className="space-y-2">

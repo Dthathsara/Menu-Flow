@@ -19,6 +19,7 @@ export interface MenuItemRecord {
   categoryName: string;
   subCategoryName?: string | null;
   description: string;
+  imageUrl: string;
   image: string;
   smallPrice: number;
   mediumPrice: number;

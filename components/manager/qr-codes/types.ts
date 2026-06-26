@@ -3,6 +3,7 @@ export interface QrCodeRecord {
   tenantId: string;
   tableNumber: string;
   section: string;
+  branch: string;
   qrToken: string;
   customerUrl: string;
   qrImageUrl: string;

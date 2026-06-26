@@ -15,14 +15,34 @@ import {
   getManagerTableRowClasses,
 } from "../../managerUtils";
 import type { ManagerSettings } from "../../managerTypes";
-import { waiterPerformanceRows } from "../reports.data";
 import { getReportsRoleBadgeClasses } from "../reports.helpers";
+import type { UserReportFilters, UserReportPerformanceRow } from "../reports.types";
 
 interface WaiterPerformanceTableProps {
   settings: ManagerSettings;
+  rows: UserReportPerformanceRow[];
+  filters: UserReportFilters;
+  search: string;
+  role: string;
+  period: string;
+  isLoading: boolean;
+  onSearchChange: (value: string) => void;
+  onRoleChange: (value: string) => void;
+  onPeriodChange: (value: string) => void;
 }
 
-export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps) {
+export function WaiterPerformanceTable({
+  settings,
+  rows,
+  filters,
+  search,
+  role,
+  period,
+  isLoading,
+  onSearchChange,
+  onRoleChange,
+  onPeriodChange,
+}: WaiterPerformanceTableProps) {
   return (
     <section
       className={cn(
@@ -53,10 +73,11 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
             <SearchIcon className="size-4 text-slate-400" />
             <input
               type="search"
-              readOnly
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Search staff, role, revenue..."
               className={cn(
-                "w-full cursor-default bg-transparent text-[15px] outline-none",
+                "w-full bg-transparent text-[15px] outline-none",
                 settings.scheme === "dark"
                   ? "text-slate-100 placeholder:text-slate-400"
                   : "text-slate-900 placeholder:text-slate-400",
@@ -65,34 +86,60 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
           </label>
 
           <div className="grid gap-3 sm:grid-cols-[180px_180px] xl:flex xl:items-center">
-            <div
+            <label
               className={cn(
+                "relative",
                 getManagerControlShellClasses(settings.scheme),
-                "min-w-[180px] justify-between font-semibold",
+                "min-w-[180px] font-semibold",
               )}
             >
-              <span>All Roles</span>
-              <ChevronDownIcon className="size-4 text-slate-400" />
-            </div>
+              <select
+                value={role}
+                onChange={(event) => onRoleChange(event.target.value)}
+                className="h-full w-full appearance-none bg-transparent pr-7 outline-none"
+                aria-label="Filter users report by role"
+              >
+                <option value="all">All Roles</option>
+                {filters.roles.map((roleOption) => (
+                  <option key={roleOption} value={roleOption}>
+                    {roleOption}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon className="pointer-events-none absolute right-3 size-4 text-slate-400" />
+            </label>
 
-            <div
+            <label
               className={cn(
+                "relative",
                 getManagerControlShellClasses(settings.scheme),
-                "min-w-[180px] justify-between font-semibold",
+                "min-w-[180px] font-semibold",
               )}
             >
-              <span>All Periods</span>
-              <ChevronDownIcon className="size-4 text-slate-400" />
-            </div>
+              <select
+                value={period}
+                onChange={(event) => onPeriodChange(event.target.value)}
+                className="h-full w-full appearance-none bg-transparent pr-7 outline-none"
+                aria-label="Filter users report by period"
+              >
+                <option value="all">All Periods</option>
+                {filters.periods.map((periodOption) => (
+                  <option key={periodOption.key} value={periodOption.key}>
+                    {periodOption.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon className="pointer-events-none absolute right-3 size-4 text-slate-400" />
+            </label>
           </div>
 
           <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
-            {waiterPerformanceRows.length} results
+            {rows.length} result{rows.length === 1 ? "" : "s"}
           </div>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="max-h-[430px] overflow-y-auto overflow-x-auto">
         <table className="min-w-[860px] w-full border-collapse">
           <thead className="sticky top-0 z-10">
             <tr
@@ -101,7 +148,7 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
                 getManagerTableHeaderClasses(settings.scheme),
               )}
             >
-              {["STAFF", "ROLE", "ORDERS", "REVENUE", "TABLES"].map((heading) => (
+              {["STAFF", "ROLE", "ORDERS", "REVENUE", "TABLES", "PERIOD"].map((heading) => (
                 <th
                   key={heading}
                   className={cn(
@@ -116,8 +163,14 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
             </tr>
           </thead>
           <tbody>
-            {waiterPerformanceRows.map((row) => (
-              <tr key={row.staff} className={getManagerTableRowClasses(settings.scheme)}>
+            {isLoading ? (
+              <tr className={getManagerTableRowClasses(settings.scheme)}>
+                <td colSpan={6} className={cn(getManagerTableCellPaddingClasses(), "text-center")}>
+                  Loading users report...
+                </td>
+              </tr>
+            ) : rows.length ? rows.map((row) => (
+              <tr key={row.id} className={getManagerTableRowClasses(settings.scheme)}>
                 <td
                   className={cn(
                     getManagerTableCellPaddingClasses(),
@@ -153,7 +206,7 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
-                  {row.revenue}
+                  {row.revenueLabel}
                 </td>
                 <td
                   className={cn(
@@ -164,8 +217,23 @@ export function WaiterPerformanceTable({ settings }: WaiterPerformanceTableProps
                 >
                   {row.tables}
                 </td>
+                <td
+                  className={cn(
+                    getManagerTableCellPaddingClasses(),
+                    "font-semibold",
+                    getManagerStrongTextClasses(settings.scheme),
+                  )}
+                >
+                  {row.periodLabel}
+                </td>
               </tr>
-            ))}
+            )) : (
+              <tr className={getManagerTableRowClasses(settings.scheme)}>
+                <td colSpan={6} className={cn(getManagerTableCellPaddingClasses(), "text-center")}>
+                  No users report data available.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

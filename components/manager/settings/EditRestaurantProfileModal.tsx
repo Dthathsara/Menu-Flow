@@ -143,10 +143,14 @@ export function EditRestaurantProfileModal({
     setStatusType("success");
 
     try {
-      const savedProfile = await updateRestaurantProfile(form);
-      const nextProfile = selectedImageFile
-        ? await uploadRestaurantImage(selectedImageFile)
-        : savedProfile;
+      const profileForDetails = selectedImageFile
+        ? { ...form, restaurantImageUrl: profile.restaurantImageUrl }
+        : form;
+      let nextProfile = await updateRestaurantProfile(profileForDetails);
+
+      if (selectedImageFile) {
+        nextProfile = await uploadRestaurantImage(selectedImageFile);
+      }
 
       onSave(nextProfile);
       setForm(nextProfile);
@@ -218,7 +222,7 @@ export function EditRestaurantProfileModal({
                 alt={form.hotelName || "Restaurant profile image"}
                 className="h-full w-full"
                 eager
-                priority
+                highPriority
               />
               <div className="absolute inset-0 bg-linear-to-t from-slate-950/18 via-transparent to-transparent" />
             </div>

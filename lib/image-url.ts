@@ -1,66 +1,71 @@
-import { API_BASE_URL } from "@/lib/api-config";
+export const API_ORIGIN = (
+  process.env.NEXT_PUBLIC_API_ORIGIN ||
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, "") ||
+  "http://localhost:3001"
+).replace(/\/$/, "");
 
-export const DEFAULT_IMAGE_PLACEHOLDER_SRC =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='420' viewBox='0 0 640 420'%3E%3Crect width='640' height='420' fill='%23e5e7eb'/%3E%3Cpath d='M192 292h256l-78-96-58 70-42-48-78 74Z' fill='%2394a3b8'/%3E%3Ccircle cx='244' cy='156' r='34' fill='%23cbd5e1'/%3E%3C/svg%3E";
+export const PLACEHOLDER_FOOD_IMAGE = "/customer/placeholder-food.svg";
 
-const ALLOWED_IMAGE_PROTOCOLS = new Set(["http:", "https:", "blob:", "data:"]);
-const BACKEND_UPLOADS_PREFIX = "/uploads/";
+export const DEFAULT_IMAGE_PLACEHOLDER_SRC = PLACEHOLDER_FOOD_IMAGE;
 
-export function getBackendOrigin() {
-  return API_BASE_URL.replace(/\/api\/v1\/?$/, "").replace(/\/backend\/?$/, "");
+export function getImageUrl(value?: string | null): string {
+  if (!value || !value.trim()) {
+    return PLACEHOLDER_FOOD_IMAGE;
+  }
+
+  const src = value.trim();
+
+  if (src.startsWith("blob:")) {
+    return src;
+  }
+
+  if (src.startsWith("data:")) {
+    return src;
+  }
+
+  if (src.startsWith("http://") || src.startsWith("https://")) {
+    return src;
+  }
+
+  if (src.startsWith("/uploads/")) {
+    return `${API_ORIGIN}${src}`;
+  }
+
+  if (src.startsWith("uploads/")) {
+    return `${API_ORIGIN}/${src}`;
+  }
+
+  if (src.startsWith("/")) {
+    return src;
+  }
+
+  return `${API_ORIGIN}/uploads/${src}`;
 }
 
-export function getSafeImageSrc(value: unknown, fallback = DEFAULT_IMAGE_PLACEHOLDER_SRC) {
-  return typeof value === "string" ? getRestaurantImageUrl(value, fallback) : fallback;
+export function getBackendOrigin() {
+  return API_ORIGIN;
 }
 
 export function getRestaurantImageUrl(
   value?: string | null,
-  fallback = DEFAULT_IMAGE_PLACEHOLDER_SRC,
+  fallback = PLACEHOLDER_FOOD_IMAGE,
 ) {
+  const imageUrl = getImageUrl(value);
+  return imageUrl === PLACEHOLDER_FOOD_IMAGE ? fallback : imageUrl;
+}
+
+export function getSafeImageSrc(value: unknown, fallback = PLACEHOLDER_FOOD_IMAGE) {
   if (typeof value !== "string") {
     return fallback;
   }
 
-  const normalizedValue = value.trim();
-
-  if (!normalizedValue) {
-    return fallback;
-  }
-
-  if (normalizedValue.startsWith("blob:")) {
-    return normalizedValue;
-  }
-
-  if (normalizedValue.startsWith("http://") || normalizedValue.startsWith("https://")) {
-    return normalizedValue;
-  }
-
-  if (normalizedValue.startsWith(BACKEND_UPLOADS_PREFIX)) {
-    return `${getBackendOrigin()}${normalizedValue}`;
-  }
-
-  if (normalizedValue.startsWith("/")) {
-    return normalizedValue;
-  }
-
-  return `${getBackendOrigin()}/${normalizedValue}`;
-}
-
-export function getImageUrl(url?: string | null, fallback = DEFAULT_IMAGE_PLACEHOLDER_SRC) {
-  const imageUrl = getRestaurantImageUrl(url, fallback);
-
-  try {
-    const parsedUrl = new URL(imageUrl);
-    return ALLOWED_IMAGE_PROTOCOLS.has(parsedUrl.protocol) ? imageUrl : fallback;
-  } catch {
-    return imageUrl.startsWith("/") ? imageUrl : fallback;
-  }
+  const imageUrl = getImageUrl(value);
+  return imageUrl === PLACEHOLDER_FOOD_IMAGE ? fallback : imageUrl;
 }
 
 export function getSafeImageSrcFromCandidates(
   values: unknown[],
-  fallback = DEFAULT_IMAGE_PLACEHOLDER_SRC,
+  fallback = PLACEHOLDER_FOOD_IMAGE,
 ) {
   for (const value of values) {
     const safeValue = getSafeImageSrc(value, "");
@@ -78,5 +83,5 @@ export function isBlobImageSrc(value: string) {
 }
 
 export function isBackendUploadImageSrc(value: string) {
-  return value.startsWith(`${getBackendOrigin()}${BACKEND_UPLOADS_PREFIX}`);
+  return value.startsWith(`${API_ORIGIN}/uploads/`);
 }

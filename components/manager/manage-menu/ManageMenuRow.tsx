@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getImageUrl } from "@/lib/image-url";
+import { PLACEHOLDER_FOOD_IMAGE } from "@/lib/image-url";
 import { PencilIcon, TrashIcon } from "../icons";
 import {
   cn,
@@ -30,7 +30,7 @@ export function ManageMenuRow({
   onEdit,
   onRemove,
 }: ManageMenuRowProps) {
-  const safeImageSrc = getImageUrl(item.image);
+  const safeImageSrc = item.imageUrl || PLACEHOLDER_FOOD_IMAGE;
 
   return (
     <tr
@@ -44,20 +44,17 @@ export function ManageMenuRow({
     >
       <td className={getManagerTableCellPaddingClasses()}>
         <div className="relative size-14 overflow-hidden rounded-lg border border-white/10 bg-slate-200/40 shadow-[0_10px_22px_rgba(15,23,42,0.08)]">
-          {item.image?.trim() ? (
-            <Image
-              src={safeImageSrc}
-              alt={item.name}
-              fill
-              unoptimized
-              sizes="56px"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-              No Image
-            </div>
-          )}
+          <Image
+            src={safeImageSrc}
+            alt={item.name || "Menu item"}
+            fill
+            unoptimized
+            sizes="56px"
+            className="h-full w-full object-cover"
+            onError={(event) => {
+              event.currentTarget.src = PLACEHOLDER_FOOD_IMAGE;
+            }}
+          />
         </div>
       </td>
       <td className={cn("min-w-[220px]", getManagerTableCellPaddingClasses())}>

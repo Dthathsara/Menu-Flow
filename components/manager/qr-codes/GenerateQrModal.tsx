@@ -21,11 +21,12 @@ import type { GenerateQrFormValues } from "./types";
 
 interface GenerateQrModalProps {
   settings: ManagerSettings;
-  sections: string[];
+  sectionSuggestions: readonly string[];
+  tableNumberSuggestions: readonly string[];
   isSubmitting?: boolean;
   errorMessage?: string;
   onClose: () => void;
-  onSubmit: (values: GenerateQrFormValues) => Promise<boolean> | boolean;
+  onSubmit: (values: GenerateQrFormValues) => Promise<void> | void;
 }
 
 const FOCUSABLE_SELECTOR =
@@ -40,13 +41,15 @@ function createEmptyFormValues(): GenerateQrFormValues {
 
 export function GenerateQrModal({
   settings,
-  sections,
+  sectionSuggestions,
+  tableNumberSuggestions,
   isSubmitting = false,
   errorMessage = "",
   onClose,
   onSubmit,
 }: GenerateQrModalProps) {
   const [values, setValues] = useState<GenerateQrFormValues>(createEmptyFormValues);
+  const [localErrorMessage, setLocalErrorMessage] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const closeTimeoutRef = useRef<number | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -54,8 +57,13 @@ export function GenerateQrModal({
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const closingRef = useRef(false);
   const titleId = useId();
-  const sectionSuggestionsId = useId();
+  const sectionListId = useId();
+  const tableNumberListId = useId();
   const requestClose = useCallback(() => {
+    if (isSubmitting) {
+      return;
+    }
+
     if (closingRef.current) {
       return;
     }
@@ -71,7 +79,7 @@ export function GenerateQrModal({
       closingRef.current = false;
       onClose();
     }, 180);
-  }, [onClose]);
+  }, [isSubmitting, onClose]);
 
   useEffect(() => {
     previousFocusRef.current = document.activeElement as HTMLElement | null;
@@ -136,17 +144,22 @@ export function GenerateQrModal({
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const saved = await onSubmit({
+    const nextValues = {
       tableNumber: values.tableNumber.trim(),
       section: values.section.trim(),
-    });
+    };
 
-    if (saved) {
-      requestClose();
+    if (!nextValues.tableNumber || !nextValues.section) {
+      setLocalErrorMessage("Table number and section are required.");
+      return;
     }
+
+    setLocalErrorMessage("");
+    await onSubmit(nextValues);
   }
 
   const inputClassName = cn(getManagerTextInputClasses(settings.scheme), "h-12 rounded-[14px] text-[14px]");
+  const displayErrorMessage = localErrorMessage || errorMessage;
 
   return (
     <div
@@ -209,6 +222,7 @@ export function GenerateQrModal({
                 <input
                   ref={firstInputRef}
                   id="table-number"
+                  list={tableNumberListId}
                   value={values.tableNumber}
                   onChange={(event) =>
                     setValues((current) => ({
@@ -219,8 +233,12 @@ export function GenerateQrModal({
                   placeholder="e.g. T-09"
                   className={inputClassName}
                   required
-                  disabled={isSubmitting}
                 />
+                <datalist id={tableNumberListId}>
+                  {tableNumberSuggestions.map((tableNumber) => (
+                    <option key={tableNumber} value={tableNumber} />
+                  ))}
+                </datalist>
               </div>
 
               <div className="space-y-2.5">
@@ -232,7 +250,7 @@ export function GenerateQrModal({
                 </label>
                 <input
                   id="section"
-                  list={sectionSuggestionsId}
+                  list={sectionListId}
                   value={values.section}
                   onChange={(event) =>
                     setValues((current) => ({
@@ -243,24 +261,23 @@ export function GenerateQrModal({
                   placeholder="e.g. Indoor / Outdoor"
                   className={inputClassName}
                   required
-                  disabled={isSubmitting}
                 />
-                <datalist id={sectionSuggestionsId}>
-                  {sections.map((section) => (
+                <datalist id={sectionListId}>
+                  {sectionSuggestions.map((section) => (
                     <option key={section} value={section} />
                   ))}
                 </datalist>
               </div>
             </div>
-
-            {errorMessage ? (
-              <div className="mt-4 rounded-[14px] border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200">
-                {errorMessage}
-              </div>
-            ) : null}
           </div>
 
           <div className={getManagerModalFooterClasses(settings.scheme)}>
+            {displayErrorMessage ? (
+              <div className="text-sm font-medium text-rose-300 sm:mr-auto">
+                {displayErrorMessage}
+              </div>
+            ) : null}
+
             <button
               type="button"
               onClick={requestClose}

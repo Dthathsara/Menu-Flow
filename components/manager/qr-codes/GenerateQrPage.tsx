@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { getApiErrorMessage } from "@/lib/error-handler";
 import {
-  createManagerQrCode,
-  deleteManagerQrCode,
-  fetchManagerQrCodes,
-  fetchManagerQrSections,
+  createQrCode,
+  deleteQrCode,
+  fetchQrCodes,
+  fetchQrSections,
+  fetchQrTableNumbers,
 } from "@/lib/manager-qr-api";
 import type { ManagerSettings } from "../managerTypes";
-import { cn, getManagerPageSectionClasses, getManagerSecondaryButtonClasses } from "../managerUtils";
+import { getManagerPageSectionClasses } from "../managerUtils";
 import { GenerateQrHero } from "./GenerateQrHero";
 import { GenerateQrModal } from "./GenerateQrModal";
 import { QrLibrarySection } from "./QrLibrarySection";
@@ -21,38 +22,92 @@ interface GenerateQrPageProps {
   settings: ManagerSettings;
 }
 
+const ALL_SECTIONS_LABEL = "All Sections";
+
+function getQrErrorMessage(error: unknown, fallback: string) {
+  const message = getApiErrorMessage(error, fallback);
+
+  if (axios.isAxiosError(error) && !error.response) {
+    return "Unable to connect to the server. Please make sure the backend is running.";
+  }
+
+  if (axios.isAxiosError(error) && error.response?.status === 409) {
+    return "A QR code already exists for this table and section.";
+  }
+
+  if (message === "Unable to connect to the server. Please check your internet connection.") {
+    return "Unable to connect to the server. Please make sure the backend is running.";
+  }
+
+  return message;
+}
+
+function slugifyFilePart(value: string) {
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "table"
+  );
+}
+
+function getDistinctSections(items: readonly QrCodeRecord[]) {
+  return Array.from(
+    new Set(
+      items
+        .map((item) => item.section.trim())
+        .filter((section) => section.length > 0),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
+}
+
 export function GenerateQrPage({ settings }: GenerateQrPageProps) {
   const [items, setItems] = useState<QrCodeRecord[]>([]);
   const [sections, setSections] = useState<string[]>([]);
+  const [tableNumbers, setTableNumbers] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState("");
-  const [selectedSection, setSelectedSection] = useState("All Sections");
+  const [selectedSection, setSelectedSection] = useState(ALL_SECTIONS_LABEL);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [modalErrorMessage, setModalErrorMessage] = useState("");
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   const loadQrData = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage("");
     setDeleteErrorMessage("");
 
-    const [qrResult, sectionResult] = await Promise.allSettled([
-      fetchManagerQrCodes(),
-      fetchManagerQrSections(),
+    const [qrResult, sectionResult, tableNumberResult] = await Promise.allSettled([
+      fetchQrCodes(),
+      fetchQrSections(),
+      fetchQrTableNumbers(),
     ]);
 
-    if (qrResult.status === "fulfilled") {
-      setItems(qrResult.value);
-    } else {
-      setErrorMessage(getQrErrorMessage(qrResult.reason, "Unable to load QR codes."));
-    }
+    const nextItems = qrResult.status === "fulfilled" ? qrResult.value : [];
+    const nextSections =
+      sectionResult.status === "fulfilled" && sectionResult.value.length
+        ? sectionResult.value
+        : getDistinctSections(nextItems);
 
-    if (sectionResult.status === "fulfilled") {
-      setSections(sectionResult.value);
-    } else if (qrResult.status === "fulfilled") {
-      setSections(getSectionsFromItems(qrResult.value));
+    setItems(nextItems);
+    setSections(nextSections);
+    setTableNumbers(
+      tableNumberResult.status === "fulfilled" && tableNumberResult.value.length
+        ? tableNumberResult.value
+        : getDistinctTableNumbers(nextItems),
+    );
+    setSelectedSection((current) =>
+      current !== ALL_SECTIONS_LABEL && !nextSections.includes(current)
+        ? ALL_SECTIONS_LABEL
+        : current,
+    );
+
+    if (qrResult.status === "rejected") {
+      setErrorMessage(getQrErrorMessage(qrResult.reason, "Unable to load QR codes."));
     }
 
     setIsLoading(false);
@@ -62,47 +117,29 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
     void loadQrData();
   }, [loadQrData]);
 
-  const normalizedSearch = searchValue.trim().toLowerCase();
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        [item.tableNumber, item.section, item.customerUrl].some((value) =>
-          value.toLowerCase().includes(normalizedSearch),
-        );
-      const matchesSection =
-        selectedSection === "All Sections" || item.section === selectedSection;
-
-      return matchesSearch && matchesSection;
-    });
-  }, [items, normalizedSearch, selectedSection]);
-
   const sectionOptions = useMemo(
-    () => mergeSections(sections, getSectionsFromItems(items)),
-    [items, sections],
+    () => [ALL_SECTIONS_LABEL, ...sections],
+    [sections],
   );
 
-  useEffect(() => {
-    if (
-      selectedSection !== "All Sections" &&
-      !sectionOptions.includes(selectedSection)
-    ) {
-      setSelectedSection("All Sections");
-    }
-  }, [sectionOptions, selectedSection]);
+  const normalizedSearch = searchValue.trim().toLowerCase();
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      !normalizedSearch ||
+      [item.tableNumber, item.section, item.customerUrl].some((value) =>
+        value.toLowerCase().includes(normalizedSearch),
+      );
+    const matchesSection =
+      selectedSection === ALL_SECTIONS_LABEL || item.section === selectedSection;
 
-  function getQrFileName(item: QrCodeRecord) {
-    const table = slugifyFilePart(item.tableNumber || "table");
-    const section = slugifyFilePart(item.section || "section");
-
-    return `menuflow-table-${table}-${section}-qr.svg`;
-  }
+    return matchesSearch && matchesSection;
+  });
 
   async function handleDownloadRecord(item: QrCodeRecord) {
     await downloadQrSvg(
       item.customerUrl,
       `QR code for table ${item.tableNumber}`,
-      getQrFileName(item),
+      `menuflow-table-${slugifyFilePart(item.tableNumber)}-${slugifyFilePart(item.section)}-qr.svg`,
     );
   }
 
@@ -115,45 +152,62 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
   }
 
   async function handleGenerate(values: GenerateQrFormValues) {
-    const tableNumber = values.tableNumber.trim();
-    const section = values.section.trim();
+    const normalizedTableNumber = normalizeTableNumberInput(values.tableNumber);
 
-    if (!tableNumber || !section) {
+    if (!normalizedTableNumber) {
+      setModalErrorMessage("Please enter a valid table number.");
+      return;
+    }
+
+    if (!values.section.trim()) {
       setModalErrorMessage("Table number and section are required.");
-      return false;
+      return;
     }
 
     setIsGenerating(true);
     setModalErrorMessage("");
 
     try {
-      const nextItem = await createManagerQrCode({ tableNumber, section });
+      const nextItem = await createQrCode({
+        ...values,
+        tableNumber: normalizedTableNumber,
+      });
 
       if (!nextItem) {
-        setModalErrorMessage("Unable to generate QR code. Please try again.");
-        return false;
+        setModalErrorMessage("Unable to generate QR code.");
+        return;
       }
 
-      setItems((current) => [nextItem, ...current.filter((item) => item.id !== nextItem.id)]);
-      setSections((current) => mergeSections(current, [nextItem.section]));
-      setDeleteErrorMessage("");
-      return true;
+      setItems((current) => [nextItem, ...current]);
+      setSections((current) =>
+        current.includes(nextItem.section)
+          ? current
+          : [...current, nextItem.section].sort((a, b) => a.localeCompare(b)),
+      );
+      setTableNumbers((current) =>
+        current.includes(nextItem.tableNumber)
+          ? current
+          : [...current, nextItem.tableNumber].sort((a, b) => a.localeCompare(b)),
+      );
+      setIsModalOpen(false);
     } catch (error) {
       setModalErrorMessage(getQrErrorMessage(error, "Unable to generate QR code."));
-      return false;
     } finally {
       setIsGenerating(false);
     }
   }
 
   async function handleDelete(item: QrCodeRecord) {
+    setDeletingId(item.id);
     setDeleteErrorMessage("");
 
     try {
-      await deleteManagerQrCode(item.id);
+      await deleteQrCode(item.id);
       setItems((current) => current.filter((entry) => entry.id !== item.id));
     } catch (error) {
       setDeleteErrorMessage(getQrErrorMessage(error, "Unable to delete QR code."));
+    } finally {
+      setDeletingId("");
     }
   }
 
@@ -169,53 +223,43 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
           onGenerate={() => setIsModalOpen(true)}
         />
 
-        {errorMessage ? (
-          <div className="mt-4 rounded-[18px] border border-rose-400/20 bg-rose-500/10 p-4 text-sm font-medium text-rose-200">
-            <div>{errorMessage}</div>
-            <button
-              type="button"
-              onClick={() => void loadQrData()}
-              className={cn(
-                getManagerSecondaryButtonClasses(settings.scheme),
-                "mt-3 h-10 rounded-[12px] px-4 text-[13px]",
-              )}
-            >
-              Retry
-            </button>
-          </div>
-        ) : null}
-
-        {deleteErrorMessage ? (
-          <div className="mt-4 rounded-[18px] border border-rose-400/20 bg-rose-500/10 p-4 text-sm font-medium text-rose-200">
-            {deleteErrorMessage}
-          </div>
-        ) : null}
-
         <QrLibrarySection
           settings={settings}
           items={filteredItems}
-          isLoading={isLoading}
+          totalItemCount={items.length}
           searchValue={searchValue}
-          selectedSection={selectedSection}
-          sections={sectionOptions}
+          sectionValue={selectedSection}
+          sectionOptions={sectionOptions}
+          isLoading={isLoading}
+          errorMessage={errorMessage || deleteErrorMessage}
           onSearchChange={setSearchValue}
           onSectionChange={setSelectedSection}
+          onRetry={loadQrData}
           onDownload={(item) => {
             void handleDownloadRecord(item);
           }}
           onDelete={(item) => {
             void handleDelete(item);
           }}
+          deletingId={deletingId}
         />
       </section>
 
       {isModalOpen ? (
         <GenerateQrModal
           settings={settings}
-          onClose={() => setIsModalOpen(false)}
+          sectionSuggestions={sections}
+          tableNumberSuggestions={tableNumbers}
           isSubmitting={isGenerating}
           errorMessage={modalErrorMessage}
-          sections={sectionOptions}
+          onClose={() => {
+            if (isGenerating) {
+              return;
+            }
+
+            setIsModalOpen(false);
+            setModalErrorMessage("");
+          }}
           onSubmit={handleGenerate}
         />
       ) : null}
@@ -223,46 +267,22 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
   );
 }
 
-function getSectionsFromItems(items: readonly QrCodeRecord[]) {
-  return items.map((item) => item.section.trim()).filter(Boolean);
+function getDistinctTableNumbers(items: readonly QrCodeRecord[]) {
+  return Array.from(
+    new Set(
+      items
+        .map((item) => item.tableNumber.trim())
+        .filter((tableNumber) => tableNumber.length > 0),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
 }
 
-function mergeSections(...sectionLists: readonly string[][]) {
-  const sectionMap = new Map<string, string>();
+export function normalizeTableNumberInput(input: string): string {
+  const match = input.match(/\d+/);
 
-  for (const section of sectionLists.flat()) {
-    const trimmedSection = section.trim();
-
-    if (trimmedSection) {
-      sectionMap.set(trimmedSection.toLowerCase(), trimmedSection);
-    }
+  if (!match) {
+    return "";
   }
 
-  return Array.from(sectionMap.values()).sort((a, b) => a.localeCompare(b));
-}
-
-function slugifyFilePart(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function getQrErrorMessage(error: unknown, fallback: string) {
-  const message = getApiErrorMessage(error, fallback);
-
-  if (!axios.isAxiosError(error)) {
-    return message;
-  }
-
-  if (!error.response) {
-    return "Unable to connect to the server. Please make sure the backend is running.";
-  }
-
-  if (error.response.status === 409) {
-    return message || "A QR code already exists for this table and section.";
-  }
-
-  return message;
+  return `T - ${match[0].padStart(2, "0")}`;
 }
