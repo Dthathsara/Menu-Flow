@@ -1,47 +1,48 @@
-export const ALL_CATEGORIES_LABEL = "All Categories";
-export const ALL_AVAILABILITY_LABEL = "All Availability";
+export const MENU_CATEGORIES = [
+  "Appetizers",
+  "Soups",
+  "Salads",
+  "Seafood",
+  "Chicken",
+  "Beef",
+  "Rice",
+  "Noodles",
+  "Burgers",
+  "Desserts",
+  "Beverages",
+] as const;
 
-export type MenuFilterCategory = string;
-export type MenuAvailabilityFilter =
-  | typeof ALL_AVAILABILITY_LABEL
-  | "Available"
-  | "Unavailable";
+export const FILTER_CATEGORIES = ["All Categories", ...MENU_CATEGORIES] as const;
 
-export interface MenuCategory {
-  id: string;
-  name: string;
+export type MenuCategory = (typeof MENU_CATEGORIES)[number];
+export type MenuFilterCategory = (typeof FILTER_CATEGORIES)[number];
+
+export interface MenuItemPrices {
+  small: number;
+  medium: number;
+  large: number;
 }
 
 export interface MenuItemRecord {
   id: string;
-  tenantId: string;
   name: string;
-  categoryName: string;
-  subCategoryName?: string | null;
+  category: MenuCategory;
   description: string;
+  prices: MenuItemPrices;
   image: string;
-  smallPrice: number;
-  mediumPrice: number;
-  largePrice: number;
   available: boolean;
-  active: boolean;
-  sortOrder: number;
   prepTime: number;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
+  sku: string;
 }
 
 export interface MenuItemFormValues {
   name: string;
-  categoryName: string;
-  subCategoryName: string;
+  category: MenuCategory;
   description: string;
   smallPrice: string;
   mediumPrice: string;
   largePrice: string;
   image: string;
-  imageFile: File | null;
   available: boolean;
   prepTime: string;
   sku: string;

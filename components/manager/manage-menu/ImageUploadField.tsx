@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useId } from "react";
-import { getSafeImageSrc } from "@/lib/image-url";
 import { ImageIcon, UploadIcon } from "../icons";
 import { getManagerBodyTextClasses, getManagerLabelClasses } from "../managerUtils";
 import type { Scheme } from "../managerTypes";
@@ -18,7 +17,6 @@ export function ImageUploadField({
   onChange,
 }: ImageUploadFieldProps) {
   const inputId = useId();
-  const safePreview = getSafeImageSrc(preview);
   const focusClasses =
     scheme === "dark"
       ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#061533]"
@@ -46,9 +44,9 @@ export function ImageUploadField({
                 : "border-slate-200 bg-slate-100"
             }`}
           >
-            {preview?.trim() ? (
+            {preview ? (
               <Image
-                src={safePreview}
+                src={preview}
                 alt="Menu item preview"
                 fill
                 unoptimized
@@ -81,7 +79,7 @@ export function ImageUploadField({
             <p
               className={`${scheme === "dark" ? "mt-2 text-slate-300" : "mt-2 text-slate-500"} ${getManagerBodyTextClasses(scheme)}`}
             >
-              PNG, JPG, JPEG, or WEBP up to 10MB. The existing preview stays until you save a new file.
+              PNG or JPG up to 10MB. The existing preview stays until you save a new file.
             </p>
             <div
               className={`mt-3 inline-flex items-center gap-2 text-xs font-medium ${
@@ -97,7 +95,7 @@ export function ImageUploadField({
         <input
           id={inputId}
           type="file"
-          accept="image/png,image/jpg,image/jpeg,image/webp"
+          accept="image/*"
           className="sr-only"
           onChange={(event) => onChange(event.target.files?.[0] ?? null)}
         />

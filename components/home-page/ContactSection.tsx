@@ -107,14 +107,14 @@ export function ContactSection() {
                 />
               </div>
 
-              <label className="sr-only" htmlFor="email">
-                Email
+              <label className="sr-only" htmlFor="business-email">
+                Business email
               </label>
               <input
-                id="email"
+                id="business-email"
                 name="email"
                 type="email"
-                placeholder="Email"
+                placeholder="Business email"
                 className="min-h-16 rounded-[1.35rem] border px-5 text-lg text-[var(--contact-input-text)] placeholder:text-[var(--contact-input-placeholder)] shadow-[var(--contact-input-shadow)] outline-none transition duration-300 [background:var(--contact-input-bg)] [border-color:var(--contact-input-border)] focus:[border-color:var(--contact-input-border-focus)] focus:ring-2 focus:ring-orange-300/30"
               />
 

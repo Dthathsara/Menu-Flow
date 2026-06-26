@@ -10,17 +10,9 @@ import type {
 } from "./settings.types";
 
 export const DEFAULT_RESTAURANT_PROFILE: RestaurantProfile = {
-  hotelName: "",
-  businessEmail: "",
-  businessType: "",
-  businessLocation: "",
-  businessAddress: "",
-  kitchenOpenTime: "",
-  kitchenCloseTime: "",
-  taxRate: "5",
-  serviceChargeRate: "3",
-  discountRate: "",
-  restaurantImageUrl: "",
+  name: "Chinese Dragon Cafe",
+  location: "Bambalapitiya, Colombo",
+  imageSrc: "/manager/test icon 1.jpg",
 };
 
 export const BUSINESS_TYPE_OPTIONS: readonly SettingsSelectOption<SettingsBusinessType>[] = [

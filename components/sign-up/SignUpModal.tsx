@@ -5,7 +5,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { primaryButtonClassName } from "@/components/common/buttons";
-import { apiUrl } from "@/lib/api-config";
 import { getApiErrorMessage } from "@/lib/error-handler";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
@@ -25,6 +24,7 @@ function isValidPhone(value: string) {
   return /^\+?[0-9\s()-]{7,}$/.test(value);
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/;
 
 interface SignUpModalProps {
@@ -49,7 +49,7 @@ export function SignUpModal({
   const confirmPasswordId = useId();
   const [form, setForm] = useState({
     hotelName: "",
-    email: "",
+    businessEmail: "",
     contactName: "",
     mobileNumber: "",
     password: "",
@@ -74,7 +74,7 @@ export function SignUpModal({
       setIsSubmitting(false);
       setForm({
         hotelName: "",
-        email: "",
+        businessEmail: "",
         contactName: "",
         mobileNumber: "",
         password: "",
@@ -100,10 +100,10 @@ export function SignUpModal({
       nextErrors.hotelName = "Hotel / Restaurant name is required.";
     }
 
-    if (!form.email.trim()) {
-      nextErrors.email = "Email is required.";
-    } else if (!isValidEmail(form.email)) {
-      nextErrors.email = "Enter a valid email address.";
+    if (!form.businessEmail.trim()) {
+      nextErrors.businessEmail = "Business email is required.";
+    } else if (!isValidEmail(form.businessEmail)) {
+      nextErrors.businessEmail = "Enter a valid business email.";
     }
 
     if (!form.contactName.trim()) {
@@ -144,7 +144,7 @@ export function SignUpModal({
     try {
       const payload = {
         hotelName: form.hotelName.trim(),
-        email: form.email.trim().toLowerCase(),
+        businessEmail: form.businessEmail.trim().toLowerCase(),
         contactPersonName: form.contactName.trim(),
         contactPersonMobileNumber: form.mobileNumber.trim(),
         password: form.password,
@@ -152,10 +152,7 @@ export function SignUpModal({
 
       console.log("REGISTER PAYLOAD:", payload);
 
-      const registerUrl = apiUrl("/auth/register");
-      console.log("REGISTER REQUEST URL:", registerUrl);
-
-      await axios.post(registerUrl, payload);
+      await axios.post(`${API_BASE_URL}/auth/register`, payload);
 
       setStatusType("success");
       setStatusMessage("Registration successful. Please login.");
@@ -208,14 +205,14 @@ export function SignUpModal({
             <AuthInputField
               id={emailId}
               theme={theme}
-              label="Email"
+              label="Business email"
               type="email"
-              value={form.email}
+              value={form.businessEmail}
               autoComplete="email"
               placeholder="team@menuflow.com"
-              error={errors.email}
-              onChange={(email) =>
-                setForm((current) => ({ ...current, email }))
+              error={errors.businessEmail}
+              onChange={(businessEmail) =>
+                setForm((current) => ({ ...current, businessEmail }))
               }
             />
           </div>

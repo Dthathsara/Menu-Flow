@@ -44,7 +44,7 @@ export function QrCard({ settings, item, onDownload, onDelete }: QrCardProps) {
 
       <div className="mt-3 rounded-[18px] bg-white p-1.5 shadow-[inset_0_0_0_1px_rgba(17,24,39,0.06)]">
         <QrSvgPreview
-          value={item.customerUrl}
+          value={item.qrValue}
           title={`QR code for table ${item.tableNumber}`}
           className="aspect-square w-full overflow-hidden rounded-[14px]"
           svgClassName="rounded-[14px] bg-white"
@@ -56,7 +56,7 @@ export function QrCard({ settings, item, onDownload, onDelete }: QrCardProps) {
           Table {item.tableNumber}
         </h3>
         <p className={cn("mt-1 text-[15px] font-medium", getManagerStrongTextClasses(settings.scheme))}>{item.section}</p>
-        <p className={cn("mt-0.5 line-clamp-2 break-all text-[12px]", getMutedTextClasses(settings.scheme))}>{item.customerUrl}</p>
+        <p className={cn("mt-0.5 text-[14px]", getMutedTextClasses(settings.scheme))}>{item.branch}</p>
 
         <button
           type="button"

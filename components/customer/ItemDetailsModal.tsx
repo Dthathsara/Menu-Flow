@@ -1,12 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import type { MenuItem, ServingSize } from "@/types/customer";
-import {
-  CUSTOMER_PLACEHOLDER_IMAGE,
-  formatPrice,
-  getImageSrc,
-} from "@/components/customer/customerUtils";
+import { formatPrice } from "@/components/customer/customerUtils";
 
 interface ItemDetailsModalProps {
   item: MenuItem | null;
@@ -106,51 +103,16 @@ function ModalContent({
   const [selectedServing, setSelectedServing] =
     useState<ServingSize>(initialServing);
   const [quantityInput, setQuantityInput] = useState(String(initialQuantity));
-  const isSubmittingRef = useRef(false);
 
   const parsedQuantity = Number.parseInt(quantityInput, 10);
   const quantity =
     Number.isNaN(parsedQuantity) || parsedQuantity < 1 ? 1 : parsedQuantity;
-  const currentPrice = item.servingPrices[selectedServing] ?? 0;
+  const currentPrice = item.servingPrices[selectedServing];
   const hasMultipleItems = itemsInSection.length > 1;
-  const imageSrc = getImageSrc(item.image);
 
-  const submitCurrentSelection = useCallback(() => {
-    if (isSubmittingRef.current) {
-      return;
-    }
-
-    isSubmittingRef.current = true;
+  function submitCurrentSelection() {
     onAddToOrder(item, selectedServing, quantity);
-    window.setTimeout(() => {
-      isSubmittingRef.current = false;
-    }, 300);
-  }, [item, onAddToOrder, quantity, selectedServing]);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Enter") {
-        if (
-          event.target instanceof HTMLButtonElement &&
-          event.target.type !== "submit"
-        ) {
-          return;
-        }
-
-        event.preventDefault();
-        submitCurrentSelection();
-        return;
-      }
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, submitCurrentSelection]);
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -178,9 +140,12 @@ function ModalContent({
       return;
     }
 
-    if (event.key === "Enter") {
-      event.preventDefault();
+    if (event.key !== "Enter") {
+      return;
     }
+
+    event.preventDefault();
+    submitCurrentSelection();
   }
 
   return (
@@ -222,19 +187,13 @@ function ModalContent({
             >
               ‹
             </button>
-            <div className="relative h-64 overflow-hidden rounded-[1.4rem] border border-[#eadfce] bg-[#f7f0e5]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageSrc}
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.4rem] border border-[#eadfce] bg-[#f7f0e5]">
+              <Image
+                src={item.image}
                 alt={item.name}
-                className="h-full w-full object-contain"
-                onError={(event) => {
-                  if (event.currentTarget.src.endsWith(CUSTOMER_PLACEHOLDER_IMAGE)) {
-                    return;
-                  }
-
-                  event.currentTarget.src = CUSTOMER_PLACEHOLDER_IMAGE;
-                }}
+                fill
+                sizes="(max-width: 640px) 80vw, 420px"
+                className="object-cover"
               />
             </div>
             <button
@@ -250,9 +209,6 @@ function ModalContent({
 
           <p className="mt-4 text-base leading-7 text-[#6e5447]">
             {item.description}
-          </p>
-          <p className="mt-2 text-sm font-semibold text-[#7a6050]">
-            Preparation time: {item.prepTime} min
           </p>
 
           <div className="mt-5 rounded-[1.4rem] bg-[#f6efe5] p-4">
@@ -274,10 +230,7 @@ function ModalContent({
                         : "border-[#ddcfc0] bg-white text-[#7a2a24] hover:border-[#c5b29e]"
                     }`}
                   >
-                    <span>{serving}</span>
-                    <span className="block text-[0.68rem] font-bold">
-                      {formatPrice(item.servingPrices[serving] ?? 0)}
-                    </span>
+                    {serving}
                   </button>
                 );
               })}

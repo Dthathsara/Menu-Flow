@@ -26,17 +26,9 @@ export type SettingsOrderTimeout =
 export type SettingsThemePreference = "dark-premium" | "light-clean" | "auto";
 
 export interface RestaurantProfile {
-  hotelName: string;
-  businessEmail: string;
-  businessType: string;
-  businessLocation: string;
-  businessAddress: string;
-  kitchenOpenTime: string;
-  kitchenCloseTime: string;
-  taxRate: string;
-  serviceChargeRate: string;
-  discountRate: string;
-  restaurantImageUrl: string;
+  name: string;
+  location: string;
+  imageSrc: string;
 }
 
 export interface OrderingWorkflowSettings {

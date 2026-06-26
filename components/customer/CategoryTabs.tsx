@@ -31,6 +31,13 @@ export function CategoryTabs({
               <div className="text-[0.68rem] font-bold uppercase tracking-[0.22em]">
                 {category.name}
               </div>
+              <div
+                className={`mt-1 text-[0.72rem] ${
+                  isActive ? "text-[#579b55]" : "text-[#a1746c]"
+                }`}
+              >
+                {category.accentLabel}
+              </div>
             </button>
           );
         })}

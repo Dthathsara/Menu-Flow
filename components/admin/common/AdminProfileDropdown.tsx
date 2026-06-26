@@ -27,11 +27,12 @@ export function AdminProfileDropdown({ scheme }: AdminProfileDropdownProps) {
     }
     try {
       const parsed = JSON.parse(storedUser) as Partial<AdminUserProfile> & {
+        businessEmail?: string;
         contactPersonName?: string;
       };
       return {
         name: parsed.name || parsed.contactPersonName || ADMIN_PROFILE.name,
-        email: parsed.email || ADMIN_PROFILE.email,
+        email: parsed.email || parsed.businessEmail || ADMIN_PROFILE.email,
         role: parsed.role || ADMIN_PROFILE.role,
       };
     } catch {

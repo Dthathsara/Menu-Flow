@@ -18,63 +18,48 @@ import {
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { ImageUploadField } from "./ImageUploadField";
-import type { MenuItemFormValues, MenuItemRecord } from "./types";
+import type { MenuCategory, MenuItemFormValues, MenuItemRecord } from "./types";
 
 interface MenuItemModalProps {
   mode: "add" | "edit";
   settings: ManagerSettings;
+  categories: readonly MenuCategory[];
   item?: MenuItemRecord | null;
   onClose: () => void;
-  onSave: (values: MenuItemFormValues) => Promise<void> | void;
-  isSaving?: boolean;
-  errorMessage?: string;
+  onSave: (values: MenuItemFormValues) => void;
 }
 
-const IMAGE_VALIDATION_MESSAGE =
-  "Please upload a PNG, JPG, JPEG, or WEBP image under 10MB.";
-const ALLOWED_IMAGE_TYPES = new Set([
-  "image/png",
-  "image/jpg",
-  "image/jpeg",
-  "image/webp",
-]);
-const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
-
-function createEmptyValues(): MenuItemFormValues {
+function createEmptyValues(category: MenuCategory): MenuItemFormValues {
   return {
     name: "",
-    categoryName: "",
-    subCategoryName: "",
+    category,
     description: "",
     smallPrice: "",
     mediumPrice: "",
     largePrice: "",
     image: "",
-    imageFile: null,
     available: true,
     prepTime: "12",
     sku: "",
   };
 }
 
-function createFormValues(item: MenuItemRecord | null | undefined) {
+function createFormValues(item: MenuItemRecord | null | undefined, fallbackCategory: MenuCategory) {
   if (!item) {
-    return createEmptyValues();
+    return createEmptyValues(fallbackCategory);
   }
 
   return {
     name: item.name,
-    categoryName: item.categoryName,
-    subCategoryName: item.subCategoryName ?? "",
+    category: item.category,
     description: item.description,
-    smallPrice: String(item.smallPrice),
-    mediumPrice: String(item.mediumPrice),
-    largePrice: String(item.largePrice),
+    smallPrice: String(item.prices.small),
+    mediumPrice: String(item.prices.medium),
+    largePrice: String(item.prices.large),
     image: item.image,
-    imageFile: null,
     available: item.available,
     prepTime: String(item.prepTime),
-    sku: "",
+    sku: item.sku,
   } satisfies MenuItemFormValues;
 }
 
@@ -87,26 +72,19 @@ function readFileAsDataUrl(file: File) {
   });
 }
 
-function isValidImageFile(file: File) {
-  return ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE_BYTES;
-}
-
 export function MenuItemModal({
   mode,
   settings,
+  categories,
   item,
   onClose,
   onSave,
-  isSaving = false,
-  errorMessage = "",
 }: MenuItemModalProps) {
   const [values, setValues] = useState<MenuItemFormValues>(() =>
-    createFormValues(item),
+    createFormValues(item, categories[0]),
   );
   const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [localErrorMessage, setLocalErrorMessage] = useState("");
   const isDark = settings.scheme === "dark";
-  const displayErrorMessage = localErrorMessage || errorMessage;
   const modalFocusClasses =
     isDark
       ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#061533]"
@@ -142,29 +120,15 @@ export function MenuItemModal({
       : "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500",
     modalFocusClasses,
   );
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (pendingFile && !isValidImageFile(pendingFile)) {
-      setLocalErrorMessage(IMAGE_VALIDATION_MESSAGE);
-      return;
-    }
+    const nextImage = pendingFile ? await readFileAsDataUrl(pendingFile) : values.image;
 
-    let nextImage = values.image;
-
-    try {
-      nextImage = pendingFile ? await readFileAsDataUrl(pendingFile) : values.image;
-    } catch {
-      setLocalErrorMessage("Unable to read the selected image. Please try another file.");
-      return;
-    }
-
-    setLocalErrorMessage("");
-
-    await onSave({
+    onSave({
       ...values,
       image: nextImage,
-      imageFile: pendingFile,
     });
   }
 
@@ -202,7 +166,6 @@ export function MenuItemModal({
               onClick={onClose}
               className={cn(getManagerIconButtonClasses(settings.scheme, true), modalFocusClasses)}
               aria-label="Close menu item modal"
-              disabled={isSaving}
             >
               <XIcon className="size-4" />
             </button>
@@ -239,37 +202,23 @@ export function MenuItemModal({
                       <label htmlFor="menu-item-category" className={getManagerLabelClasses(settings.scheme)}>
                         Category
                       </label>
-                      <input
+                      <select
                         id="menu-item-category"
-                        value={values.categoryName}
+                        value={values.category}
                         onChange={(event) =>
                           setValues((current) => ({
                             ...current,
-                            categoryName: event.target.value,
+                            category: event.target.value as MenuCategory,
                           }))
                         }
-                        placeholder="Enter category name"
                         className={inputClasses}
-                        required
-                      />
-                    </div>
-
-                    <div className="min-w-0 space-y-2">
-                      <label htmlFor="menu-item-sub-category" className={getManagerLabelClasses(settings.scheme)}>
-                        Sub Category
-                      </label>
-                      <input
-                        id="menu-item-sub-category"
-                        value={values.subCategoryName}
-                        onChange={(event) =>
-                          setValues((current) => ({
-                            ...current,
-                            subCategoryName: event.target.value,
-                          }))
-                        }
-                        placeholder="Enter sub category name"
-                        className={inputClasses}
-                      />
+                      >
+                        {categories.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="min-w-0 space-y-2 sm:col-span-2">
@@ -396,27 +345,12 @@ export function MenuItemModal({
                   onChange={(file) => {
                     setPendingFile(file);
                     if (!file) {
-                      setLocalErrorMessage("");
-                      setValues((current) => ({ ...current, imageFile: null }));
                       return;
                     }
 
-                    if (!isValidImageFile(file)) {
-                      setLocalErrorMessage(IMAGE_VALIDATION_MESSAGE);
-                      setValues((current) => ({ ...current, imageFile: file }));
-                      return;
-                    }
-
-                    setLocalErrorMessage("");
-                    readFileAsDataUrl(file)
-                      .then((dataUrl) => {
-                        setValues((current) => ({ ...current, image: dataUrl, imageFile: file }));
-                      })
-                      .catch(() => {
-                        setLocalErrorMessage(
-                          "Unable to read the selected image. Please try another file.",
-                        );
-                      });
+                    readFileAsDataUrl(file).then((dataUrl) => {
+                      setValues((current) => ({ ...current, image: dataUrl }));
+                    });
                   }}
                 />
 
@@ -471,17 +405,10 @@ export function MenuItemModal({
           </div>
 
           <div className={cn(getManagerModalFooterClasses(settings.scheme), "items-stretch sm:items-center")}>
-            {displayErrorMessage ? (
-              <div className="text-sm font-medium text-rose-300 sm:mr-auto">
-                {displayErrorMessage}
-              </div>
-            ) : null}
-
             <button
               type="button"
               onClick={onClose}
               className={cn(getManagerSecondaryButtonClasses(settings.scheme), modalFocusClasses)}
-              disabled={isSaving}
             >
               Cancel
             </button>
@@ -489,9 +416,8 @@ export function MenuItemModal({
             <button
               type="submit"
               className={cn(getManagerPrimaryButtonClasses(settings.scheme), modalFocusClasses)}
-              disabled={isSaving}
             >
-              {isSaving ? "Saving..." : "Save Item"}
+              Save Item
             </button>
           </div>
         </form>

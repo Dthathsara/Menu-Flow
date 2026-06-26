@@ -38,7 +38,7 @@ type LoggedInUser = {
   contactPersonName?: string;
   firstName?: string;
   lastName?: string;
-  email?: string;
+  businessEmail?: string;
 };
 
 interface StatCardItem {
@@ -342,7 +342,7 @@ function getDisplayName(user: LoggedInUser | null) {
     user?.contactPersonName ||
     (user?.firstName && user?.lastName
       ? `${user.firstName} ${user.lastName}`
-      : user?.email || "User")
+      : user?.businessEmail || "User")
   );
 }
 
@@ -922,17 +922,11 @@ export function DashboardContent({ settings }: DashboardContentProps) {
   const displayName = getDisplayName(user);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const storedUser = localStorage.getItem("user");
+    const storedUser = localStorage.getItem("user");
 
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   }, []);
 
   return (

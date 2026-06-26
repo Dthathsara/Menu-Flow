@@ -1,29 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { BottomTabBar } from "@/components/customer/BottomTabBar";
 import { CategoryTabs } from "@/components/customer/CategoryTabs";
 import { ContactPanel } from "@/components/customer/ContactPanel";
 import { CustomerHeader } from "@/components/customer/CustomerHeader";
 import { ItemDetailsModal } from "@/components/customer/ItemDetailsModal";
-import { OrderConfirmModal } from "@/components/customer/OrderConfirmModal";
 import { OrdersPanel } from "@/components/customer/OrdersPanel";
-import { RemoveConfirmModal } from "@/components/customer/RemoveConfirmModal";
 import { SubcategorySection } from "@/components/customer/SubcategorySection";
 import { formatPrice, getSectionKey } from "@/components/customer/customerUtils";
-import {
-  CustomerMenuApiError,
-  fetchCustomerMenuData,
-} from "@/lib/customer-menu-api";
 import type {
   CartItem,
   CustomerMenuData,
   MenuCategory,
   MenuItem,
-  QrContext,
   ServingSize,
   TabId,
 } from "@/types/customer";
+
+interface CustomerDashboardProps {
+  data: CustomerMenuData;
+}
 
 interface ModalState {
   categoryId: string;
@@ -33,14 +30,6 @@ interface ModalState {
   crust?: string;
   initialServing?: ServingSize;
   initialQuantity?: number;
-}
-
-interface OrderConfirmationState {
-  item: MenuItem;
-  serving: ServingSize;
-  quantity: number;
-  crust?: string;
-  editKey?: string;
 }
 
 function buildExpandedState(categories: MenuCategory[]) {
@@ -54,228 +43,18 @@ function buildExpandedState(categories: MenuCategory[]) {
   ) as Record<string, boolean>;
 }
 
-function getMenuSlugFromLocation() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-
-  return (
-    params.get("slug") ??
-    params.get("menu") ??
-    params.get("restaurant") ??
-    ""
-  );
-}
-
-function getTenantIdFromLocation() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  const queryTenantId = (params.get("tenantId") ?? params.get("tenant") ?? "").trim();
-
-  if (queryTenantId) {
-    return queryTenantId;
-  }
-
-  return getStoredTenantId();
-}
-
-function getQrTokenFromLocation() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return (params.get("qrToken") ?? params.get("qr") ?? "").trim();
-}
-
-function getQueryTenantIdFromLocation() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return (params.get("tenantId") ?? params.get("tenant") ?? "").trim();
-}
-
-function getStoredTenantId() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const storedUser = window.localStorage.getItem("user");
-
-  if (!storedUser) {
-    return "";
-  }
-
-  try {
-    const user = JSON.parse(storedUser) as { tenantId?: unknown };
-
-    if (typeof user.tenantId === "string") {
-      return user.tenantId.trim();
-    }
-
-    if (typeof user.tenantId === "number") {
-      return String(user.tenantId);
-    }
-  } catch {
-    return "";
-  }
-
-  return "";
-}
-
-function getCustomerMenuErrorMessage(error: unknown) {
-  if (error instanceof CustomerMenuApiError) {
-    return error.message;
-  }
-
-  return "Unable to load menu. Please try again.";
-}
-
-function mergeExpandedState(
-  current: Record<string, boolean>,
-  categories: MenuCategory[],
-) {
-  return {
-    ...buildExpandedState(categories),
-    ...Object.fromEntries(
-      Object.entries(current).filter(([key]) =>
-        categories.some((category) =>
-          category.subcategories.some(
-            (subcategory) => getSectionKey(category.id, subcategory.id) === key,
-          ),
-        ),
-      ),
-    ),
-  };
-}
-
-function StatusMessage({ message }: { message: string }) {
-  return (
-    <div className="min-h-screen bg-[#f3f0eb] px-4 pb-28 pt-4 text-[#7a2a24] sm:px-6 sm:pb-32 sm:pt-6 md:px-8 lg:px-6 xl:px-8 2xl:px-10">
-      <div className="mx-auto w-full max-w-[1680px]">
-        <section className="rounded-[2rem] border border-[#dfd5c7] bg-[#fffaf4] p-6 text-center shadow-[0_18px_48px_rgba(108,79,55,0.08)]">
-          <p className="text-[0.78rem] font-bold uppercase tracking-[0.24em] text-[#3d9238]">
-            Menu
-          </p>
-          <h1 className="mt-3 text-2xl font-black text-[#7a2a24]">
-            {message}
-          </h1>
-        </section>
-      </div>
-    </div>
-  );
-}
-
-export function CustomerDashboard() {
-  const [data, setData] = useState<CustomerMenuData | null>(null);
+export function CustomerDashboard({ data }: CustomerDashboardProps) {
+  const firstCategory = data.categories[0];
   const [activeTab, setActiveTab] = useState<TabId>("menu");
-  const [activeCategoryId, setActiveCategoryId] = useState("");
+  const [activeCategoryId, setActiveCategoryId] = useState(firstCategory?.id ?? "");
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
-    {},
+    () => buildExpandedState(data.categories),
   );
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [qrContext, setQrContext] = useState<QrContext | undefined>(undefined);
   const [modalState, setModalState] = useState<ModalState | null>(null);
-  const [orderConfirmation, setOrderConfirmation] =
-    useState<OrderConfirmationState | null>(null);
-  const [removeConfirmation, setRemoveConfirmation] = useState<CartItem | null>(
-    null,
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const loadMenuData = useCallback(async (showLoading: boolean) => {
-    if (showLoading) {
-      setIsLoading(true);
-    }
-
-    try {
-      const nextData = await fetchCustomerMenuData({
-        slug: getMenuSlugFromLocation(),
-        tenantId: getTenantIdFromLocation(),
-        qrToken: getQrTokenFromLocation(),
-      });
-
-      setData(nextData);
-      setQrContext({
-        generatedQrCodeId: nextData.qrContext?.generatedQrCodeId ?? "",
-        qrId: nextData.qrContext?.qrId ?? nextData.qrContext?.generatedQrCodeId ?? "",
-        qrToken: nextData.qrContext?.qrToken || getQrTokenFromLocation(),
-        tableNumber: nextData.qrContext?.tableNumber ?? "",
-        section: nextData.qrContext?.section ?? "",
-      });
-      setErrorMessage("");
-      setActiveCategoryId((currentCategoryId) =>
-        nextData.categories.some((category) => category.id === currentCategoryId)
-          ? currentCategoryId
-          : nextData.categories[0]?.id ?? "",
-      );
-      setExpandedSections((current) =>
-        mergeExpandedState(current, nextData.categories),
-      );
-    } catch (error) {
-      if (showLoading) {
-        setErrorMessage(getCustomerMenuErrorMessage(error));
-      }
-    } finally {
-      if (showLoading) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    const fetchMenu = (showLoading = false) => {
-      if (!active) {
-        return;
-      }
-
-      void loadMenuData(showLoading);
-    };
-
-    fetchMenu(true);
-
-    const intervalId = window.setInterval(() => fetchMenu(false), 5000);
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === "visible") {
-        fetchMenu(false);
-      }
-    }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      active = false;
-      window.clearInterval(intervalId);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [loadMenuData]);
-
-  if (isLoading && !data) {
-    return <StatusMessage message="Loading menu..." />;
-  }
-
-  if (!data) {
-    return (
-      <StatusMessage
-        message={errorMessage || "Unable to load menu. Please try again."}
-      />
-    );
-  }
-
-  const firstCategory = data.categories[0];
 
   if (!firstCategory) {
-    return <StatusMessage message="No menu items are available right now." />;
+    return null;
   }
 
   const activeCategory =
@@ -300,20 +79,15 @@ export function CustomerDashboard() {
     (total, item) => total + item.unitPrice * item.quantity,
     0,
   );
-  const orderTenantId =
-    getQueryTenantIdFromLocation() ||
-    data.restaurant.id ||
-    "";
+  const orderTax = orderSubtotal * 0.05;
+  const orderServiceCharge = orderSubtotal * 0.03;
+  const orderTotal = orderSubtotal + orderTax + orderServiceCharge;
   const activeCategoryItemCount = activeCategory.subcategories.reduce(
     (count, subcategory) => count + subcategory.items.length,
     0,
   );
 
   function findItemLocation(itemId: string) {
-    if (!data) {
-      return null;
-    }
-
     for (const category of data.categories) {
       for (const subcategory of category.subcategories) {
         const foundItem = subcategory.items.find((entry) => entry.id === itemId);
@@ -370,22 +144,7 @@ export function CustomerDashboard() {
     crust?: string,
     editKey?: string,
   ) {
-    setOrderConfirmation({
-      item,
-      serving,
-      quantity,
-      crust,
-      editKey,
-    });
-  }
-
-  function confirmAddToOrder() {
-    if (!orderConfirmation) {
-      return;
-    }
-
-    const { item, serving, quantity, crust, editKey } = orderConfirmation;
-    const unitPrice = item.servingPrices[serving] ?? 0;
+    const unitPrice = item.servingPrices[serving];
     const key = `${item.id}:${serving}:${crust ?? "default"}`;
 
     setCartItems((current) => {
@@ -411,13 +170,10 @@ export function CustomerDashboard() {
             key,
             itemId: item.id,
             name: item.name,
-            categoryName: item.categoryName,
-            subCategoryName: item.subCategoryName,
             crust: crust ?? itemBeingEdited?.crust,
             serving,
             quantity,
             unitPrice,
-            prepTime: item.prepTime,
             image: item.image,
           },
         ];
@@ -439,42 +195,20 @@ export function CustomerDashboard() {
           key,
           itemId: item.id,
           name: item.name,
-          categoryName: item.categoryName,
-          subCategoryName: item.subCategoryName,
           crust,
           serving,
           quantity,
           unitPrice,
-          prepTime: item.prepTime,
           image: item.image,
         },
       ];
     });
 
-    setOrderConfirmation(null);
     setModalState(null);
   }
 
-  function cancelAddToOrder() {
-    setOrderConfirmation(null);
-  }
-
-  function requestRemoveCartItem(item: CartItem) {
-    setRemoveConfirmation(item);
-  }
-
-  function confirmRemoveCartItem() {
-    if (!removeConfirmation) {
-      return;
-    }
-
-    const key = removeConfirmation.key;
+  function removeCartItem(key: string) {
     setCartItems((current) => current.filter((item) => item.key !== key));
-    setRemoveConfirmation(null);
-  }
-
-  function cancelRemoveCartItem() {
-    setRemoveConfirmation(null);
   }
 
   function handleQuickAdd(item: MenuItem, serving: ServingSize) {
@@ -485,7 +219,6 @@ export function CustomerDashboard() {
     const location = findItemLocation(item.itemId);
 
     if (!location) {
-      window.alert("This item is no longer available on the menu.");
       return;
     }
 
@@ -538,7 +271,16 @@ export function CustomerDashboard() {
             <div className="mt-5 2xl:grid 2xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)] 2xl:gap-6">
               <div className="space-y-5">
                 <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
-                  <div className="hidden rounded-[1.6rem] bg-[#fcf7f1] p-4 lg:col-start-2 lg:block lg:p-5 2xl:hidden">
+                  <div className="rounded-[1.6rem] bg-[#f4ede3] p-4 lg:p-5">
+                    <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#3d9238]">
+                      {activeCategory.name}
+                    </div>
+                    <div className="mt-2 text-base leading-7 text-[#7a6050]">
+                      {activeCategory.description}
+                    </div>
+                  </div>
+
+                  <div className="hidden rounded-[1.6rem] bg-[#fcf7f1] p-4 lg:block lg:p-5 2xl:hidden">
                     <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#3d9238]">
                       Current cart
                     </div>
@@ -645,16 +387,11 @@ export function CustomerDashboard() {
           <OrdersPanel
             items={cartItems}
             subtotal={orderSubtotal}
-            restaurant={data.restaurant}
-            tenantId={orderTenantId?.trim() ?? ""}
-            qrToken={qrContext?.qrToken ?? ""}
-            generatedQrCodeId={qrContext?.generatedQrCodeId ?? ""}
-            qrId={qrContext?.qrId ?? ""}
-            tableNumber={qrContext?.tableNumber ?? ""}
-            section={qrContext?.section ?? ""}
-            onOrderSuccess={() => setCartItems([])}
+            tax={orderTax}
+            serviceCharge={orderServiceCharge}
+            total={orderTotal}
             onEdit={handleEditItem}
-            onRemove={requestRemoveCartItem}
+            onRemove={removeCartItem}
           />
         ) : null}
 
@@ -688,26 +425,6 @@ export function CustomerDashboard() {
             modalState?.editKey,
           )
         }
-      />
-
-      <OrderConfirmModal
-        item={orderConfirmation?.item}
-        serving={orderConfirmation?.serving}
-        price={
-          orderConfirmation
-            ? orderConfirmation.item.servingPrices[orderConfirmation.serving] ?? 0
-            : 0
-        }
-        isOpen={orderConfirmation !== null}
-        onCancel={cancelAddToOrder}
-        onConfirm={confirmAddToOrder}
-      />
-
-      <RemoveConfirmModal
-        item={removeConfirmation}
-        isOpen={removeConfirmation !== null}
-        onCancel={cancelRemoveCartItem}
-        onConfirm={confirmRemoveCartItem}
       />
     </div>
   );

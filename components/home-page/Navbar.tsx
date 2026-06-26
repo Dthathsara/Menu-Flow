@@ -31,21 +31,15 @@ export function Navbar() {
   const [activeModal, setActiveModal] = useState<"login" | "signup" | null>(null);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const storedSettings = parseManagerSettingsValue(
-        window.localStorage.getItem(MANAGER_STORAGE_KEY),
-      );
-      const savedTheme =
-        storedSettings?.scheme ??
-        (document.documentElement.dataset.theme === "light" ? "light" : "dark");
+    const storedSettings = parseManagerSettingsValue(
+      window.localStorage.getItem(MANAGER_STORAGE_KEY),
+    );
+    const savedTheme =
+      storedSettings?.scheme ??
+      (document.documentElement.dataset.theme === "light" ? "light" : "dark");
 
-      setTheme(savedTheme);
-      setMounted(true);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
+    setTheme(savedTheme);
+    setMounted(true);
   }, []);
 
   useEffect(() => {

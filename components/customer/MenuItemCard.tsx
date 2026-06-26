@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { MenuItem, ServingSize } from "@/types/customer";
-import {
-  CUSTOMER_PLACEHOLDER_IMAGE,
-  formatPrice,
-  getImageSrc,
-} from "@/components/customer/customerUtils";
+import { formatPrice } from "@/components/customer/customerUtils";
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -22,7 +19,6 @@ export function MenuItemCard({
   onQuickAdd,
 }: MenuItemCardProps) {
   const [selectedServing, setSelectedServing] = useState<ServingSize>("Large");
-  const imageSrc = getImageSrc(item.image);
 
   return (
     <>
@@ -32,18 +28,12 @@ export function MenuItemCard({
         className="flex w-full items-start gap-3 rounded-[1.35rem] bg-white px-3 py-3 text-left shadow-[0_12px_26px_rgba(122,92,65,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(122,92,65,0.14)] md:hidden"
       >
         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] border border-[#eadfce] bg-[#f7f0e5]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageSrc}
+          <Image
+            src={item.image}
             alt={item.name}
-            className="h-full w-full object-cover"
-            onError={(event) => {
-              if (event.currentTarget.src.endsWith(CUSTOMER_PLACEHOLDER_IMAGE)) {
-                return;
-              }
-
-              event.currentTarget.src = CUSTOMER_PLACEHOLDER_IMAGE;
-            }}
+            fill
+            sizes="80px"
+            className="object-cover"
           />
         </div>
         <div className="min-w-0 flex-1">
@@ -52,7 +42,6 @@ export function MenuItemCard({
           </div>
           <div className="mt-2 flex items-center gap-2 text-[0.72rem] uppercase tracking-[0.18em] text-[#9d8776]">
             <span>{item.spiceLevel ?? "Chef pick"}</span>
-            <span>Prep: {item.prepTime} min</span>
           </div>
           <div className="mt-2 text-lg font-black text-[#2b8a38]">
             {formatPrice(item.basePrice)}
@@ -64,20 +53,14 @@ export function MenuItemCard({
         <button
           type="button"
           onClick={onSelect}
-          className="group relative block h-[220px] w-full overflow-hidden rounded-t-[inherit] bg-[#f4eadc]"
+          className="group relative block aspect-[1.08/1] overflow-hidden bg-[#f6efe4]"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageSrc}
+          <Image
+            src={item.image}
             alt={item.name}
-            className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]"
-            onError={(event) => {
-              if (event.currentTarget.src.endsWith(CUSTOMER_PLACEHOLDER_IMAGE)) {
-                return;
-              }
-
-              event.currentTarget.src = CUSTOMER_PLACEHOLDER_IMAGE;
-            }}
+            fill
+            sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, (max-width: 1535px) 33vw, 25vw"
+            className="object-cover transition duration-300 group-hover:scale-[1.03]"
           />
           <div className="absolute left-3 top-3 flex items-center gap-2">
             <span className="inline-flex h-4 w-4 rounded-[4px] border border-white bg-[#1faa2b]" />
@@ -91,17 +74,14 @@ export function MenuItemCard({
         </button>
 
         <div className="flex h-full flex-col p-4">
-          <div className="line-clamp-2 text-[1.25rem] font-black leading-6 text-[#7b2b24]">
+          <div className="text-[1.45rem] font-black leading-7 text-[#7b2b24]">
             {item.name}
           </div>
-          <p className="mt-2 line-clamp-3 min-h-[4.5rem] text-[0.95rem] leading-6 text-[#745f51]">
+          <p className="mt-3 line-clamp-3 min-h-[4.8rem] text-[0.98rem] leading-8 text-[#745f51]">
             {item.description}
           </p>
 
-          <div className="mt-3 flex items-center justify-between gap-3 border-b border-[#eee4d7] pb-3">
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9d8776]">
-              Prep: {item.prepTime} min
-            </span>
+          <div className="mt-4 flex justify-end border-b border-[#eee4d7] pb-4">
             <button
               type="button"
               onClick={onSelect}
@@ -111,7 +91,7 @@ export function MenuItemCard({
             </button>
           </div>
 
-          <div className="mt-3 space-y-3">
+          <div className="mt-4 space-y-4">
             <label className="block">
               <span className="text-[1rem] font-semibold text-[#7b2b24]">
                 Select Size
@@ -125,14 +105,14 @@ export function MenuItemCard({
               >
                 {servingOptions.map((serving) => (
                   <option key={serving} value={serving}>
-                    {serving} - {formatPrice(item.servingPrices[serving] ?? 0)}
+                    {serving} - {formatPrice(item.servingPrices[serving])}
                   </option>
                 ))}
               </select>
             </label>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-5">
             <button
               type="button"
               onClick={() => onQuickAdd(item, selectedServing)}
@@ -140,7 +120,7 @@ export function MenuItemCard({
             >
               <span className="text-[1.02rem] font-black">Add</span>
               <span className="text-[1.02rem] font-black">
-                {formatPrice(item.servingPrices[selectedServing] ?? 0)}
+                {formatPrice(item.servingPrices[selectedServing])}
               </span>
             </button>
           </div>
