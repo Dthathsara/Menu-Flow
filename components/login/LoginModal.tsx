@@ -128,11 +128,14 @@ export function LoginModal({
             return;
           }
 
+          if (error.response.status === 500) {
+            setStatusMessage("Backend server error. Check Vercel backend logs.");
+            return;
+          }
+
           setStatusMessage(getLoginApiErrorMessage(error.response.data));
         } else if (error.request) {
-          setStatusMessage(
-            "Cannot connect to backend. Start NestJS on port 3001 and check NEXT_PUBLIC_API_URL.",
-          );
+          setStatusMessage(getLoginConnectionErrorMessage());
         } else {
           setStatusMessage(error.message);
         }
@@ -244,4 +247,12 @@ function getLoginApiErrorMessage(data: unknown) {
   }
 
   return "Login failed. Please try again.";
+}
+
+function getLoginConnectionErrorMessage() {
+  if (process.env.NODE_ENV === "development") {
+    return "Cannot connect to backend. Start NestJS on port 3001 and check NEXT_PUBLIC_API_URL.";
+  }
+
+  return "Cannot connect to backend. Check the backend deployment and NEXT_PUBLIC_API_URL.";
 }
