@@ -57,6 +57,8 @@ export interface RestaurantInfo {
   email?: string;
   businessEmail?: string;
   restaurantImageUrl: string;
+  restaurantImageUpdatedAt?: string;
+  updatedAt?: string;
   phone?: string;
   kitchenOpenTime?: string;
   kitchenCloseTime?: string;

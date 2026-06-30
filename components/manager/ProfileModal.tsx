@@ -85,13 +85,6 @@ function buildForm(user: UserProfile | null): ProfileForm {
   };
 }
 
-function logProfileError(error: unknown) {
-  console.log(
-    "PROFILE ERROR",
-    error instanceof Error ? error.message : "Unknown profile error",
-  );
-}
-
 export function ProfileModal({
   open,
   onClose,
@@ -152,7 +145,6 @@ export function ProfileModal({
           return;
         }
 
-        logProfileError(error);
         setStatusType("error");
         setStatusMessage(
           error instanceof SessionExpiredError
@@ -276,7 +268,6 @@ export function ProfileModal({
         onClose();
       }, 900);
     } catch (error) {
-      logProfileError(error);
       setStatusType("error");
       setStatusMessage(
         error instanceof SessionExpiredError

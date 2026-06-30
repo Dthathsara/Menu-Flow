@@ -130,11 +130,8 @@ export function cacheRestaurantProfile(profile: RestaurantProfile) {
   };
 
   window.localStorage.setItem("user", JSON.stringify(nextUser));
-  window.dispatchEvent(
-    new CustomEvent("menuflow:user-updated", { detail: nextUser }),
-  );
 
-  return profile;
+  return nextUser;
 }
 
 export async function fetchRestaurantProfile() {

@@ -270,11 +270,11 @@ export async function fetchAdminOrders(filters: {
   }
 
   if (filters.paymentStatus && filters.paymentStatus !== "All Payments") {
-    query.set("payment_status", filters.paymentStatus);
+    query.set("paymentStatus", filters.paymentStatus);
   }
 
   if (filters.orderStatus && filters.orderStatus !== "All Statuses") {
-    query.set("order_status", filters.orderStatus);
+    query.set("orderStatus", filters.orderStatus);
   }
 
   const url = `${API_BASE_URL}/admin/orders${query.toString() ? `?${query}` : ""}`;

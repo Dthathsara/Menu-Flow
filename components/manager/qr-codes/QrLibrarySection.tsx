@@ -1,4 +1,4 @@
-import { ChevronDownIcon, SearchIcon } from "../icons";
+import { SearchIcon } from "../icons";
 import {
   cn,
   getManagerAccentPillClasses,
@@ -11,6 +11,7 @@ import {
   getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
+import { FilterDropdown } from "../orders/FilterDropdown";
 import { QrCard } from "./QrCard";
 import type { QrCodeRecord } from "./types";
 
@@ -81,25 +82,18 @@ export function QrLibrarySection({
             </div>
           </label>
 
-          <label className="relative min-w-0 xl:w-[220px]">
-            <span className="sr-only">Filter by section</span>
-            <select
+          <div className="min-w-0 xl:w-[220px]">
+            <FilterDropdown
+              label="Filter QR codes by section"
+              settings={settings}
+              options={sectionOptions.map((section) => ({
+                label: section,
+                value: section,
+              }))}
               value={sectionValue}
-              onChange={(event) => onSectionChange(event.target.value)}
-              className={cn(
-                getManagerControlShellClasses(settings.scheme),
-                "h-12 w-full appearance-none rounded-[14px] pr-10 text-[14px] font-medium outline-none",
-              )}
-              aria-label="Filter QR codes by section"
-            >
-              {sectionOptions.map((section) => (
-                <option key={section} value={section}>
-                  {section}
-                </option>
-              ))}
-            </select>
-            <ChevronDownIcon className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          </label>
+              onChange={onSectionChange}
+            />
+          </div>
 
           <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
             {items.length} result{items.length === 1 ? "" : "s"}

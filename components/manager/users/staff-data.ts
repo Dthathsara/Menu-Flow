@@ -15,7 +15,7 @@ export const DEFAULT_STAFF_FILTERS: StaffFilters = {
 
 export const DEFAULT_STAFF_FORM_VALUES: StaffFormValues = {
   fullName: "",
-  role: "Chef",
+  role: "",
   operationalAccess: "",
   email: "",
   phone: "",

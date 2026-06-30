@@ -281,10 +281,15 @@ function mapReport(payload: unknown): UserReportResponse {
     "items",
     "results",
   ]).map(mapRow);
+  const waiterPerformance = unwrapList(
+    record.waiterPerformance ?? record.waiter_performance,
+    ["waiterPerformance", "waiter_performance", "rows", "items"],
+  ).map(mapRow);
 
   return {
     stats: mapStats(record.stats ?? record.summary),
     rows,
+    waiterPerformance,
     activitySummary: mapActivity(record.activitySummary ?? record.activity_summary),
     roleBreakdown: unwrapList(record.roleBreakdown ?? record.role_breakdown, [
       "roleBreakdown",

@@ -18,7 +18,9 @@ interface RefundBillModalProps {
   settings: ManagerSettings;
   bill: BillRecord | null;
   onClose: () => void;
-  onConfirm: (reason: RefundReason) => void;
+  onConfirm: (reason: RefundReason) => void | Promise<void>;
+  isSaving?: boolean;
+  errorMessage?: string;
 }
 
 export function RefundBillModal({
@@ -27,18 +29,25 @@ export function RefundBillModal({
   bill,
   onClose,
   onConfirm,
+  isSaving = false,
+  errorMessage = "",
 }: RefundBillModalProps) {
   const [reasonOverride, setReasonOverride] = useState<RefundReason | null>(null);
   const reason = reasonOverride ?? "Customer cancelled item";
 
   function handleClose() {
+    if (isSaving) {
+      return;
+    }
+
     setReasonOverride(null);
     onClose();
   }
 
   function handleConfirm() {
-    onConfirm(reason);
-    setReasonOverride(null);
+    if (!isSaving) {
+      void onConfirm(reason);
+    }
   }
 
   return (
@@ -51,17 +60,32 @@ export function RefundBillModal({
       onClose={handleClose}
       footer={
         <>
-          <button type="button" onClick={handleClose} className={getMutedButtonClasses(settings.scheme)}>
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={isSaving}
+            className={getMutedButtonClasses(settings.scheme)}
+          >
             Cancel
           </button>
-          <button type="button" onClick={handleConfirm} className={getRefundButtonClasses(settings.scheme)}>
-            Confirm Refund
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={isSaving}
+            className={getRefundButtonClasses(settings.scheme)}
+          >
+            {isSaving ? "Refunding..." : "Confirm Refund"}
           </button>
         </>
       }
     >
       {bill ? (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          {errorMessage ? (
+            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300 md:col-span-2">
+              {errorMessage}
+            </div>
+          ) : null}
           <div className="space-y-2">
             <label htmlFor="refund-bill-id" className={getManagerLabelClasses(settings.scheme)}>
               Bill ID

@@ -11,6 +11,7 @@ import {
   getManagerTextInputClasses,
   getMutedTextClasses,
 } from "../managerUtils";
+import type { ManagerBadgeTone } from "../managerUtils";
 import type { Scheme } from "../managerTypes";
 import type {
   StaffFilters,
@@ -58,15 +59,35 @@ export function getOperationalAccessLabel(role: StaffRole) {
 }
 
 export function getRoleBadgeClasses(role: StaffRole, scheme: Scheme) {
-  if (role === "Chef") {
-    return getManagerBadgeClasses("amber", scheme);
-  }
+  const normalizedRole = role.trim().toLowerCase();
 
-  if (role === "Waiter") {
+  if (normalizedRole === "waiter") {
     return getManagerBadgeClasses("brand", scheme);
   }
 
-  return getManagerBadgeClasses("cyan", scheme);
+  if (normalizedRole === "chef") {
+    return getManagerBadgeClasses("amber", scheme);
+  }
+
+  if (normalizedRole === "counter") {
+    return getManagerBadgeClasses("cyan", scheme);
+  }
+
+  if (normalizedRole === "manager" || normalizedRole === "admin") {
+    return getManagerBadgeClasses("violet", scheme);
+  }
+
+  if (normalizedRole === "cashier") {
+    return getManagerBadgeClasses("success", scheme);
+  }
+
+  const fallbackTones: ManagerBadgeTone[] = ["teal", "warning", "info", "danger", "neutral"];
+  const total = Array.from(normalizedRole || "other").reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0,
+  );
+
+  return getManagerBadgeClasses(fallbackTones[total % fallbackTones.length], scheme);
 }
 
 export function getStatusBadgeClasses(status: StaffStatus, scheme: Scheme) {

@@ -13,16 +13,14 @@ import { getAccessToken, refreshAccessToken } from "@/lib/auth-session";
 import { API_BASE_URL } from "@/lib/api-config";
 import {
   getImageUrl as getSafeMenuImageUrl,
-  getSafeImageSrcFromCandidates,
-  PLACEHOLDER_FOOD_IMAGE,
 } from "@/lib/image-url";
 
-const FALLBACK_IMAGE = PLACEHOLDER_FOOD_IMAGE;
 const SERVING_SIZES: ServingSize[] = ["Small", "Medium", "Large"];
 
 export interface CustomerMenuFetchParams {
   slug?: string;
   tenantId?: string;
+  tableId?: string;
   qrToken?: string;
 }
 
@@ -41,6 +39,8 @@ export interface CustomerOrderItemPayload {
 
 export interface CreateCustomerOrderPayload {
   tenant_id: string;
+  table_id?: string;
+  qr_token?: string;
   customer_session_id: string;
   customer_name: string;
   customer_phone: string;
@@ -90,6 +90,18 @@ function asString(value: unknown, fallback = "") {
 function asNonEmptyString(value: unknown, fallback = "") {
   const text = asString(value).trim();
   return text || fallback;
+}
+
+function firstNonEmptyString(values: unknown[]) {
+  for (const value of values) {
+    const text = asString(value).trim();
+
+    if (text) {
+      return text;
+    }
+  }
+
+  return "";
 }
 
 function asNumber(value: unknown, fallback = 0) {
@@ -272,6 +284,17 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
     restaurant.status,
     kitchenCloseTime ? `Kitchen open until ${kitchenCloseTime}` : "Kitchen open",
   );
+  const restaurantImageUrl = firstNonEmptyString([
+    restaurant.restaurantImageUrl,
+    restaurant.restaurant_image_url,
+    restaurant.restaurantImage,
+    restaurant.restaurant_image,
+    restaurant.logoUrl,
+    restaurant.logo_url,
+    restaurant.logo,
+    restaurant.image,
+    restaurant.avatar,
+  ]);
 
   return {
     id: asString(restaurant.id ?? restaurant.tenantId ?? restaurant.tenant_id) || null,
@@ -282,17 +305,14 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
     address,
     email,
     businessEmail,
-    restaurantImageUrl: getSafeImageSrcFromCandidates([
-    restaurant.restaurantImageUrl,
-    restaurant.restaurant_image_url,
-    restaurant.restaurantImage,
-    restaurant.restaurant_image,
-    restaurant.logoUrl,
-    restaurant.logo_url,
-    restaurant.logo,
-    restaurant.image,
-    restaurant.avatar,
-  ], FALLBACK_IMAGE),
+    restaurantImageUrl,
+    restaurantImageUpdatedAt: asString(
+      restaurant.restaurantImageUpdatedAt ??
+        restaurant.restaurant_image_updated_at ??
+        restaurant.imageUpdatedAt ??
+        restaurant.image_updated_at,
+    ),
+    updatedAt: asString(restaurant.updatedAt ?? restaurant.updated_at),
     phone,
     kitchenOpenTime,
     kitchenCloseTime,
@@ -425,12 +445,6 @@ function mapMenuItem(
       true,
     ),
   };
-
-  console.log("Customer mapped item:", {
-    name: mapped.name,
-    imageStart: mapped.image?.slice?.(0, 40),
-    servingPrices: mapped.servingPrices,
-  });
 
   return mapped;
 }
@@ -696,6 +710,10 @@ function buildCustomerMenuUrl(params?: CustomerMenuFetchParams) {
 
   if (params?.tenantId?.trim()) {
     query.set("tenantId", params.tenantId.trim());
+  }
+
+  if (params?.tableId?.trim()) {
+    query.set("tableId", params.tableId.trim());
   }
 
   if (params?.qrToken?.trim()) {

@@ -31,9 +31,16 @@ export function RestaurantProfileImage({
   const safeSrc = useMemo(() => getImageUrl(src), [src]);
   const normalizedSrc = safeSrc;
   const [displayedSrc, setDisplayedSrc] = useState(() => normalizedSrc);
+  const imageSrc = isPlaceholderSrc(normalizedSrc)
+    ? PLACEHOLDER_FOOD_IMAGE
+    : displayedSrc;
 
   useEffect(() => {
-    if (!normalizedSrc || normalizedSrc === displayedSrc) {
+    if (
+      !normalizedSrc ||
+      isPlaceholderSrc(normalizedSrc) ||
+      normalizedSrc === displayedSrc
+    ) {
       return;
     }
 
@@ -47,7 +54,7 @@ export function RestaurantProfileImage({
       }
     };
     image.onerror = () => {
-      if (!cancelled && isPlaceholderSrc(displayedSrc)) {
+      if (!cancelled && !isPlaceholderSrc(displayedSrc)) {
         setDisplayedSrc(PLACEHOLDER_FOOD_IMAGE);
       }
     };
@@ -62,14 +69,14 @@ export function RestaurantProfileImage({
     <div className={className}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={displayedSrc}
+        src={imageSrc}
         alt={alt}
         className={cn("h-full w-full object-cover", imageClassName)}
         loading={eager ? "eager" : "lazy"}
         decoding="async"
         fetchPriority={highPriority ? "high" : "auto"}
         onError={() => {
-          if (!isPlaceholderSrc(displayedSrc)) {
+          if (!isPlaceholderSrc(imageSrc)) {
             setDisplayedSrc(PLACEHOLDER_FOOD_IMAGE);
           }
         }}

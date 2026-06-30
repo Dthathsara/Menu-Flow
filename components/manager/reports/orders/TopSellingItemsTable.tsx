@@ -7,14 +7,16 @@ import {
   getManagerTableHeaderPaddingClasses,
 } from "../../managerUtils";
 import type { ManagerSettings } from "../../managerTypes";
-import { topSellingItems } from "../reports.data";
 import { ReportsSectionCard } from "../ReportsSectionCard";
+import type { OrdersReportTopSellingItem } from "../reports.types";
 
 interface TopSellingItemsTableProps {
   settings: ManagerSettings;
+  rows: OrdersReportTopSellingItem[];
+  isLoading?: boolean;
 }
 
-export function TopSellingItemsTable({ settings }: TopSellingItemsTableProps) {
+export function TopSellingItemsTable({ settings, rows, isLoading = false }: TopSellingItemsTableProps) {
   return (
     <ReportsSectionCard
       settings={settings}
@@ -40,7 +42,13 @@ export function TopSellingItemsTable({ settings }: TopSellingItemsTableProps) {
             </tr>
           </thead>
           <tbody>
-            {topSellingItems.map((row) => (
+            {isLoading ? (
+              <tr>
+                <td colSpan={3} className={cn(getManagerTableCellPaddingClasses(), "text-center")}>
+                  Loading top items...
+                </td>
+              </tr>
+            ) : rows.length ? rows.map((row) => (
               <tr key={row.item} className="border-b border-black/5 last:border-b-0">
                 <td
                   className={cn(
@@ -67,10 +75,16 @@ export function TopSellingItemsTable({ settings }: TopSellingItemsTableProps) {
                     getManagerStrongTextClasses(settings.scheme),
                   )}
                 >
-                  {row.revenue}
+                  {row.revenueLabel}
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={3} className={cn(getManagerTableCellPaddingClasses(), "text-center")}>
+                  No top selling item data available.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

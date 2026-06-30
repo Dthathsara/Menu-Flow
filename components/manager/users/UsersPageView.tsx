@@ -52,9 +52,7 @@ export function UsersPageView({ settings }: UsersPageViewProps) {
   const [modalErrorMessage, setModalErrorMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [roleSuggestions, setRoleSuggestions] = useState<string[]>(
-    DEFAULT_STAFF_ROLE_SUGGESTIONS,
-  );
+  const [roleSuggestions, setRoleSuggestions] = useState<string[]>([]);
 
   const summaryCards = useMemo(
     () => getStaffSummaryCards(staffRecords, summaryCounts),
@@ -296,11 +294,10 @@ function validateStaffForm(values: StaffFormValues) {
 }
 
 function mergeRoleSuggestions(...groups: readonly string[][]) {
-  return Array.from(
-    new Set(
-      [...DEFAULT_STAFF_ROLE_SUGGESTIONS, ...groups.flat()]
-        .map((role) => role.trim())
-        .filter(Boolean),
-    ),
-  ).sort((a, b) => a.localeCompare(b));
+  const savedRoles = Array.from(
+    new Set(groups.flat().map((role) => role.trim()).filter(Boolean)),
+  );
+  const roles = savedRoles.length ? savedRoles : DEFAULT_STAFF_ROLE_SUGGESTIONS;
+
+  return roles.sort((a, b) => a.localeCompare(b));
 }

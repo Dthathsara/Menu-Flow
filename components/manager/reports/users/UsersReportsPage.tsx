@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   fetchUserReport,
+  fetchUserReportExport,
   fetchUserReportFilters,
   syncUserReports,
 } from "@/lib/manager-user-reports-api";
@@ -27,7 +28,6 @@ export function UsersReportsPage({ settings }: UsersReportsPageProps) {
     periods: [],
   });
   const [search, setSearch] = useState("");
-  const [role, setRole] = useState("all");
   const [period, setPeriod] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -44,7 +44,7 @@ export function UsersReportsPage({ settings }: UsersReportsPageProps) {
         hasSyncedRef.current = true;
       }
       const [nextReport, nextFilters] = await Promise.all([
-        fetchUserReport({ search, role, period }),
+        fetchUserReport({ search, period }),
         fetchUserReportFilters().catch(() => null),
       ]);
 
@@ -56,7 +56,7 @@ export function UsersReportsPage({ settings }: UsersReportsPageProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [period, role, search]);
+  }, [period, search]);
 
   useEffect(() => {
     void loadReport();
@@ -70,11 +70,11 @@ export function UsersReportsPage({ settings }: UsersReportsPageProps) {
     setIsExporting(true);
 
     try {
-      await exportUsersReportPdf(report, {
-        role,
+      const exportReport = await fetchUserReportExport({ search, period });
+
+      await exportUsersReportPdf(exportReport, {
         period,
         search,
-        roleLabel: role === "all" ? "All Roles" : role,
         periodLabel:
           period === "all"
             ? "All Periods"
@@ -117,14 +117,12 @@ export function UsersReportsPage({ settings }: UsersReportsPageProps) {
         <section className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
           <WaiterPerformanceTable
             settings={settings}
-            rows={report?.rows ?? []}
+            rows={getWaiterPerformanceRows(report)}
             filters={filters}
             search={search}
-            role={role}
             period={period}
             isLoading={isLoading}
             onSearchChange={setSearch}
-            onRoleChange={setRole}
             onPeriodChange={setPeriod}
           />
           <UserActivitySummary
@@ -156,20 +154,24 @@ function getUserReportErrorMessage(error: unknown) {
   return "Unable to load users report. Please try again.";
 }
 
+function getWaiterPerformanceRows(report: UserReportResponse | null) {
+  if (!report) {
+    return [];
+  }
+
+  const rows = report.waiterPerformance.length ? report.waiterPerformance : report.rows;
+  return rows.filter((row) => row.role.trim().toLowerCase() === "waiter");
+}
+
 async function exportUsersReportPdf(
   report: UserReportResponse,
   filters: {
-    role: string;
     period: string;
     search: string;
-    roleLabel: string;
     periodLabel: string;
   },
 ) {
-  const dynamicImport = new Function("specifier", "return import(specifier)") as (
-    specifier: string,
-  ) => Promise<unknown>;
-  const jsPdfModule = await dynamicImport("jspdf") as {
+  const jsPdfModule = await import("jspdf") as {
     default: new () => {
       text: (text: string, x: number, y: number) => void;
       setFontSize: (size: number) => void;
@@ -177,7 +179,7 @@ async function exportUsersReportPdf(
       lastAutoTable?: { finalY: number };
     };
   };
-  const autoTableModule = await dynamicImport("jspdf-autotable") as {
+  const autoTableModule = await import("jspdf-autotable") as {
     default?: (doc: unknown, options: unknown) => void;
   };
   const doc = new jsPdfModule.default();
@@ -197,7 +199,7 @@ async function exportUsersReportPdf(
   doc.text("MenuFlow Users Report", 14, 18);
   doc.setFontSize(10);
   doc.text(`Generated: ${dateLabel}`, 14, 26);
-  doc.text(`Filters: ${filters.roleLabel} / ${filters.periodLabel} / ${filters.search || "No search"}`, 14, 32);
+  doc.text(`Filters: Waiters / ${filters.periodLabel} / ${filters.search || "No search"}`, 14, 32);
 
   autoTable(doc, {
     startY: 40,
@@ -213,8 +215,8 @@ async function exportUsersReportPdf(
   autoTable(doc, {
     startY: (doc.lastAutoTable?.finalY ?? 72) + 10,
     head: [["Staff", "Role", "Orders", "Revenue", "Tables", "Period"]],
-    body: report.rows.length
-      ? report.rows.map((row) => [
+    body: getWaiterPerformanceRows(report).length
+      ? getWaiterPerformanceRows(report).map((row) => [
           row.staff,
           row.role,
           String(row.orders),

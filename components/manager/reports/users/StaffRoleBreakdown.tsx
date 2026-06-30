@@ -22,7 +22,7 @@ export function StaffRoleBreakdown({ settings, items }: StaffRoleBreakdownProps)
     >
       <div className="space-y-5">
         {items.length ? items.map((item, index) => (
-          <div key={item.role}>
+          <div key={`${item.role}-${index}`}>
             <div
               className={cn(
                 "mb-2 flex items-center justify-between gap-3 text-[14px] font-semibold",

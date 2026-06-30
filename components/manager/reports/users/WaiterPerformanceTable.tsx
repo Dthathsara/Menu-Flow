@@ -1,4 +1,4 @@
-import { ChevronDownIcon, SearchIcon } from "../../icons";
+import { SearchIcon } from "../../icons";
 import {
   cn,
   getManagerAccentPillClasses,
@@ -15,7 +15,8 @@ import {
   getManagerTableRowClasses,
 } from "../../managerUtils";
 import type { ManagerSettings } from "../../managerTypes";
-import { getReportsRoleBadgeClasses } from "../reports.helpers";
+import { BillingSelect } from "../../billing/BillingSelect";
+import { getRoleBadgeClasses } from "../../users/helpers";
 import type { UserReportFilters, UserReportPerformanceRow } from "../reports.types";
 
 interface WaiterPerformanceTableProps {
@@ -23,11 +24,9 @@ interface WaiterPerformanceTableProps {
   rows: UserReportPerformanceRow[];
   filters: UserReportFilters;
   search: string;
-  role: string;
   period: string;
   isLoading: boolean;
   onSearchChange: (value: string) => void;
-  onRoleChange: (value: string) => void;
   onPeriodChange: (value: string) => void;
 }
 
@@ -36,11 +35,9 @@ export function WaiterPerformanceTable({
   rows,
   filters,
   search,
-  role,
   period,
   isLoading,
   onSearchChange,
-  onRoleChange,
   onPeriodChange,
 }: WaiterPerformanceTableProps) {
   return (
@@ -75,7 +72,7 @@ export function WaiterPerformanceTable({
               type="search"
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search staff, role, revenue..."
+              placeholder="Search waiter, revenue..."
               className={cn(
                 "w-full bg-transparent text-[15px] outline-none",
                 settings.scheme === "dark"
@@ -85,52 +82,21 @@ export function WaiterPerformanceTable({
             />
           </label>
 
-          <div className="grid gap-3 sm:grid-cols-[180px_180px] xl:flex xl:items-center">
-            <label
-              className={cn(
-                "relative",
-                getManagerControlShellClasses(settings.scheme),
-                "min-w-[180px] font-semibold",
-              )}
-            >
-              <select
-                value={role}
-                onChange={(event) => onRoleChange(event.target.value)}
-                className="h-full w-full appearance-none bg-transparent pr-7 outline-none"
-                aria-label="Filter users report by role"
-              >
-                <option value="all">All Roles</option>
-                {filters.roles.map((roleOption) => (
-                  <option key={roleOption} value={roleOption}>
-                    {roleOption}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon className="pointer-events-none absolute right-3 size-4 text-slate-400" />
-            </label>
-
-            <label
-              className={cn(
-                "relative",
-                getManagerControlShellClasses(settings.scheme),
-                "min-w-[180px] font-semibold",
-              )}
-            >
-              <select
-                value={period}
-                onChange={(event) => onPeriodChange(event.target.value)}
-                className="h-full w-full appearance-none bg-transparent pr-7 outline-none"
-                aria-label="Filter users report by period"
-              >
-                <option value="all">All Periods</option>
-                {filters.periods.map((periodOption) => (
-                  <option key={periodOption.key} value={periodOption.key}>
-                    {periodOption.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon className="pointer-events-none absolute right-3 size-4 text-slate-400" />
-            </label>
+          <div className="grid gap-3 sm:grid-cols-[180px] xl:flex xl:items-center">
+            <BillingSelect
+              label="Filter users report by period"
+              settings={settings}
+              value={period}
+              onChange={onPeriodChange}
+              options={[
+                { label: "All Periods", value: "all" },
+                ...filters.periods.map((periodOption) => ({
+                  label: periodOption.label,
+                  value: periodOption.key,
+                })),
+              ]}
+              className="min-w-[180px]"
+            />
           </div>
 
           <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
@@ -169,8 +135,8 @@ export function WaiterPerformanceTable({
                   Loading users report...
                 </td>
               </tr>
-            ) : rows.length ? rows.map((row) => (
-              <tr key={row.id} className={getManagerTableRowClasses(settings.scheme)}>
+            ) : rows.length ? rows.map((row, index) => (
+              <tr key={`${row.id}-${index}`} className={getManagerTableRowClasses(settings.scheme)}>
                 <td
                   className={cn(
                     getManagerTableCellPaddingClasses(),
@@ -184,7 +150,7 @@ export function WaiterPerformanceTable({
                   <span
                     className={cn(
                       "inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold",
-                      getReportsRoleBadgeClasses(row.role, settings.scheme),
+                      getRoleBadgeClasses(row.role, settings.scheme),
                     )}
                   >
                     {row.role}

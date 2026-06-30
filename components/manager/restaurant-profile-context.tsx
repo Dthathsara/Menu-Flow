@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -33,6 +34,35 @@ function withProfileDefaults(profile: RestaurantProfile | null) {
   };
 }
 
+function isValidRestaurantImageUrl(value?: string | null) {
+  const normalized = getRestaurantImageUrl(value, "");
+
+  return Boolean(normalized);
+}
+
+function mergeProfilePreservingImage(
+  current: RestaurantProfile,
+  incoming: RestaurantProfile | null,
+) {
+  const nextProfile = withProfileDefaults(incoming);
+
+  if (
+    !isValidRestaurantImageUrl(nextProfile.restaurantImageUrl) &&
+    isValidRestaurantImageUrl(current.restaurantImageUrl)
+  ) {
+    return {
+      ...nextProfile,
+      restaurantImageUrl: current.restaurantImageUrl,
+    };
+  }
+
+  return nextProfile;
+}
+
+function mergeProfileAllowingImageClear(incoming: RestaurantProfile | null) {
+  return withProfileDefaults(incoming);
+}
+
 function normalizeProfileForCompare(profile: RestaurantProfile) {
   return {
     ...profile,
@@ -53,14 +83,16 @@ export function ManagerRestaurantProfileProvider({
   const [restaurantProfile, setRestaurantProfile] = useState<RestaurantProfile>(
     DEFAULT_RESTAURANT_PROFILE,
   );
+  const [hasProfileForSync, setHasProfileForSync] = useState(false);
+  const lastSyncedProfileRef = useRef("");
 
   const updateRestaurantProfile = useCallback((profile: RestaurantProfile) => {
-    const nextProfile = withProfileDefaults(profile);
+    setHasProfileForSync(true);
+    setRestaurantProfile((current) => {
+      const nextProfile = mergeProfileAllowingImageClear(profile);
 
-    cacheRestaurantProfile(nextProfile);
-    setRestaurantProfile((current) =>
-      areProfilesEqual(current, nextProfile) ? current : nextProfile,
-    );
+      return areProfilesEqual(current, nextProfile) ? current : nextProfile;
+    });
   }, []);
 
   useEffect(() => {
@@ -73,8 +105,9 @@ export function ManagerRestaurantProfileProvider({
       const cachedProfile = getCachedRestaurantProfile();
 
       if (cachedProfile) {
+        setHasProfileForSync(true);
         setRestaurantProfile((current) => {
-          const nextProfile = withProfileDefaults(cachedProfile);
+          const nextProfile = mergeProfilePreservingImage(current, cachedProfile);
 
           return areProfilesEqual(current, nextProfile) ? current : nextProfile;
         });
@@ -87,11 +120,12 @@ export function ManagerRestaurantProfileProvider({
           return;
         }
 
-        const nextProfile = withProfileDefaults(profile);
-        cacheRestaurantProfile(nextProfile);
-        setRestaurantProfile((current) =>
-          areProfilesEqual(current, nextProfile) ? current : nextProfile,
-        );
+        setHasProfileForSync(true);
+        setRestaurantProfile((current) => {
+          const nextProfile = mergeProfilePreservingImage(current, profile);
+
+          return areProfilesEqual(current, nextProfile) ? current : nextProfile;
+        });
       })
       .catch(() => {
         // Keep the cached profile visible if the backend is unavailable.
@@ -104,11 +138,14 @@ export function ManagerRestaurantProfileProvider({
         return;
       }
 
-      const nextProfile = withProfileDefaults(mapRestaurantProfile(detail));
+      const incomingProfile = mapRestaurantProfile(detail);
 
-      setRestaurantProfile((current) =>
-        areProfilesEqual(current, nextProfile) ? current : nextProfile,
-      );
+      setHasProfileForSync(true);
+      setRestaurantProfile((current) => {
+        const nextProfile = mergeProfilePreservingImage(current, incomingProfile);
+
+        return areProfilesEqual(current, nextProfile) ? current : nextProfile;
+      });
     }
 
     window.addEventListener("menuflow:user-updated", handleUserUpdated);
@@ -119,6 +156,26 @@ export function ManagerRestaurantProfileProvider({
       window.removeEventListener("menuflow:user-updated", handleUserUpdated);
     };
   }, []);
+
+  useEffect(() => {
+    if (!hasProfileForSync) {
+      return;
+    }
+
+    const normalizedProfile = normalizeProfileForCompare(restaurantProfile);
+    const profileSnapshot = JSON.stringify(normalizedProfile);
+
+    if (lastSyncedProfileRef.current === profileSnapshot) {
+      return;
+    }
+
+    lastSyncedProfileRef.current = profileSnapshot;
+    const nextUser = cacheRestaurantProfile(restaurantProfile);
+
+    window.dispatchEvent(
+      new CustomEvent("menuflow:user-updated", { detail: nextUser }),
+    );
+  }, [hasProfileForSync, restaurantProfile]);
 
   useEffect(() => {
     const imageUrl = getRestaurantImageUrl(restaurantProfile.restaurantImageUrl, "");

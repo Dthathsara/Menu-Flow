@@ -92,6 +92,12 @@ function buildCustomerUrl(rawItem: ApiRecord) {
     rawItem.customerUrl ?? rawItem.customer_url ?? rawItem.qrValue ?? rawItem.qr_value,
   ).trim();
   const customerBaseUrl = (process.env.NEXT_PUBLIC_CUSTOMER_BASE_URL || "").replace(/\/$/, "");
+  const tableId = asString(
+    rawItem.tableId ??
+      rawItem.table_id ??
+      rawItem.tableNumber ??
+      rawItem.table_number,
+  ).trim();
 
   if (!customerUrl) {
     const tenantId = asString(rawItem.tenantId ?? rawItem.tenant_id).trim();
@@ -102,6 +108,9 @@ function buildCustomerUrl(rawItem: ApiRecord) {
       fallbackUrl.searchParams.set("tenantId", tenantId);
       fallbackUrl.searchParams.set("qrToken", qrToken);
       fallbackUrl.searchParams.set("tab", "menu");
+      if (tableId) {
+        fallbackUrl.searchParams.set("tableId", tableId);
+      }
 
       return fallbackUrl.toString();
     }
@@ -109,14 +118,14 @@ function buildCustomerUrl(rawItem: ApiRecord) {
     return "";
   }
 
-  if (!customerBaseUrl) {
-    return customerUrl;
-  }
-
   try {
     const parsedCustomerUrl = new URL(customerUrl);
 
-    if (["localhost", "127.0.0.1", "::1"].includes(parsedCustomerUrl.hostname)) {
+    if (isLocalCustomerHost(parsedCustomerUrl.hostname)) {
+      if (!customerBaseUrl) {
+        return "";
+      }
+
       const parsedBaseUrl = new URL(customerBaseUrl);
       parsedCustomerUrl.protocol = parsedBaseUrl.protocol;
       parsedCustomerUrl.host = parsedBaseUrl.host;
@@ -124,10 +133,21 @@ function buildCustomerUrl(rawItem: ApiRecord) {
       return parsedCustomerUrl.toString();
     }
   } catch {
-    return customerUrl;
+    return "";
   }
 
   return customerUrl;
+}
+
+function isLocalCustomerHost(hostname: string) {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1" ||
+    hostname.startsWith("192.168.") ||
+    hostname.startsWith("10.") ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
+  );
 }
 
 export function mapApiQrCode(rawQrCode: unknown): QrCodeRecord | null {

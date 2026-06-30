@@ -66,8 +66,8 @@ export function Topbar({
           : "px-4 py-4 sm:px-5 lg:px-6",
       )}
     >
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+      <div className="flex items-center justify-between gap-3 overflow-x-auto lg:overflow-visible">
+        <div className="flex shrink-0 items-center gap-3 sm:gap-4">
           <button
             type="button"
             onClick={onToggleNavigation}
@@ -81,7 +81,7 @@ export function Topbar({
             <MenuToggleIcon className="size-5" />
           </button>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <h1 className="truncate text-lg font-bold sm:text-xl">Welcome!</h1>
             <div className={cn("mt-1 flex items-center gap-2 text-sm", mutedTextClasses)}>
               <span>MenuFlow</span>
@@ -91,10 +91,10 @@ export function Topbar({
           </div>
         </div>
 
-        <div className="relative z-20 flex flex-wrap items-center justify-end gap-2">
+        <div className="relative z-20 flex shrink-0 flex-nowrap items-center justify-end gap-2">
           <label
             className={cn(
-              "order-last flex h-11 w-full min-w-0 items-center gap-2 rounded-lg border px-3 sm:order-none sm:w-auto sm:flex-1 sm:basis-[14rem] lg:max-w-[280px] xl:max-w-[320px]",
+              "flex h-11 w-40 shrink-0 items-center gap-2 rounded-lg border px-3 sm:w-48 lg:w-56 xl:w-64 2xl:w-80",
               searchClasses,
             )}
           >

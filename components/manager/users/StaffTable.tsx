@@ -77,9 +77,9 @@ export function StaffTable({
               </tr>
             </thead>
             <tbody>
-              {staffRecords.map((staff) => (
+              {staffRecords.map((staff, index) => (
                 <StaffRow
-                  key={staff.id}
+                  key={`${staff.id}-${index}`}
                   settings={settings}
                   staff={staff}
                   onView={onView}
@@ -93,9 +93,9 @@ export function StaffTable({
       </div>
 
       <div className="grid gap-3 md:hidden">
-        {staffRecords.map((staff) => (
+        {staffRecords.map((staff, index) => (
           <article
-            key={staff.id}
+            key={`${staff.id}-${index}`}
             className={cn(
               "p-4",
               getManagerCardShellClasses(settings.scheme, { interactive: false }),

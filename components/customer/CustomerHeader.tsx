@@ -1,12 +1,16 @@
 import type { RestaurantInfo } from "@/types/customer";
-import { getImageUrl, PLACEHOLDER_FOOD_IMAGE } from "@/lib/image-url";
+import {
+  getImageUrl,
+  isBackendUploadImageSrc,
+  PLACEHOLDER_FOOD_IMAGE,
+} from "@/lib/image-url";
 
 interface CustomerHeaderProps {
   restaurant: RestaurantInfo;
 }
 
 export function CustomerHeader({ restaurant }: CustomerHeaderProps) {
-  const imageSrc = getImageUrl(restaurant.restaurantImageUrl);
+  const imageSrc = getCustomerRestaurantImageSrc(restaurant);
   const businessType = restaurant.businessType?.trim() ?? "";
   const shouldInlineBusinessType = businessType.length > 0 && businessType.length <= 12;
 
@@ -16,11 +20,19 @@ export function CustomerHeader({ restaurant }: CustomerHeaderProps) {
         <div className="relative mb-5 flex h-44 items-center justify-center overflow-hidden rounded-[1.25rem] border border-[#eadfce] bg-[#f2eadf] sm:h-52 md:h-60">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            key={imageSrc}
             src={imageSrc}
             alt={restaurant.name}
             className="max-h-full max-w-full object-contain"
             onError={(event) => {
-              event.currentTarget.src = PLACEHOLDER_FOOD_IMAGE;
+              if (event.currentTarget.dataset.fallbackApplied === "true") {
+                return;
+              }
+
+              event.currentTarget.dataset.fallbackApplied = "true";
+              if (!event.currentTarget.src.endsWith(PLACEHOLDER_FOOD_IMAGE)) {
+                event.currentTarget.src = PLACEHOLDER_FOOD_IMAGE;
+              }
             }}
           />
         </div>
@@ -60,4 +72,30 @@ export function CustomerHeader({ restaurant }: CustomerHeaderProps) {
       </div>
     </section>
   );
+}
+
+function getCustomerRestaurantImageSrc(restaurant: RestaurantInfo) {
+  const rawImageUrl = restaurant.restaurantImageUrl?.trim();
+
+  if (!rawImageUrl) {
+    return PLACEHOLDER_FOOD_IMAGE;
+  }
+
+  const imageUrl = getImageUrl(rawImageUrl);
+
+  if (imageUrl === PLACEHOLDER_FOOD_IMAGE) {
+    return PLACEHOLDER_FOOD_IMAGE;
+  }
+
+  if (!isBackendUploadImageSrc(imageUrl)) {
+    return imageUrl;
+  }
+
+  const version =
+    restaurant.restaurantImageUpdatedAt?.trim() ||
+    restaurant.updatedAt?.trim() ||
+    rawImageUrl;
+  const separator = imageUrl.includes("?") ? "&" : "?";
+
+  return `${imageUrl}${separator}v=${encodeURIComponent(version)}`;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { FilterDropdown } from "../orders/FilterDropdown";
@@ -60,7 +60,28 @@ export function StaffFormModal({
   onSave,
 }: StaffFormModalProps) {
   const [values, setValues] = useState<StaffFormValues>(() => createFormValues(staff));
-  const roleListId = "staff-role-suggestions";
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const roleFieldRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!roleDropdownOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node;
+
+      if (!roleFieldRef.current?.contains(target)) {
+        setRoleDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [roleDropdownOpen]);
 
   return (
     <UsersModalFrame
@@ -134,26 +155,52 @@ export function StaffFormModal({
             />
           </div>
 
-          <div className="space-y-2">
+          <div ref={roleFieldRef} className="relative space-y-2">
             <UsersFieldLabel settings={settings} htmlFor="staff-role">
               Role
             </UsersFieldLabel>
             <UsersTextInput
               id="staff-role"
-              list={roleListId}
               settings={settings}
               value={values.role}
               onChange={(event) =>
                 setValues((current) => ({ ...current, role: event.target.value }))
               }
+              onFocus={() => setRoleDropdownOpen(true)}
+              onClick={() => setRoleDropdownOpen(true)}
               placeholder="Enter staff role"
+              autoComplete="off"
               required
             />
-            <datalist id={roleListId}>
-              {roleSuggestions.map((role) => (
-                <option key={role} value={role} />
-              ))}
-            </datalist>
+            {roleDropdownOpen && roleSuggestions.length ? (
+              <div
+                className={cn(
+                  "absolute left-0 right-0 top-full z-[145] mt-2 max-h-56 overflow-y-auto rounded-[18px] border p-1.5 shadow-2xl",
+                  settings.scheme === "dark"
+                    ? "border-[#1f2a44] bg-[#0B1A2B] shadow-[0_24px_52px_rgba(2,6,23,0.42)]"
+                    : "border-slate-200 bg-white shadow-[0_20px_40px_rgba(15,23,42,0.12)]",
+                )}
+              >
+                {roleSuggestions.map((role, index) => (
+                  <button
+                    key={`${role}-${index}`}
+                    type="button"
+                    onClick={() => {
+                      setValues((current) => ({ ...current, role }));
+                      setRoleDropdownOpen(false);
+                    }}
+                    className={cn(
+                      "flex w-full rounded-[12px] px-3.5 py-3 text-left text-[14px] font-semibold transition-colors",
+                      settings.scheme === "dark"
+                        ? "text-slate-100 hover:bg-white/[0.05] focus:bg-white/[0.05]"
+                        : "text-slate-800 hover:bg-slate-100 focus:bg-slate-100",
+                    )}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-2">

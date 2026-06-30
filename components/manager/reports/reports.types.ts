@@ -123,7 +123,67 @@ export interface UserReportFilters {
 export interface UserReportResponse {
   stats: UsersReportStatsData;
   rows: UserReportPerformanceRow[];
+  waiterPerformance: UserReportPerformanceRow[];
   activitySummary: UserReportActivitySummary;
   roleBreakdown: UserReportRoleBreakdownMetric[];
   filters: UserReportFilters;
+}
+
+export interface OrdersReportPeriod {
+  key: string;
+  label: string;
+  from: string;
+  to: string;
+}
+
+export interface OrdersReportStatsData {
+  totalMonthlyOrders: number;
+  revenue: number;
+  qrScans: number;
+  pendingPayments: number;
+}
+
+export interface OrdersReportPaymentSummary {
+  collectedRevenue: number;
+  taxCollected: number;
+  serviceCharges: number;
+}
+
+export interface OrdersReportSalesPoint {
+  label: string;
+  amountLabel: string;
+  value: number;
+}
+
+export interface OrdersReportProgressMetric {
+  label: string;
+  valueLabel: string;
+  value: number;
+  max: number;
+  tone: ProgressMetric["tone"];
+}
+
+export interface OrdersReportQrUsageRow {
+  table: string;
+  scansPerDay: number;
+  orders: number;
+  conversion: string;
+}
+
+export interface OrdersReportTopSellingItem {
+  item: string;
+  quantity: number;
+  revenue: number;
+  revenueLabel: string;
+}
+
+export interface OrdersReportResponse {
+  period: OrdersReportPeriod;
+  stats: OrdersReportStatsData;
+  paymentSummary: OrdersReportPaymentSummary;
+  salesOverview: OrdersReportSalesPoint[];
+  peakHours: OrdersReportProgressMetric[];
+  qrUsage: OrdersReportQrUsageRow[];
+  topSellingItems: OrdersReportTopSellingItem[];
+  orderStatusMix: OrdersReportProgressMetric[];
 }

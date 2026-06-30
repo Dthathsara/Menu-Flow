@@ -97,7 +97,7 @@ function unwrapItem(payload: unknown) {
 }
 
 function normalizeRole(value: unknown): StaffRole {
-  return asString(value, "Chef").trim() || "Chef";
+  return asString(value).trim();
 }
 
 function normalizeStatus(value: unknown): StaffStatus {
@@ -292,6 +292,27 @@ export async function fetchStaffMembers(filters?: StaffFilters): Promise<StaffRe
   return unwrapList(payload)
     .map(mapBackendStaffMember)
     .filter((record): record is StaffRecord => Boolean(record));
+}
+
+export async function fetchWaiterStaffMembers(): Promise<StaffRecord[]> {
+  try {
+    const payload = await requestStaff("/staff-members/waiters");
+    const waiters = unwrapList(payload)
+      .map(mapBackendStaffMember)
+      .filter((record): record is StaffRecord => Boolean(record))
+      .filter((record) => record.role.trim().toLowerCase() === "waiter");
+
+    if (waiters.length) {
+      return waiters;
+    }
+  } catch (error) {
+    if (error instanceof SessionExpiredError) {
+      throw error;
+    }
+  }
+
+  const staff = await fetchStaffMembers();
+  return staff.filter((record) => record.role.trim().toLowerCase() === "waiter");
 }
 
 export async function fetchStaffSummary(): Promise<StaffSummaryCounts> {
