@@ -24,8 +24,6 @@ interface OrdersPanelProps {
   subtotal: number;
   restaurant: RestaurantInfo;
   tenantId: string;
-  tableId?: string;
-  qrToken?: string;
   onOrderSuccess: () => void;
   onEdit: (item: CartItem) => void;
   onRemove: (item: CartItem) => void;
@@ -121,8 +119,6 @@ export function OrdersPanel({
   subtotal,
   restaurant,
   tenantId,
-  tableId = "",
-  qrToken = "",
   onOrderSuccess,
   onEdit,
   onRemove,
@@ -153,8 +149,6 @@ export function OrdersPanel({
   const [currentOrder, setCurrentOrder] = useState<CustomerOrderRecord | null>(null);
   const historyLoadIdRef = useRef(0);
   const cleanTenantId = tenantId.trim();
-  const cleanTableId = tableId.trim();
-  const cleanQrToken = qrToken.trim();
   const taxRate = Number(restaurant.taxRate ?? 5);
   const serviceChargeRate = Number(restaurant.serviceChargeRate ?? 3);
   const discountRate = Number(restaurant.discountRate ?? 0);
@@ -191,6 +185,11 @@ export function OrdersPanel({
       setCurrentOrder(null);
       return;
     }
+
+    console.log("CUSTOMER ORDERS LOAD", {
+      tenantId: cleanTenantId,
+      customerSessionId,
+    });
 
     setIsHistoryLoading(true);
 
@@ -385,10 +384,13 @@ export function OrdersPanel({
     try {
       const customerSessionId = getCustomerSessionId(cleanTenantId);
 
+      console.log("CUSTOMER ORDER CREATE", {
+        tenantId: cleanTenantId,
+        customerSessionId,
+      });
+
       const order = await createCustomerOrder({
         tenant_id: cleanTenantId,
-        table_id: cleanTableId || undefined,
-        qr_token: cleanQrToken || undefined,
         customer_session_id: customerSessionId,
         customer_name: detailsForm.customerName.trim(),
         customer_phone: detailsForm.mobileNumber.trim(),

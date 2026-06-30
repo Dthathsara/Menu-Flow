@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { Geist, Geist_Mono } from "next/font/google";
 import { GlobalBackground } from "@/components/common/layout";
 import { ManagerThemeInitializer } from "@/components/manager/ManagerThemeInitializer";
 import { MANAGER_STORAGE_KEY } from "@/components/manager/managerConfig";
 import { getManagerSchemeFromStoredValue } from "@/components/manager/managerTheme";
 import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: "MenuFlow | Smarter Digital Menus for Modern Restaurants",
@@ -28,7 +39,7 @@ export default async function RootLayout({
       data-scroll-behavior="smooth"
       data-theme={initialTheme}
       suppressHydrationWarning
-      className="h-full scroll-smooth"
+      className={`${geistSans.variable} ${geistMono.variable} h-full scroll-smooth`}
     >
       <body
         data-theme={initialTheme}

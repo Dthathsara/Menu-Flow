@@ -92,15 +92,6 @@ function getQrTokenFromLocation() {
   return (params.get("qrToken") ?? params.get("qr") ?? "").trim();
 }
 
-function getTableIdFromLocation() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return (params.get("tableId") ?? params.get("table") ?? "").trim();
-}
-
 function getQueryTenantIdFromLocation() {
   if (typeof window === "undefined") {
     return "";
@@ -207,7 +198,6 @@ export function CustomerDashboard() {
       const nextData = await fetchCustomerMenuData({
         slug: getMenuSlugFromLocation(),
         tenantId: getTenantIdFromLocation(),
-        tableId: getTableIdFromLocation(),
         qrToken: getQrTokenFromLocation(),
       });
 
@@ -305,8 +295,6 @@ export function CustomerDashboard() {
     getQueryTenantIdFromLocation() ||
     data.restaurant.id ||
     "";
-  const orderTableId = getTableIdFromLocation();
-  const orderQrToken = getQrTokenFromLocation();
   const activeCategoryItemCount = activeCategory.subcategories.reduce(
     (count, subcategory) => count + subcategory.items.length,
     0,
@@ -650,8 +638,6 @@ export function CustomerDashboard() {
             subtotal={orderSubtotal}
             restaurant={data.restaurant}
             tenantId={orderTenantId?.trim() ?? ""}
-            tableId={orderTableId}
-            qrToken={orderQrToken}
             onOrderSuccess={() => setCartItems([])}
             onEdit={handleEditItem}
             onRemove={requestRemoveCartItem}

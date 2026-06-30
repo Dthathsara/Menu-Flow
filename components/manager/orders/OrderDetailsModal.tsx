@@ -244,6 +244,7 @@ export function OrderDetailsModal({
       await updateAdminOrderStatus(modalOrder.id, nextStatus);
       const freshOrder = await fetchAdminOrder(modalOrder.id);
 
+      console.log("FRESH ORDER AFTER STATUS UPDATE", freshOrder);
       setModalOrder(freshOrder);
       await onOrderUpdated(freshOrder);
     } catch (error) {

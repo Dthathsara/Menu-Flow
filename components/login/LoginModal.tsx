@@ -131,7 +131,7 @@ export function LoginModal({
           setStatusMessage(getLoginApiErrorMessage(error.response.data));
         } else if (error.request) {
           setStatusMessage(
-            "Cannot connect to the backend. Check that the API server is running and NEXT_PUBLIC_API_URL is configured.",
+            "Cannot connect to backend. Start NestJS on port 3001 and check NEXT_PUBLIC_API_URL.",
           );
         } else {
           setStatusMessage(error.message);

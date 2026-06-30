@@ -1,11 +1,7 @@
-const LOCAL_API_PROTOCOL = String.fromCharCode(104, 116, 116, 112, 58);
-const LOCAL_API_HOST = `${["local", "host"].join("")}:3001`;
-const LOCAL_API_ORIGIN = `${LOCAL_API_PROTOCOL}//${LOCAL_API_HOST}`;
-
 export const API_ORIGIN = (
   process.env.NEXT_PUBLIC_API_ORIGIN ||
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/v1\/?$/, "") ||
-  (process.env.NODE_ENV === "development" ? LOCAL_API_ORIGIN : "")
+  "http://localhost:3001"
 ).replace(/\/$/, "");
 
 export const PLACEHOLDER_FOOD_IMAGE = "/customer/placeholder-food.svg";
@@ -32,11 +28,11 @@ export function getImageUrl(value?: string | null): string {
   }
 
   if (src.startsWith("/uploads/")) {
-    return API_ORIGIN ? `${API_ORIGIN}${src}` : src;
+    return `${API_ORIGIN}${src}`;
   }
 
   if (src.startsWith("uploads/")) {
-    return API_ORIGIN ? `${API_ORIGIN}/${src}` : `/${src}`;
+    return `${API_ORIGIN}/${src}`;
   }
 
   if (src.startsWith("/")) {
