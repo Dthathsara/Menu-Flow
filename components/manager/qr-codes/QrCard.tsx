@@ -46,7 +46,7 @@ export function QrCard({ settings, item, onDownload, onDelete, isDeleting = fals
 
       <div className="mt-3 rounded-[18px] bg-white p-1.5 shadow-[inset_0_0_0_1px_rgba(17,24,39,0.06)]">
         <QrSvgPreview
-          value={item.qrValue}
+          value={item.customerUrl}
           title={`QR code for table ${item.tableNumber}`}
           className="aspect-square w-full overflow-hidden rounded-[14px]"
           svgClassName="rounded-[14px] bg-white"

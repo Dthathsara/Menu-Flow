@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">MenuFlow food placeholder</title>
+  <desc id="desc">A simple restaurant plate placeholder for missing food images.</desc>
+  <rect width="960" height="540" fill="#fff8ee"/>
+  <rect x="36" y="36" width="888" height="468" rx="42" fill="#f4eadb" stroke="#dfd0bd" stroke-width="4"/>
+  <circle cx="480" cy="278" r="142" fill="#fffdf8" stroke="#d7c2aa" stroke-width="12"/>
+  <circle cx="480" cy="278" r="88" fill="#f2d0a7"/>
+  <path d="M393 280c32-44 105-54 151-16 23 19 33 43 36 61-56 31-127 29-185-3-7-4-9-30-2-42z" fill="#da6a4a"/>
+  <path d="M417 221c24-36 61-60 109-70 11 43-6 82-39 110-28-10-51-23-70-40z" fill="#2f8d5b"/>
+  <path d="M274 170v232M300 170v232M326 170v232" stroke="#9b735a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M654 162c54 59 54 139 0 205v35" stroke="#9b735a" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <text x="480" y="462" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#6b4d3d">MenuFlow Restaurant</text>
+</svg>

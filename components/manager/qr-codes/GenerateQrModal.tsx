@@ -21,17 +21,12 @@ import type { GenerateQrFormValues } from "./types";
 
 interface GenerateQrModalProps {
   settings: ManagerSettings;
-<<<<<<< HEAD
-  onClose: () => void;
-  onSubmit: (values: GenerateQrFormValues) => void;
-=======
   sectionSuggestions: readonly string[];
   tableNumberSuggestions: readonly string[];
   isSubmitting?: boolean;
   errorMessage?: string;
   onClose: () => void;
   onSubmit: (values: GenerateQrFormValues) => Promise<void> | void;
->>>>>>> Dulnith
 }
 
 const FOCUSABLE_SELECTOR =
@@ -46,13 +41,10 @@ function createEmptyFormValues(): GenerateQrFormValues {
 
 export function GenerateQrModal({
   settings,
-<<<<<<< HEAD
-=======
   sectionSuggestions,
   tableNumberSuggestions,
   isSubmitting = false,
   errorMessage = "",
->>>>>>> Dulnith
   onClose,
   onSubmit,
 }: GenerateQrModalProps) {
@@ -65,11 +57,8 @@ export function GenerateQrModal({
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const closingRef = useRef(false);
   const titleId = useId();
-<<<<<<< HEAD
-=======
   const sectionListId = useId();
   const tableNumberListId = useId();
->>>>>>> Dulnith
   const requestClose = useCallback(() => {
     if (isSubmitting) {
       return;
@@ -152,21 +141,14 @@ export function GenerateQrModal({
     };
   }, [requestClose]);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-<<<<<<< HEAD
-    onSubmit({
-=======
     const nextValues = {
->>>>>>> Dulnith
       tableNumber: values.tableNumber.trim(),
       section: values.section.trim(),
     };
 
-<<<<<<< HEAD
-    requestClose();
-=======
     if (!nextValues.tableNumber || !nextValues.section) {
       setLocalErrorMessage("Table number and section are required.");
       return;
@@ -174,7 +156,6 @@ export function GenerateQrModal({
 
     setLocalErrorMessage("");
     await onSubmit(nextValues);
->>>>>>> Dulnith
   }
 
   const inputClassName = cn(getManagerTextInputClasses(settings.scheme), "h-12 rounded-[14px] text-[14px]");
@@ -269,10 +250,7 @@ export function GenerateQrModal({
                 </label>
                 <input
                   id="section"
-<<<<<<< HEAD
-=======
                   list={sectionListId}
->>>>>>> Dulnith
                   value={values.section}
                   onChange={(event) =>
                     setValues((current) => ({
@@ -284,14 +262,11 @@ export function GenerateQrModal({
                   className={inputClassName}
                   required
                 />
-<<<<<<< HEAD
-=======
                 <datalist id={sectionListId}>
                   {sectionSuggestions.map((section) => (
                     <option key={section} value={section} />
                   ))}
                 </datalist>
->>>>>>> Dulnith
               </div>
             </div>
           </div>
@@ -307,6 +282,7 @@ export function GenerateQrModal({
               type="button"
               onClick={requestClose}
               className={cn(getManagerSecondaryButtonClasses(settings.scheme), "h-11 rounded-[14px] px-5 text-[14px]")}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
@@ -314,8 +290,9 @@ export function GenerateQrModal({
             <button
               type="submit"
               className={cn(getManagerPrimaryButtonClasses(settings.scheme), "h-11 rounded-[14px] px-5 text-[14px]")}
+              disabled={isSubmitting}
             >
-              Generate QR Code
+              {isSubmitting ? "Generating..." : "Generate QR Code"}
             </button>
           </div>
         </form>

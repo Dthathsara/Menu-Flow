@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { CustomerDashboard } from "@/components/customer/CustomerDashboard";
-import { customerMenuData } from "@/data/customerMenuData";
 
 export const metadata: Metadata = {
   title: "MenuFlow | Customer Dashboard",
-  description: "Responsive customer-facing restaurant ordering dashboard demo.",
+  description: "Responsive customer-facing restaurant ordering dashboard.",
 };
 
 export default function CustomerPage() {
-  return <CustomerDashboard data={customerMenuData} />;
+  return <CustomerDashboard />;
 }

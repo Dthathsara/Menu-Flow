@@ -20,7 +20,6 @@ const SERVING_SIZES: ServingSize[] = ["Small", "Medium", "Large"];
 export interface CustomerMenuFetchParams {
   slug?: string;
   tenantId?: string;
-  tableId?: string;
   qrToken?: string;
 }
 
@@ -39,8 +38,6 @@ export interface CustomerOrderItemPayload {
 
 export interface CreateCustomerOrderPayload {
   tenant_id: string;
-  table_id?: string;
-  qr_token?: string;
   customer_session_id: string;
   customer_name: string;
   customer_phone: string;
@@ -446,6 +443,12 @@ function mapMenuItem(
     ),
   };
 
+  console.log("Customer mapped item:", {
+    name: mapped.name,
+    imageStart: mapped.image?.slice?.(0, 40),
+    servingPrices: mapped.servingPrices,
+  });
+
   return mapped;
 }
 
@@ -710,10 +713,6 @@ function buildCustomerMenuUrl(params?: CustomerMenuFetchParams) {
 
   if (params?.tenantId?.trim()) {
     query.set("tenantId", params.tenantId.trim());
-  }
-
-  if (params?.tableId?.trim()) {
-    query.set("tableId", params.tableId.trim());
   }
 
   if (params?.qrToken?.trim()) {

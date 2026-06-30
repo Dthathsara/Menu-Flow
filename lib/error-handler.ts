@@ -42,7 +42,7 @@ function cleanMessage(message: string) {
     lower.includes("business email already registered") ||
     lower.includes("business email is already registered")
   ) {
-    return "Business email is already registered. Please use another email or log in.";
+    return "This email is already registered. Please use another email or log in.";
   }
 
   if (
@@ -67,6 +67,23 @@ function cleanMessage(message: string) {
   return normalized;
 }
 
+function tryParseJsonString(value: string): unknown {
+  const trimmed = value.trim();
+
+  if (
+    (!trimmed.startsWith("{") || !trimmed.endsWith("}")) &&
+    (!trimmed.startsWith("[") || !trimmed.endsWith("]"))
+  ) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+}
+
 function getStatusCode(value: unknown): number | null {
   if (!isRecord(value)) {
     return null;
@@ -82,6 +99,16 @@ function extractMessage(value: unknown): string {
   }
 
   if (typeof value === "string") {
+    const parsed = tryParseJsonString(value);
+
+    if (parsed) {
+      const parsedMessage = extractMessage(parsed);
+
+      if (parsedMessage) {
+        return parsedMessage;
+      }
+    }
+
     return cleanMessage(value);
   }
 

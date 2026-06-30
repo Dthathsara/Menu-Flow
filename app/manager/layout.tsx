@@ -18,13 +18,9 @@ export default async function ManagerLayout({
 
   return (
     <ManagerThemeProvider initialSettings={initialSettings}>
-<<<<<<< HEAD
-      {children}
-=======
       <ManagerRestaurantProfileProvider>
         {children}
       </ManagerRestaurantProfileProvider>
->>>>>>> Dulnith
     </ManagerThemeProvider>
   );
 }

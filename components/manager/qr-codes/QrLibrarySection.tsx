@@ -18,10 +18,6 @@ import type { QrCodeRecord } from "./types";
 interface QrLibrarySectionProps {
   settings: ManagerSettings;
   items: QrCodeRecord[];
-<<<<<<< HEAD
-  searchValue: string;
-  onSearchChange: (value: string) => void;
-=======
   totalItemCount: number;
   searchValue: string;
   sectionValue: string;
@@ -31,7 +27,6 @@ interface QrLibrarySectionProps {
   onSearchChange: (value: string) => void;
   onSectionChange: (value: string) => void;
   onRetry: () => void;
->>>>>>> Dulnith
   onDownload: (item: QrCodeRecord) => void;
   onDelete: (item: QrCodeRecord) => void;
   deletingId: string;
@@ -40,10 +35,6 @@ interface QrLibrarySectionProps {
 export function QrLibrarySection({
   settings,
   items,
-<<<<<<< HEAD
-  searchValue,
-  onSearchChange,
-=======
   totalItemCount,
   searchValue,
   sectionValue,
@@ -53,7 +44,6 @@ export function QrLibrarySection({
   onSearchChange,
   onSectionChange,
   onRetry,
->>>>>>> Dulnith
   onDownload,
   onDelete,
   deletingId,
@@ -85,15 +75,13 @@ export function QrLibrarySection({
               <input
                 value={searchValue}
                 onChange={(event) => onSearchChange(event.target.value)}
-                placeholder="Search by Table Number, Section, or Branch"
+                placeholder="Search by Table Number, Section, or URL"
                 className="w-full bg-transparent text-[14px] outline-none placeholder:text-inherit"
                 aria-label="Search QR codes"
               />
             </div>
           </label>
 
-<<<<<<< HEAD
-=======
           <div className="min-w-0 xl:w-[220px]">
             <FilterDropdown
               label="Filter QR codes by section"
@@ -107,16 +95,12 @@ export function QrLibrarySection({
             />
           </div>
 
->>>>>>> Dulnith
           <div className={cn("font-medium", getManagerBodyTextClasses(settings.scheme))}>
             {items.length} result{items.length === 1 ? "" : "s"}
           </div>
         </div>
       </div>
 
-<<<<<<< HEAD
-      {items.length ? (
-=======
       {errorMessage ? (
         <div className={cn("mt-5 px-5 py-10 text-center", getManagerPanelShellClasses(settings.scheme))}>
           <div className={cn("text-[1.05rem] font-semibold", settings.scheme === "dark" ? "text-slate-100" : "text-slate-900")}>
@@ -138,7 +122,6 @@ export function QrLibrarySection({
           </p>
         </div>
       ) : items.length ? (
->>>>>>> Dulnith
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {items.map((item) => (
             <QrCard

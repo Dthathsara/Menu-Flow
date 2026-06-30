@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { RestaurantProfileImage } from "./RestaurantProfileImage";
 import { cn } from "./managerUtils";
 import { DEFAULT_RESTAURANT_PROFILE } from "./settings/settings.data";
 import type { RestaurantProfile } from "./settings/settings.types";
@@ -12,7 +12,7 @@ export function ClientCompanyCard({
   inverted = false,
   profile = DEFAULT_RESTAURANT_PROFILE,
 }: ClientCompanyCardProps) {
-  const isBlobImage = profile.imageSrc.startsWith("blob:");
+  const displayName = profile.hotelName || "Restaurant";
 
   return (
     <div
@@ -30,29 +30,17 @@ export function ClientCompanyCard({
         )}
       >
         <div className="relative h-full w-full">
-<<<<<<< HEAD
-          <Image
-            src={profile.imageSrc}
-            alt={profile.name}
-            width={234}
-            height={185}
-            quality={100}
-            sizes="(max-width: 1024px) 196px, 210px"
-            className="h-full w-full object-cover"
-            unoptimized={isBlobImage}
-=======
           <RestaurantProfileImage
             src={profile.restaurantImageUrl}
             alt={displayName}
             className="h-full w-full"
             eager
             highPriority
->>>>>>> Dulnith
           />
           <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/20 to-transparent px-3 py-2">
             <div className="text-white leading-tight">
-              <p className="truncate text-sm font-semibold">{profile.name}</p>
-              <p className="text-xs opacity-80">{profile.location}</p>
+              <p className="truncate text-sm font-semibold">{displayName}</p>
+              <p className="text-xs opacity-80">{profile.businessLocation}</p>
             </div>
           </div>
         </div>

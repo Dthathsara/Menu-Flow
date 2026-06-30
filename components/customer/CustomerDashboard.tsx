@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BottomTabBar } from "@/components/customer/BottomTabBar";
 import { CategoryTabs } from "@/components/customer/CategoryTabs";
 import { ContactPanel } from "@/components/customer/ContactPanel";
 import { CustomerHeader } from "@/components/customer/CustomerHeader";
 import { ItemDetailsModal } from "@/components/customer/ItemDetailsModal";
+import { OrderConfirmModal } from "@/components/customer/OrderConfirmModal";
 import { OrdersPanel } from "@/components/customer/OrdersPanel";
+import { RemoveConfirmModal } from "@/components/customer/RemoveConfirmModal";
 import { SubcategorySection } from "@/components/customer/SubcategorySection";
 import { formatPrice, getSectionKey } from "@/components/customer/customerUtils";
+import {
+  CustomerMenuApiError,
+  fetchCustomerMenuData,
+} from "@/lib/customer-menu-api";
 import type {
   CartItem,
   CustomerMenuData,
@@ -18,10 +24,6 @@ import type {
   TabId,
 } from "@/types/customer";
 
-interface CustomerDashboardProps {
-  data: CustomerMenuData;
-}
-
 interface ModalState {
   categoryId: string;
   subcategoryId: string;
@@ -30,6 +32,14 @@ interface ModalState {
   crust?: string;
   initialServing?: ServingSize;
   initialQuantity?: number;
+}
+
+interface OrderConfirmationState {
+  item: MenuItem;
+  serving: ServingSize;
+  quantity: number;
+  crust?: string;
+  editKey?: string;
 }
 
 function buildExpandedState(categories: MenuCategory[]) {
@@ -43,10 +53,6 @@ function buildExpandedState(categories: MenuCategory[]) {
   ) as Record<string, boolean>;
 }
 
-<<<<<<< HEAD
-export function CustomerDashboard({ data }: CustomerDashboardProps) {
-  const firstCategory = data.categories[0];
-=======
 function getMenuSlugFromLocation() {
   if (typeof window === "undefined") {
     return "";
@@ -84,15 +90,6 @@ function getQrTokenFromLocation() {
 
   const params = new URLSearchParams(window.location.search);
   return (params.get("qrToken") ?? params.get("qr") ?? "").trim();
-}
-
-function getTableIdFromLocation() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  return (params.get("tableId") ?? params.get("table") ?? "").trim();
 }
 
 function getQueryTenantIdFromLocation() {
@@ -177,16 +174,13 @@ function StatusMessage({ message }: { message: string }) {
 
 export function CustomerDashboard() {
   const [data, setData] = useState<CustomerMenuData | null>(null);
->>>>>>> Dulnith
   const [activeTab, setActiveTab] = useState<TabId>("menu");
-  const [activeCategoryId, setActiveCategoryId] = useState(firstCategory?.id ?? "");
+  const [activeCategoryId, setActiveCategoryId] = useState("");
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
-    () => buildExpandedState(data.categories),
+    {},
   );
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [modalState, setModalState] = useState<ModalState | null>(null);
-<<<<<<< HEAD
-=======
   const [orderConfirmation, setOrderConfirmation] =
     useState<OrderConfirmationState | null>(null);
   const [removeConfirmation, setRemoveConfirmation] = useState<CartItem | null>(
@@ -204,7 +198,6 @@ export function CustomerDashboard() {
       const nextData = await fetchCustomerMenuData({
         slug: getMenuSlugFromLocation(),
         tenantId: getTenantIdFromLocation(),
-        tableId: getTableIdFromLocation(),
         qrToken: getQrTokenFromLocation(),
       });
 
@@ -271,10 +264,9 @@ export function CustomerDashboard() {
   }
 
   const firstCategory = data.categories[0];
->>>>>>> Dulnith
 
   if (!firstCategory) {
-    return null;
+    return <StatusMessage message="No menu items are available right now." />;
   }
 
   const activeCategory =
@@ -299,24 +291,20 @@ export function CustomerDashboard() {
     (total, item) => total + item.unitPrice * item.quantity,
     0,
   );
-<<<<<<< HEAD
-  const orderTax = orderSubtotal * 0.05;
-  const orderServiceCharge = orderSubtotal * 0.03;
-  const orderTotal = orderSubtotal + orderTax + orderServiceCharge;
-=======
   const orderTenantId =
     getQueryTenantIdFromLocation() ||
     data.restaurant.id ||
     "";
-  const orderTableId = getTableIdFromLocation();
-  const orderQrToken = getQrTokenFromLocation();
->>>>>>> Dulnith
   const activeCategoryItemCount = activeCategory.subcategories.reduce(
     (count, subcategory) => count + subcategory.items.length,
     0,
   );
 
   function findItemLocation(itemId: string) {
+    if (!data) {
+      return null;
+    }
+
     for (const category of data.categories) {
       for (const subcategory of category.subcategories) {
         const foundItem = subcategory.items.find((entry) => entry.id === itemId);
@@ -373,7 +361,22 @@ export function CustomerDashboard() {
     crust?: string,
     editKey?: string,
   ) {
-    const unitPrice = item.servingPrices[serving];
+    setOrderConfirmation({
+      item,
+      serving,
+      quantity,
+      crust,
+      editKey,
+    });
+  }
+
+  function confirmAddToOrder() {
+    if (!orderConfirmation) {
+      return;
+    }
+
+    const { item, serving, quantity, crust, editKey } = orderConfirmation;
+    const unitPrice = item.servingPrices[serving] ?? 0;
     const key = `${item.id}:${serving}:${crust ?? "default"}`;
 
     setCartItems((current) => {
@@ -399,10 +402,13 @@ export function CustomerDashboard() {
             key,
             itemId: item.id,
             name: item.name,
+            categoryName: item.categoryName,
+            subCategoryName: item.subCategoryName,
             crust: crust ?? itemBeingEdited?.crust,
             serving,
             quantity,
             unitPrice,
+            prepTime: item.prepTime,
             image: item.image,
           },
         ];
@@ -424,20 +430,42 @@ export function CustomerDashboard() {
           key,
           itemId: item.id,
           name: item.name,
+          categoryName: item.categoryName,
+          subCategoryName: item.subCategoryName,
           crust,
           serving,
           quantity,
           unitPrice,
+          prepTime: item.prepTime,
           image: item.image,
         },
       ];
     });
 
+    setOrderConfirmation(null);
     setModalState(null);
   }
 
-  function removeCartItem(key: string) {
+  function cancelAddToOrder() {
+    setOrderConfirmation(null);
+  }
+
+  function requestRemoveCartItem(item: CartItem) {
+    setRemoveConfirmation(item);
+  }
+
+  function confirmRemoveCartItem() {
+    if (!removeConfirmation) {
+      return;
+    }
+
+    const key = removeConfirmation.key;
     setCartItems((current) => current.filter((item) => item.key !== key));
+    setRemoveConfirmation(null);
+  }
+
+  function cancelRemoveCartItem() {
+    setRemoveConfirmation(null);
   }
 
   function handleQuickAdd(item: MenuItem, serving: ServingSize) {
@@ -448,6 +476,7 @@ export function CustomerDashboard() {
     const location = findItemLocation(item.itemId);
 
     if (!location) {
+      window.alert("This item is no longer available on the menu.");
       return;
     }
 
@@ -500,16 +529,7 @@ export function CustomerDashboard() {
             <div className="mt-5 2xl:grid 2xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)] 2xl:gap-6">
               <div className="space-y-5">
                 <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
-                  <div className="rounded-[1.6rem] bg-[#f4ede3] p-4 lg:p-5">
-                    <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#3d9238]">
-                      {activeCategory.name}
-                    </div>
-                    <div className="mt-2 text-base leading-7 text-[#7a6050]">
-                      {activeCategory.description}
-                    </div>
-                  </div>
-
-                  <div className="hidden rounded-[1.6rem] bg-[#fcf7f1] p-4 lg:block lg:p-5 2xl:hidden">
+                  <div className="hidden rounded-[1.6rem] bg-[#fcf7f1] p-4 lg:col-start-2 lg:block lg:p-5 2xl:hidden">
                     <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-[#3d9238]">
                       Current cart
                     </div>
@@ -616,19 +636,11 @@ export function CustomerDashboard() {
           <OrdersPanel
             items={cartItems}
             subtotal={orderSubtotal}
-<<<<<<< HEAD
-            tax={orderTax}
-            serviceCharge={orderServiceCharge}
-            total={orderTotal}
-=======
             restaurant={data.restaurant}
             tenantId={orderTenantId?.trim() ?? ""}
-            tableId={orderTableId}
-            qrToken={orderQrToken}
             onOrderSuccess={() => setCartItems([])}
->>>>>>> Dulnith
             onEdit={handleEditItem}
-            onRemove={removeCartItem}
+            onRemove={requestRemoveCartItem}
           />
         ) : null}
 
@@ -662,6 +674,26 @@ export function CustomerDashboard() {
             modalState?.editKey,
           )
         }
+      />
+
+      <OrderConfirmModal
+        item={orderConfirmation?.item}
+        serving={orderConfirmation?.serving}
+        price={
+          orderConfirmation
+            ? orderConfirmation.item.servingPrices[orderConfirmation.serving] ?? 0
+            : 0
+        }
+        isOpen={orderConfirmation !== null}
+        onCancel={cancelAddToOrder}
+        onConfirm={confirmAddToOrder}
+      />
+
+      <RemoveConfirmModal
+        item={removeConfirmation}
+        isOpen={removeConfirmation !== null}
+        onCancel={cancelRemoveCartItem}
+        onConfirm={confirmRemoveCartItem}
       />
     </div>
   );

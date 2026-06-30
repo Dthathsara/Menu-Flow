@@ -33,14 +33,6 @@ export function createQrCodeRecord(
 
   return {
     id,
-<<<<<<< HEAD
-    tableNumber,
-    section,
-    branch,
-    status: "Active",
-    qrValue,
-    createdAt: overrides?.createdAt ?? new Date().toISOString(),
-=======
     tenantId: overrides?.tenantId ?? "",
     tableNumber,
     section,
@@ -53,7 +45,6 @@ export function createQrCodeRecord(
     qrValue,
     createdAt: overrides?.createdAt ?? new Date().toISOString(),
     updatedAt: overrides?.updatedAt ?? new Date().toISOString(),
->>>>>>> Dulnith
   };
 }
 

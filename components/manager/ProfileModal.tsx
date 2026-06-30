@@ -2,10 +2,11 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useId, useRef, useState } from "react";
-import axios from "axios";
 
 import { primaryButtonClassName } from "@/components/common/buttons";
+import { apiUrl } from "@/lib/api-config";
 import { getApiErrorMessage } from "@/lib/error-handler";
+import { authJson, normalizeAuthUser, SessionExpiredError } from "@/lib/auth-session";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
@@ -15,16 +16,11 @@ import {
   type AuthTheme,
 } from "@/components/common/theme";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/backend";
-
-const PROFILE_ME_URL = `${API_BASE_URL}/auth/me`;
-const CHANGE_PASSWORD_URL = `${API_BASE_URL}/auth/change-password`;
+const PROFILE_ME_URL = apiUrl("/auth/me");
 
 type UserProfile = {
   id?: string;
   email?: string;
-  businessEmail?: string;
-  hotelName?: string;
   contactPersonName?: string;
   contactPersonMobileNumber?: string;
   firstName?: string;
@@ -33,8 +29,7 @@ type UserProfile = {
 };
 
 type ProfileForm = {
-  hotelName: string;
-  businessEmail: string;
+  email: string;
   contactPersonName: string;
   contactPersonMobileNumber: string;
   oldPassword: string;
@@ -57,7 +52,7 @@ function readStoredUser(): UserProfile | null {
   }
 
   try {
-    return JSON.parse(storedUser) as UserProfile;
+    return normalizeAuthUser(JSON.parse(storedUser) as UserProfile);
   } catch {
     return null;
   }
@@ -71,16 +66,15 @@ function getUserPayload(data: unknown): UserProfile | null {
   const record = data as Record<string, unknown>;
 
   if (record.user && typeof record.user === "object") {
-    return record.user as UserProfile;
+    return normalizeAuthUser(record.user as UserProfile);
   }
 
-  return record as UserProfile;
+  return normalizeAuthUser(record as UserProfile);
 }
 
 function buildForm(user: UserProfile | null): ProfileForm {
   return {
-    hotelName: user?.hotelName || "",
-    businessEmail: user?.businessEmail || user?.email || "",
+    email: user?.email ?? "",
     contactPersonName:
       user?.contactPersonName ||
       [user?.firstName, user?.lastName].filter(Boolean).join(" "),
@@ -91,29 +85,20 @@ function buildForm(user: UserProfile | null): ProfileForm {
   };
 }
 
-<<<<<<< HEAD
 function logProfileError(error: unknown) {
-  if (axios.isAxiosError(error)) {
-    console.log("PROFILE ERROR", error.response?.data || error.message);
-    return;
-  }
-
   console.log(
     "PROFILE ERROR",
     error instanceof Error ? error.message : "Unknown profile error",
   );
 }
 
-=======
->>>>>>> Dulnith
 export function ProfileModal({
   open,
   onClose,
   onUserUpdated,
   theme = "dark",
 }: ProfileModalProps) {
-  const hotelNameId = useId();
-  const businessEmailId = useId();
+  const emailId = useId();
   const contactNameId = useId();
   const mobileNumberId = useId();
   const oldPasswordId = useId();
@@ -146,15 +131,6 @@ export function ProfileModal({
     const storedUser = readStoredUser();
     setForm(buildForm(storedUser));
 
-    const token = window.localStorage.getItem("accessToken");
-    console.log("PROFILE TOKEN", token);
-
-    if (!token) {
-      setStatusType("error");
-      setStatusMessage("Session expired. Please login again.");
-      return;
-    }
-
     let isActive = true;
 
     async function loadProfile() {
@@ -162,18 +138,13 @@ export function ProfileModal({
       setStatusMessage("");
 
       try {
-        const response = await axios.get(PROFILE_ME_URL, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("PROFILE GET RESPONSE", response.data);
+        const response = await authJson<unknown>(PROFILE_ME_URL);
 
         if (!isActive) {
           return;
         }
 
-        const apiUser = getUserPayload(response.data);
+        const apiUser = getUserPayload(response);
         const nextUser = { ...(storedUser || {}), ...(apiUser || {}) };
         setForm(buildForm(nextUser));
       } catch (error) {
@@ -181,8 +152,13 @@ export function ProfileModal({
           return;
         }
 
+        logProfileError(error);
         setStatusType("error");
-        setStatusMessage(getApiErrorMessage(error, "Unable to load profile details."));
+        setStatusMessage(
+          error instanceof SessionExpiredError
+            ? error.message
+            : getApiErrorMessage(error, "Unable to load profile details."),
+        );
       } finally {
         if (isActive) {
           setIsLoading(false);
@@ -214,12 +190,8 @@ export function ProfileModal({
       Boolean(form.newPassword) ||
       Boolean(form.confirmPassword);
 
-    if (!form.hotelName.trim()) {
-      nextErrors.hotelName = "Business / Hotel name is required.";
-    }
-
-    if (!form.businessEmail.trim()) {
-      nextErrors.businessEmail = "Business email is required.";
+    if (!form.email.trim()) {
+      nextErrors.email = "Email is required.";
     }
 
     if (!form.contactPersonName.trim()) {
@@ -253,53 +225,38 @@ export function ProfileModal({
       return;
     }
 
-    const token = window.localStorage.getItem("accessToken");
-    console.log("PROFILE TOKEN", token);
-
-    if (!token) {
-      setStatusType("error");
-      setStatusMessage("Session expired. Please login again.");
-      return;
-    }
-
     setIsSubmitting(true);
     setStatusMessage("");
 
     try {
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
-      const payload = {
-        hotelName: form.hotelName.trim(),
-        businessEmail: form.businessEmail.trim().toLowerCase(),
+      const payload: Record<string, string> = {
+        email: form.email.trim().toLowerCase(),
         contactPersonName: form.contactPersonName.trim(),
         contactPersonMobileNumber: form.contactPersonMobileNumber.trim(),
       };
-      console.log("PROFILE SAVE PAYLOAD", payload);
-
-      const profileResponse = await axios.patch(
-        PROFILE_ME_URL,
-        payload,
-        { headers },
-      );
 
       if (wantsPasswordChange) {
-        await axios.patch(
-          CHANGE_PASSWORD_URL,
-          {
-            oldPassword: form.oldPassword,
-            newPassword: form.newPassword,
-          },
-          { headers },
-        );
+        payload.oldPassword = form.oldPassword;
+        payload.newPassword = form.newPassword;
+        payload.confirmNewPassword = form.confirmPassword;
       }
 
+      const profileResponse = await authJson<unknown>(PROFILE_ME_URL, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
       const storedUser = readStoredUser();
-      const apiUser = getUserPayload(profileResponse.data);
+      const apiUser = getUserPayload(profileResponse);
       const nextUser = {
         ...(storedUser || {}),
         ...(apiUser || {}),
-        ...(!apiUser ? payload : {}),
+        email: form.email.trim().toLowerCase(),
+        contactPersonName: form.contactPersonName.trim(),
+        contactPersonMobileNumber: form.contactPersonMobileNumber.trim(),
       };
 
       window.localStorage.setItem("user", JSON.stringify(nextUser));
@@ -319,8 +276,13 @@ export function ProfileModal({
         onClose();
       }, 900);
     } catch (error) {
+      logProfileError(error);
       setStatusType("error");
-      setStatusMessage(getApiErrorMessage(error));
+      setStatusMessage(
+        error instanceof SessionExpiredError
+          ? error.message
+          : getApiErrorMessage(error),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -344,37 +306,21 @@ export function ProfileModal({
           <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--text-secondary)]">
             Profile
           </h3>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <AuthInputField
-                id={hotelNameId}
-                theme={theme}
-                label="Business / Hotel name"
-                value={form.hotelName}
-                autoComplete="organization"
-                placeholder="Enter your business name"
-                error={errors.hotelName}
-                onChange={(hotelName) =>
-                  setForm((current) => ({ ...current, hotelName }))
-                }
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <AuthInputField
-                id={businessEmailId}
-                theme={theme}
-                label="Business email"
-                type="email"
-                value={form.businessEmail}
-                autoComplete="email"
-                placeholder="team@restaurant.com"
-                error={errors.businessEmail}
-                onChange={(businessEmail) =>
-                  setForm((current) => ({ ...current, businessEmail }))
-                }
-              />
-            </div>
+          <div className="space-y-5">
+            <div className="grid gap-5 sm:grid-cols-3">
+            <AuthInputField
+              id={emailId}
+              theme={theme}
+              label="Email"
+              type="email"
+              value={form.email}
+              autoComplete="email"
+              placeholder="team@restaurant.com"
+              error={errors.email}
+              onChange={(email) =>
+                setForm((current) => ({ ...current, email }))
+              }
+            />
 
             <AuthInputField
               id={contactNameId}
@@ -392,7 +338,7 @@ export function ProfileModal({
             <AuthInputField
               id={mobileNumberId}
               theme={theme}
-              label="Contact person mobile number"
+              label="Contact person mobile no."
               type="tel"
               value={form.contactPersonMobileNumber}
               autoComplete="tel"
@@ -403,6 +349,7 @@ export function ProfileModal({
                 setForm((current) => ({ ...current, contactPersonMobileNumber }))
               }
             />
+            </div>
           </div>
         </section>
 

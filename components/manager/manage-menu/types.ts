@@ -1,52 +1,48 @@
-export const MENU_CATEGORIES = [
-  "Appetizers",
-  "Soups",
-  "Salads",
-  "Seafood",
-  "Chicken",
-  "Beef",
-  "Rice",
-  "Noodles",
-  "Burgers",
-  "Desserts",
-  "Beverages",
-] as const;
+export const ALL_CATEGORIES_LABEL = "All Categories";
+export const ALL_AVAILABILITY_LABEL = "All Availability";
 
-export const FILTER_CATEGORIES = ["All Categories", ...MENU_CATEGORIES] as const;
+export type MenuFilterCategory = string;
+export type MenuAvailabilityFilter =
+  | typeof ALL_AVAILABILITY_LABEL
+  | "Available"
+  | "Unavailable";
 
-export type MenuCategory = (typeof MENU_CATEGORIES)[number];
-export type MenuFilterCategory = (typeof FILTER_CATEGORIES)[number];
-
-export interface MenuItemPrices {
-  small: number;
-  medium: number;
-  large: number;
+export interface MenuCategory {
+  id: string;
+  name: string;
 }
 
 export interface MenuItemRecord {
   id: string;
+  tenantId: string;
   name: string;
-  category: MenuCategory;
+  categoryName: string;
+  subCategoryName?: string | null;
   description: string;
-<<<<<<< HEAD
-  prices: MenuItemPrices;
-=======
   imageUrl: string;
->>>>>>> Dulnith
   image: string;
+  smallPrice: number;
+  mediumPrice: number;
+  largePrice: number;
   available: boolean;
+  active: boolean;
+  sortOrder: number;
   prepTime: number;
-  sku: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
 }
 
 export interface MenuItemFormValues {
   name: string;
-  category: MenuCategory;
+  categoryName: string;
+  subCategoryName: string;
   description: string;
   smallPrice: string;
   mediumPrice: string;
   largePrice: string;
   image: string;
+  imageFile: File | null;
   available: boolean;
   prepTime: string;
   sku: string;

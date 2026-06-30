@@ -1,8 +1,5 @@
 "use client";
 
-<<<<<<< HEAD
-import { useState } from "react";
-=======
 import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { getApiErrorMessage } from "@/lib/error-handler";
@@ -13,12 +10,10 @@ import {
   fetchQrSections,
   fetchQrTableNumbers,
 } from "@/lib/manager-qr-api";
->>>>>>> Dulnith
 import type { ManagerSettings } from "../managerTypes";
 import { getManagerPageSectionClasses } from "../managerUtils";
 import { GenerateQrHero } from "./GenerateQrHero";
 import { GenerateQrModal } from "./GenerateQrModal";
-import { INITIAL_QR_CODES, createQrCodeRecord } from "./qr-data";
 import { QrLibrarySection } from "./QrLibrarySection";
 import { downloadQrSvg } from "./qr-renderer";
 import type { GenerateQrFormValues, QrCodeRecord } from "./types";
@@ -68,21 +63,6 @@ function getDistinctSections(items: readonly QrCodeRecord[]) {
 }
 
 export function GenerateQrPage({ settings }: GenerateQrPageProps) {
-<<<<<<< HEAD
-  const [items, setItems] = useState<QrCodeRecord[]>(INITIAL_QR_CODES);
-  const [searchValue, setSearchValue] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const normalizedSearch = searchValue.trim().toLowerCase();
-  const filteredItems = items.filter((item) => {
-    if (!normalizedSearch) {
-      return true;
-    }
-
-    return [item.tableNumber, item.section, item.branch].some((value) =>
-      value.toLowerCase().includes(normalizedSearch),
-    );
-=======
   const [items, setItems] = useState<QrCodeRecord[]>([]);
   const [sections, setSections] = useState<string[]>([]);
   const [tableNumbers, setTableNumbers] = useState<string[]>([]);
@@ -153,18 +133,13 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
       selectedSection === ALL_SECTIONS_LABEL || item.section === selectedSection;
 
     return matchesSearch && matchesSection;
->>>>>>> Dulnith
   });
 
   async function handleDownloadRecord(item: QrCodeRecord) {
     await downloadQrSvg(
-      item.qrValue,
+      item.customerUrl,
       `QR code for table ${item.tableNumber}`,
-<<<<<<< HEAD
-      `menuflow-${item.tableNumber.toLowerCase()}-qr.svg`,
-=======
       `menuflow-table-${slugifyFilePart(item.tableNumber)}-${slugifyFilePart(item.section)}-qr.svg`,
->>>>>>> Dulnith
     );
   }
 
@@ -176,11 +151,6 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
     });
   }
 
-<<<<<<< HEAD
-  function handleGenerate(values: GenerateQrFormValues) {
-    const nextItem = createQrCodeRecord(values);
-    setItems((current) => [nextItem, ...current]);
-=======
   async function handleGenerate(values: GenerateQrFormValues) {
     const normalizedTableNumber = normalizeTableNumberInput(values.tableNumber);
 
@@ -239,7 +209,6 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
     } finally {
       setDeletingId("");
     }
->>>>>>> Dulnith
   }
 
   return (
@@ -257,10 +226,6 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
         <QrLibrarySection
           settings={settings}
           items={filteredItems}
-<<<<<<< HEAD
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-=======
           totalItemCount={items.length}
           searchValue={searchValue}
           sectionValue={selectedSection}
@@ -270,12 +235,11 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
           onSearchChange={setSearchValue}
           onSectionChange={setSelectedSection}
           onRetry={loadQrData}
->>>>>>> Dulnith
           onDownload={(item) => {
             void handleDownloadRecord(item);
           }}
           onDelete={(item) => {
-            setItems((current) => current.filter((entry) => entry.id !== item.id));
+            void handleDelete(item);
           }}
           deletingId={deletingId}
         />
@@ -284,9 +248,6 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
       {isModalOpen ? (
         <GenerateQrModal
           settings={settings}
-<<<<<<< HEAD
-          onClose={() => setIsModalOpen(false)}
-=======
           sectionSuggestions={sections}
           tableNumberSuggestions={tableNumbers}
           isSubmitting={isGenerating}
@@ -299,15 +260,12 @@ export function GenerateQrPage({ settings }: GenerateQrPageProps) {
             setIsModalOpen(false);
             setModalErrorMessage("");
           }}
->>>>>>> Dulnith
           onSubmit={handleGenerate}
         />
       ) : null}
     </>
   );
 }
-<<<<<<< HEAD
-=======
 
 function getDistinctTableNumbers(items: readonly QrCodeRecord[]) {
   return Array.from(
@@ -328,4 +286,3 @@ export function normalizeTableNumberInput(input: string): string {
 
   return `T - ${match[0].padStart(2, "0")}`;
 }
->>>>>>> Dulnith

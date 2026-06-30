@@ -18,59 +18,66 @@ import {
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import { ImageUploadField } from "./ImageUploadField";
-import type { MenuCategory, MenuItemFormValues, MenuItemRecord } from "./types";
+import type { MenuItemFormValues, MenuItemRecord } from "./types";
 
 interface MenuItemModalProps {
   mode: "add" | "edit";
   settings: ManagerSettings;
-  categories: readonly MenuCategory[];
   item?: MenuItemRecord | null;
   categorySuggestions: readonly string[];
   subCategorySuggestions: readonly string[];
   menuItems: readonly MenuItemRecord[];
   onClose: () => void;
-  onSave: (values: MenuItemFormValues) => void;
+  onSave: (values: MenuItemFormValues) => Promise<void> | void;
+  isSaving?: boolean;
+  errorMessage?: string;
 }
 
-function createEmptyValues(category: MenuCategory): MenuItemFormValues {
+const IMAGE_VALIDATION_MESSAGE =
+  "Please upload a PNG, JPG, JPEG, or WEBP image under 10MB.";
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/png",
+  "image/jpg",
+  "image/jpeg",
+  "image/webp",
+]);
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+
+function createEmptyValues(): MenuItemFormValues {
   return {
     name: "",
-    category,
+    categoryName: "",
+    subCategoryName: "",
     description: "",
     smallPrice: "",
     mediumPrice: "",
     largePrice: "",
     image: "",
+    imageFile: null,
     available: true,
     prepTime: "12",
     sku: "",
   };
 }
 
-function createFormValues(item: MenuItemRecord | null | undefined, fallbackCategory: MenuCategory) {
+function createFormValues(item: MenuItemRecord | null | undefined) {
   if (!item) {
-    return createEmptyValues(fallbackCategory);
+    return createEmptyValues();
   }
 
   return {
     name: item.name,
-    category: item.category,
+    categoryName: item.categoryName,
+    subCategoryName: item.subCategoryName ?? "",
     description: item.description,
-<<<<<<< HEAD
-    smallPrice: String(item.prices.small),
-    mediumPrice: String(item.prices.medium),
-    largePrice: String(item.prices.large),
-    image: item.image,
-=======
     smallPrice: String(item.smallPrice),
     mediumPrice: String(item.mediumPrice),
     largePrice: String(item.largePrice),
     image: item.imageUrl,
     imageFile: null,
->>>>>>> Dulnith
     available: item.available,
     prepTime: String(item.prepTime),
-    sku: item.sku,
+    sku: "",
   } satisfies MenuItemFormValues;
 }
 
@@ -83,28 +90,31 @@ function readFileAsDataUrl(file: File) {
   });
 }
 
+function isValidImageFile(file: File) {
+  return ALLOWED_IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE_BYTES;
+}
+
 export function MenuItemModal({
   mode,
   settings,
-  categories,
   item,
   categorySuggestions,
   subCategorySuggestions,
   menuItems,
   onClose,
   onSave,
+  isSaving = false,
+  errorMessage = "",
 }: MenuItemModalProps) {
   const [values, setValues] = useState<MenuItemFormValues>(() =>
-    createFormValues(item, categories[0]),
+    createFormValues(item),
   );
   const [pendingFile, setPendingFile] = useState<File | null>(null);
-<<<<<<< HEAD
-=======
   const [localErrorMessage, setLocalErrorMessage] = useState("");
   const categoryListId = useId();
   const subCategoryListId = useId();
->>>>>>> Dulnith
   const isDark = settings.scheme === "dark";
+  const displayErrorMessage = localErrorMessage || errorMessage;
   const modalFocusClasses =
     isDark
       ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-[#061533]"
@@ -140,8 +150,6 @@ export function MenuItemModal({
       : "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500",
     modalFocusClasses,
   );
-<<<<<<< HEAD
-=======
   const filteredSubCategorySuggestions = useMemo(() => {
     const categoryName = values.categoryName.trim().toLowerCase();
 
@@ -160,16 +168,30 @@ export function MenuItemModal({
 
     return categorySubCategories.length ? categorySubCategories : subCategorySuggestions;
   }, [menuItems, subCategorySuggestions, values.categoryName]);
->>>>>>> Dulnith
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextImage = pendingFile ? await readFileAsDataUrl(pendingFile) : values.image;
+    if (pendingFile && !isValidImageFile(pendingFile)) {
+      setLocalErrorMessage(IMAGE_VALIDATION_MESSAGE);
+      return;
+    }
 
-    onSave({
+    let nextImage = values.image;
+
+    try {
+      nextImage = pendingFile ? await readFileAsDataUrl(pendingFile) : values.image;
+    } catch {
+      setLocalErrorMessage("Unable to read the selected image. Please try another file.");
+      return;
+    }
+
+    setLocalErrorMessage("");
+
+    await onSave({
       ...values,
       image: nextImage,
+      imageFile: pendingFile,
     });
   }
 
@@ -207,6 +229,7 @@ export function MenuItemModal({
               onClick={onClose}
               className={cn(getManagerIconButtonClasses(settings.scheme, true), modalFocusClasses)}
               aria-label="Close menu item modal"
+              disabled={isSaving}
             >
               <XIcon className="size-4" />
             </button>
@@ -243,30 +266,18 @@ export function MenuItemModal({
                       <label htmlFor="menu-item-category" className={getManagerLabelClasses(settings.scheme)}>
                         Category
                       </label>
-                      <select
+                      <input
                         id="menu-item-category"
-<<<<<<< HEAD
-                        value={values.category}
-=======
                         list={categoryListId}
                         value={values.categoryName}
->>>>>>> Dulnith
                         onChange={(event) =>
                           setValues((current) => ({
                             ...current,
-                            category: event.target.value as MenuCategory,
+                            categoryName: event.target.value,
                           }))
                         }
+                        placeholder="Enter category name"
                         className={inputClasses}
-<<<<<<< HEAD
-                      >
-                        {categories.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-=======
                         required
                       />
                       <datalist id={categoryListId}>
@@ -298,7 +309,6 @@ export function MenuItemModal({
                           <option key={subCategoryName} value={subCategoryName} />
                         ))}
                       </datalist>
->>>>>>> Dulnith
                     </div>
 
                     <div className="min-w-0 space-y-2 sm:col-span-2">
@@ -425,12 +435,27 @@ export function MenuItemModal({
                   onChange={(file) => {
                     setPendingFile(file);
                     if (!file) {
+                      setLocalErrorMessage("");
+                      setValues((current) => ({ ...current, imageFile: null }));
                       return;
                     }
 
-                    readFileAsDataUrl(file).then((dataUrl) => {
-                      setValues((current) => ({ ...current, image: dataUrl }));
-                    });
+                    if (!isValidImageFile(file)) {
+                      setLocalErrorMessage(IMAGE_VALIDATION_MESSAGE);
+                      setValues((current) => ({ ...current, imageFile: file }));
+                      return;
+                    }
+
+                    setLocalErrorMessage("");
+                    readFileAsDataUrl(file)
+                      .then((dataUrl) => {
+                        setValues((current) => ({ ...current, image: dataUrl, imageFile: file }));
+                      })
+                      .catch(() => {
+                        setLocalErrorMessage(
+                          "Unable to read the selected image. Please try another file.",
+                        );
+                      });
                   }}
                 />
 
@@ -485,10 +510,17 @@ export function MenuItemModal({
           </div>
 
           <div className={cn(getManagerModalFooterClasses(settings.scheme), "items-stretch sm:items-center")}>
+            {displayErrorMessage ? (
+              <div className="text-sm font-medium text-rose-300 sm:mr-auto">
+                {displayErrorMessage}
+              </div>
+            ) : null}
+
             <button
               type="button"
               onClick={onClose}
               className={cn(getManagerSecondaryButtonClasses(settings.scheme), modalFocusClasses)}
+              disabled={isSaving}
             >
               Cancel
             </button>
@@ -496,8 +528,9 @@ export function MenuItemModal({
             <button
               type="submit"
               className={cn(getManagerPrimaryButtonClasses(settings.scheme), modalFocusClasses)}
+              disabled={isSaving}
             >
-              Save Item
+              {isSaving ? "Saving..." : "Save Item"}
             </button>
           </div>
         </form>
