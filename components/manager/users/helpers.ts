@@ -11,14 +11,15 @@ import {
   getManagerTextInputClasses,
   getMutedTextClasses,
 } from "../managerUtils";
+import type { ManagerBadgeTone } from "../managerUtils";
 import type { Scheme } from "../managerTypes";
 import type {
   StaffFilters,
-  StaffFormValues,
   StaffRecord,
   StaffRole,
   StaffStatus,
   StaffSummaryCard,
+  StaffSummaryCounts,
 } from "./types";
 
 const AVATAR_GRADIENTS = [
@@ -58,15 +59,35 @@ export function getOperationalAccessLabel(role: StaffRole) {
 }
 
 export function getRoleBadgeClasses(role: StaffRole, scheme: Scheme) {
-  if (role === "Chef") {
-    return getManagerBadgeClasses("amber", scheme);
-  }
+  const normalizedRole = role.trim().toLowerCase();
 
-  if (role === "Waiter") {
+  if (normalizedRole === "waiter") {
     return getManagerBadgeClasses("brand", scheme);
   }
 
-  return getManagerBadgeClasses("cyan", scheme);
+  if (normalizedRole === "chef") {
+    return getManagerBadgeClasses("amber", scheme);
+  }
+
+  if (normalizedRole === "counter") {
+    return getManagerBadgeClasses("cyan", scheme);
+  }
+
+  if (normalizedRole === "manager" || normalizedRole === "admin") {
+    return getManagerBadgeClasses("violet", scheme);
+  }
+
+  if (normalizedRole === "cashier") {
+    return getManagerBadgeClasses("success", scheme);
+  }
+
+  const fallbackTones: ManagerBadgeTone[] = ["teal", "warning", "info", "danger", "neutral"];
+  const total = Array.from(normalizedRole || "other").reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0,
+  );
+
+  return getManagerBadgeClasses(fallbackTones[total % fallbackTones.length], scheme);
 }
 
 export function getStatusBadgeClasses(status: StaffStatus, scheme: Scheme) {
@@ -128,7 +149,9 @@ export function filterStaffRecords(records: StaffRecord[], filters: StaffFilters
       !query ||
       record.fullName.toLowerCase().includes(query) ||
       record.email.toLowerCase().includes(query) ||
-      record.phone.toLowerCase().includes(query);
+      record.phone.toLowerCase().includes(query) ||
+      record.nicNumber.toLowerCase().includes(query) ||
+      record.address.toLowerCase().includes(query);
 
     const matchesRole = filters.role === "All Roles" || record.role === filters.role;
     const matchesStatus =
@@ -138,34 +161,44 @@ export function filterStaffRecords(records: StaffRecord[], filters: StaffFilters
   });
 }
 
-export function getStaffSummaryCards(records: StaffRecord[]): StaffSummaryCard[] {
-  const totalUsers = records.length;
-  const kitchenStaff = records.filter((record) => record.role === "Chef").length;
-  const serviceStaff = records.filter((record) => record.role !== "Chef").length;
-  const activeToday = records.filter((record) => record.status === "Active").length;
+export function getStaffSummaryCounts(records: StaffRecord[]): StaffSummaryCounts {
+  return {
+    totalUsers: records.length,
+    kitchenStaff: records.filter((record) => record.role === "Chef").length,
+    serviceStaff: records.filter(
+      (record) => record.role === "Waiter" || record.role === "Counter",
+    ).length,
+    activeToday: records.filter((record) => record.status === "Active").length,
+  };
+}
+
+export function getStaffSummaryCards(
+  records: StaffRecord[],
+  counts: StaffSummaryCounts = getStaffSummaryCounts(records),
+): StaffSummaryCard[] {
 
   return [
     {
       title: "TOTAL USERS",
-      value: totalUsers,
+      value: counts.totalUsers,
       note: "All restaurant staff profiles currently listed for this branch.",
       accent: "blue",
     },
     {
       title: "KITCHEN STAFF",
-      value: kitchenStaff,
+      value: counts.kitchenStaff,
       note: "Chefs handling kitchen preparation and service output.",
       accent: "amber",
     },
     {
       title: "SERVICE STAFF",
-      value: serviceStaff,
+      value: counts.serviceStaff,
       note: "Waiters and counter staff supporting guest service flow.",
       accent: "purple",
     },
     {
       title: "ACTIVE TODAY",
-      value: activeToday,
+      value: counts.activeToday,
       note: "Staff members currently marked active in the system.",
       accent: "green",
     },
@@ -193,6 +226,11 @@ function formatClockTime(value: string) {
 
 export function formatLastActiveLabel(value: string, referenceDate = new Date()) {
   const target = new Date(value);
+
+  if (!value || Number.isNaN(target.getTime())) {
+    return "Never";
+  }
+
   const normalizedTarget = new Date(target);
   normalizedTarget.setHours(0, 0, 0, 0);
 
@@ -211,27 +249,4 @@ export function formatLastActiveLabel(value: string, referenceDate = new Date())
   }
 
   return formatCalendarDate(value);
-}
-
-export function createStaffRecord(
-  values: StaffFormValues,
-  currentRecord?: StaffRecord | null,
-) {
-  const id =
-    currentRecord?.id ??
-    (typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `staff-${Date.now()}`);
-
-  return {
-    id,
-    fullName: values.fullName.trim(),
-    role: values.role,
-    email: values.email.trim().toLowerCase(),
-    phone: values.phone.trim(),
-    nicNumber: values.nicNumber.trim(),
-    address: values.address.trim(),
-    status: currentRecord?.status ?? "Active",
-    lastActive: currentRecord?.lastActive ?? new Date().toISOString(),
-  } satisfies StaffRecord;
 }

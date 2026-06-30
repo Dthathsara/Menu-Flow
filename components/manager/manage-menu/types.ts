@@ -28,7 +28,11 @@ export interface MenuItemRecord {
   name: string;
   category: MenuCategory;
   description: string;
+<<<<<<< HEAD
   prices: MenuItemPrices;
+=======
+  imageUrl: string;
+>>>>>>> Dulnith
   image: string;
   available: boolean;
   prepTime: number;

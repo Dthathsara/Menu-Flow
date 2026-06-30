@@ -33,6 +33,7 @@ interface TableBillsCardProps {
   query: string;
   statusFilter: BillStatusFilter;
   methodFilter: BillMethodFilter;
+  isLoading?: boolean;
   onQueryChange: (value: string) => void;
   onStatusChange: (value: BillStatusFilter) => void;
   onMethodChange: (value: BillMethodFilter) => void;
@@ -48,6 +49,7 @@ export function TableBillsCard({
   query,
   statusFilter,
   methodFilter,
+  isLoading = false,
   onQueryChange,
   onStatusChange,
   onMethodChange,
@@ -130,7 +132,8 @@ export function TableBillsCard({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-[860px] w-full border-collapse">
+        <div className="max-h-[360px] overflow-y-auto">
+          <table className="min-w-[860px] w-full border-collapse">
           <thead className="sticky top-0 z-10">
             <tr
               className={cn(
@@ -153,7 +156,19 @@ export function TableBillsCard({
             </tr>
           </thead>
           <tbody>
-            {bills.length ? (
+            {isLoading ? (
+              <tr>
+                <td
+                  colSpan={8}
+                  className={cn(
+                    "px-5 py-10 text-center text-[14px]",
+                    getMutedTextClasses(settings.scheme),
+                  )}
+                >
+                  Loading bills...
+                </td>
+              </tr>
+            ) : bills.length ? (
               bills.map((bill) => (
                 <tr key={bill.id} className={getManagerTableRowClasses(settings.scheme)}>
                   <td className={cn(getManagerTableCellPaddingClasses(), "font-semibold", getManagerStrongTextClasses(settings.scheme))}>
@@ -226,7 +241,8 @@ export function TableBillsCard({
               </tr>
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </section>
   );

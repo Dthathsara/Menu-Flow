@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { DEFAULT_MANAGER_SETTINGS, MANAGER_STORAGE_KEY } from "@/components/manager/managerConfig";
 import { parseManagerSettingsValue } from "@/components/manager/managerTheme";
+import { ManagerRestaurantProfileProvider } from "@/components/manager/restaurant-profile-context";
 import { ManagerThemeProvider } from "@/components/manager/useManagerSettings";
 
 export default async function ManagerLayout({
@@ -17,7 +18,13 @@ export default async function ManagerLayout({
 
   return (
     <ManagerThemeProvider initialSettings={initialSettings}>
+<<<<<<< HEAD
       {children}
+=======
+      <ManagerRestaurantProfileProvider>
+        {children}
+      </ManagerRestaurantProfileProvider>
+>>>>>>> Dulnith
     </ManagerThemeProvider>
   );
 }

@@ -8,14 +8,16 @@ import {
   getManagerTableHeaderPaddingClasses,
 } from "../../managerUtils";
 import type { ManagerSettings } from "../../managerTypes";
-import { qrUsageRows } from "../reports.data";
 import { ReportsSectionCard } from "../ReportsSectionCard";
+import type { OrdersReportQrUsageRow } from "../reports.types";
 
 interface QrUsageTableProps {
   settings: ManagerSettings;
+  rows: OrdersReportQrUsageRow[];
+  isLoading?: boolean;
 }
 
-export function QrUsageTable({ settings }: QrUsageTableProps) {
+export function QrUsageTable({ settings, rows, isLoading = false }: QrUsageTableProps) {
   return (
     <ReportsSectionCard
       settings={settings}
@@ -42,7 +44,13 @@ export function QrUsageTable({ settings }: QrUsageTableProps) {
             </tr>
           </thead>
           <tbody>
-            {qrUsageRows.map((row) => (
+            {isLoading ? (
+              <tr>
+                <td colSpan={4} className={cn(getManagerTableCellPaddingClasses(), "text-center")}>
+                  Loading QR usage...
+                </td>
+              </tr>
+            ) : rows.length ? rows.map((row) => (
               <tr key={row.table} className="border-b border-black/5 last:border-b-0">
                 <td
                   className={cn(
@@ -82,7 +90,13 @@ export function QrUsageTable({ settings }: QrUsageTableProps) {
                   </span>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={4} className={cn(getManagerTableCellPaddingClasses(), "text-center")}>
+                  No QR usage data available.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

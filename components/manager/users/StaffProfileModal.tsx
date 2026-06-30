@@ -3,7 +3,6 @@
 import { cn, getManagerStrongTextClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import {
-  getOperationalAccessLabel,
   getUsersFieldLabelClasses,
   getUsersMutedTextClasses,
 } from "./helpers";
@@ -85,7 +84,7 @@ export function StaffProfileModal({
         <ProfileInfoCard label="NIC Number" value={staff.nicNumber} settings={settings} />
         <ProfileInfoCard
           label="Operational Access"
-          value={getOperationalAccessLabel(staff.role)}
+          value={staff.operationalAccess?.trim() || "No operational access assigned."}
           settings={settings}
         />
       </div>

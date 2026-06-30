@@ -8,6 +8,11 @@ import { primaryButtonClassName } from "@/components/common/buttons";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
+<<<<<<< HEAD
+=======
+import { API_BASE_URL } from "@/lib/api-config";
+import { normalizeAuthUser } from "@/lib/auth-session";
+>>>>>>> Dulnith
 import {
   cn,
   getAuthInlineLinkClasses,
@@ -88,10 +93,29 @@ export function LoginModal({
     setStatusMessage("");
 
     try {
+<<<<<<< HEAD
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         businessEmail: form.email.trim().toLowerCase(),
         password: form.password,
       });
+=======
+      const email = form.email.trim().toLowerCase();
+      const password = form.password;
+
+      const response = await axios.post(
+        `${API_BASE_URL}/auth/login`,
+        {
+          email,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: false,
+        },
+      );
+>>>>>>> Dulnith
 
       window.localStorage.setItem("accessToken", response.data.accessToken);
       window.localStorage.setItem("refreshToken", response.data.refreshToken);
@@ -104,11 +128,37 @@ export function LoginModal({
       router.push("/manager");
     } catch (error) {
       setStatusType("error");
+<<<<<<< HEAD
       setStatusMessage(
         axios.isAxiosError(error) && error.response?.status === 401
           ? "Invalid email or password. Please try again."
           : "Login failed. Please try again.",
       );
+=======
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          if (error.response.status === 401) {
+            setStatusMessage("Invalid email or password.");
+            return;
+          }
+
+          if (error.response.status === 404) {
+            setStatusMessage("Login API route not found. Check backend auth route.");
+            return;
+          }
+
+          setStatusMessage(getLoginApiErrorMessage(error.response.data));
+        } else if (error.request) {
+          setStatusMessage(
+            "Cannot connect to the backend. Check that the API server is running and NEXT_PUBLIC_API_URL is configured.",
+          );
+        } else {
+          setStatusMessage(error.message);
+        }
+      } else {
+        setStatusMessage("Login failed. Please try again.");
+      }
+>>>>>>> Dulnith
     } finally {
       setIsSubmitting(false);
     }
@@ -195,4 +245,23 @@ export function LoginModal({
       </form>
     </AuthModalShell>
   );
+}
+
+function getLoginApiErrorMessage(data: unknown) {
+  if (!data || typeof data !== "object") {
+    return "Login failed. Please try again.";
+  }
+
+  const record = data as Record<string, unknown>;
+  const message = record.message ?? record.error;
+
+  if (Array.isArray(message)) {
+    return message.join(", ");
+  }
+
+  if (typeof message === "string" && message.trim()) {
+    return message;
+  }
+
+  return "Login failed. Please try again.";
 }

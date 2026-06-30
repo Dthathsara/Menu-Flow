@@ -138,7 +138,47 @@ export function OrderDetailsModal({
     };
   }, [open, order, requestClose]);
 
+<<<<<<< HEAD
   if (!open || !order) {
+=======
+  async function handleStatusChange(nextStatus: OrderStatus) {
+    if (!modalOrder || isUpdatingStatus) {
+      return;
+    }
+
+    if (
+      !isOrderStatusTransitionAllowed(modalOrder.order_status, nextStatus)
+    ) {
+      setErrorMessage(
+        "Invalid status transition. Please follow the order flow.",
+      );
+      return;
+    }
+
+    setIsUpdatingStatus(true);
+    setErrorMessage("");
+    detailsRequestIdRef.current += 1;
+    setIsLoadingDetails(false);
+
+    try {
+      await updateAdminOrderStatus(modalOrder.id, nextStatus);
+      const freshOrder = await fetchAdminOrder(modalOrder.id);
+
+      setModalOrder(freshOrder);
+      await onOrderUpdated(freshOrder);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof SessionExpiredError
+          ? "Your session has expired. Please log in again."
+          : "Unable to update order status. Please try again.",
+      );
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  }
+
+  if (!isMounted || !open || !order || !modalOrder) {
+>>>>>>> Dulnith
     return null;
   }
 

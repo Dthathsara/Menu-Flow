@@ -3,7 +3,15 @@ export interface QrCodeRecord {
   tableNumber: string;
   section: string;
   branch: string;
+<<<<<<< HEAD
   status: "Active";
+=======
+  qrToken: string;
+  customerUrl: string;
+  qrImageUrl: string;
+  status: string;
+  isActive: boolean;
+>>>>>>> Dulnith
   qrValue: string;
   createdAt: string;
 }

@@ -10,14 +10,16 @@ interface DeleteStaffModalProps {
   open: boolean;
   settings: ManagerSettings;
   staff: StaffRecord | null;
+  isDeleting: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export function DeleteStaffModal({
   open,
   settings,
   staff,
+  isDeleting,
   onClose,
   onConfirm,
 }: DeleteStaffModalProps) {
@@ -36,46 +38,68 @@ export function DeleteStaffModal({
       titleId="delete-staff-modal-title"
       footer={
         <>
-          <UsersActionButton type="button" settings={settings} onClick={onClose}>
+          <UsersActionButton
+            type="button"
+            settings={settings}
+            onClick={onClose}
+            disabled={isDeleting}
+          >
             Cancel
           </UsersActionButton>
-          <UsersActionButton type="button" tone="danger" settings={settings} onClick={onConfirm}>
-            Delete Staff Member
+          <UsersActionButton
+            type="submit"
+            form="delete-staff-form"
+            tone="danger"
+            settings={settings}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Delete Staff Member"}
           </UsersActionButton>
         </>
       }
     >
-      <UsersPanel
-        settings={settings}
-        className={cn(
-          "p-4 sm:p-5",
-          settings.scheme === "dark"
-            ? "border-rose-400/18 bg-rose-500/8"
-            : "border-rose-200 bg-rose-50",
-        )}
+      <form
+        id="delete-staff-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+
+          if (!isDeleting) {
+            void onConfirm();
+          }
+        }}
       >
-        <div
+        <UsersPanel
+          settings={settings}
           className={cn(
-            "text-[1.05rem] font-semibold",
-            getManagerStrongTextClasses(settings.scheme),
+            "p-4 sm:p-5",
+            settings.scheme === "dark"
+              ? "border-rose-400/18 bg-rose-500/8"
+              : "border-rose-200 bg-rose-50",
           )}
         >
-          Delete {staff.fullName}?
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div>
-            <div className={getUsersFieldLabelClasses(settings.scheme)}>Role</div>
-            <div className="mt-1 text-[15px] font-medium">{staff.role}</div>
+          <div
+            className={cn(
+              "text-[1.05rem] font-semibold",
+              getManagerStrongTextClasses(settings.scheme),
+            )}
+          >
+            Delete {staff.fullName}?
           </div>
-          <div>
-            <div className={getUsersFieldLabelClasses(settings.scheme)}>Email</div>
-            <div className="mt-1 text-[15px] font-medium break-all">{staff.email}</div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <div className={getUsersFieldLabelClasses(settings.scheme)}>Role</div>
+              <div className="mt-1 text-[15px] font-medium">{staff.role}</div>
+            </div>
+            <div>
+              <div className={getUsersFieldLabelClasses(settings.scheme)}>Email</div>
+              <div className="mt-1 text-[15px] font-medium break-all">{staff.email}</div>
+            </div>
           </div>
-        </div>
-        <p className={cn("mt-4 text-[15px] leading-6", getUsersMutedTextClasses(settings.scheme))}>
-          This action will remove the staff member from the directory immediately.
-        </p>
-      </UsersPanel>
+          <p className={cn("mt-4 text-[15px] leading-6", getUsersMutedTextClasses(settings.scheme))}>
+            This action will remove the staff member from the directory immediately.
+          </p>
+        </UsersPanel>
+      </form>
     </UsersModalFrame>
   );
 }

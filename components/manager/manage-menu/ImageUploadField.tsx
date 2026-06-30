@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import { useId } from "react";
+<<<<<<< HEAD
+=======
+import { getSafeImageSrc, PLACEHOLDER_FOOD_IMAGE } from "@/lib/image-url";
+>>>>>>> Dulnith
 import { ImageIcon, UploadIcon } from "../icons";
 import { getManagerBodyTextClasses, getManagerLabelClasses } from "../managerUtils";
 import type { Scheme } from "../managerTypes";
@@ -52,6 +56,9 @@ export function ImageUploadField({
                 unoptimized
                 sizes="144px"
                 className="h-full w-full object-cover"
+                onError={(event) => {
+                  event.currentTarget.src = PLACEHOLDER_FOOD_IMAGE;
+                }}
               />
             ) : (
               <div

@@ -2,11 +2,11 @@ import type { SummaryCardAccent } from "@/components/common/SummaryCard";
 
 export type BillStatus = "Pending" | "Paid" | "Refunded";
 
-export type BillMethod = "Cash" | "Card" | "Online" | "Pending";
+export type BillMethod = "Cash" | "Card" | "Online" | "Pending" | "Other";
 
 export type BillStatusFilter = "All Status" | BillStatus;
 
-export type BillMethodFilter = "All Methods" | Exclude<BillMethod, "Pending">;
+export type BillMethodFilter = "All Methods" | "Cash" | "Card" | "Online";
 
 export type CreateBillStatus = "Pending" | "Paid";
 
@@ -65,17 +65,34 @@ export interface CashierSummaryMetric {
 }
 
 export interface PaymentMethodSummary {
-  method: Exclude<BillMethod, "Pending">;
+  method: BillMethod;
   label: string;
   description: string;
   amount: number;
   percent: number;
+  count?: number;
   accentClassName: string;
 }
 
 export interface BillingMetrics {
   heroStats: BillingStat[];
   cashierSummary: CashierSummaryMetric[];
+  paymentMethods: PaymentMethodSummary[];
+}
+
+export interface BillingStatsResponse {
+  todayRevenue: number;
+  pendingTables: number;
+  billsGenerated: number;
+  waiterServed: number;
+  avgBillValue: number;
+}
+
+export interface BillingPageData {
+  stats: BillingStatsResponse;
+  bills: BillRecord[];
+  cashierSummary: CashierSummaryMetric[];
+  pendingCollectionQueue: BillRecord[];
   paymentMethods: PaymentMethodSummary[];
 }
 

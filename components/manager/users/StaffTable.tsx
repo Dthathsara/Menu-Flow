@@ -21,6 +21,8 @@ import type { StaffRecord } from "./types";
 interface StaffTableProps {
   settings: ManagerSettings;
   staffRecords: StaffRecord[];
+  hasActiveFilters: boolean;
+  totalStaffCount: number;
   onView: (staff: StaffRecord) => void;
   onEdit: (staff: StaffRecord) => void;
   onDelete: (staff: StaffRecord) => void;
@@ -29,6 +31,8 @@ interface StaffTableProps {
 export function StaffTable({
   settings,
   staffRecords,
+  hasActiveFilters,
+  totalStaffCount,
   onView,
   onEdit,
   onDelete,
@@ -37,8 +41,16 @@ export function StaffTable({
     return (
       <UsersEmptyState
         settings={settings}
-        title="No staff members match the current filters."
-        description="Try broadening the search or clearing filters to see more staff records."
+        title={
+          totalStaffCount || hasActiveFilters
+            ? "No staff members match the current filters."
+            : "No staff members yet."
+        }
+        description={
+          totalStaffCount || hasActiveFilters
+            ? "Try broadening the search or clearing filters to see more staff records."
+            : "Add a staff member to start building your restaurant staff directory."
+        }
       />
     );
   }
@@ -65,9 +77,9 @@ export function StaffTable({
               </tr>
             </thead>
             <tbody>
-              {staffRecords.map((staff) => (
+              {staffRecords.map((staff, index) => (
                 <StaffRow
-                  key={staff.id}
+                  key={`${staff.id}-${index}`}
                   settings={settings}
                   staff={staff}
                   onView={onView}
@@ -81,9 +93,9 @@ export function StaffTable({
       </div>
 
       <div className="grid gap-3 md:hidden">
-        {staffRecords.map((staff) => (
+        {staffRecords.map((staff, index) => (
           <article
-            key={staff.id}
+            key={`${staff.id}-${index}`}
             className={cn(
               "p-4",
               getManagerCardShellClasses(settings.scheme, { interactive: false }),

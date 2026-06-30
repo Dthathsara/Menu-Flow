@@ -53,7 +53,6 @@ export function AdminProfileDropdown({ scheme }: AdminProfileDropdownProps) {
   }, []);
 
   function handleSignOut() {
-    console.log("MenuFlow admin sign out clicked");
     window.alert("Sign out clicked");
     setOpen(false);
   }

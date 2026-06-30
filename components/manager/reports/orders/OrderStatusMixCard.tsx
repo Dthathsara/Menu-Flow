@@ -1,14 +1,16 @@
 import { cn, getManagerStrongTextClasses } from "../../managerUtils";
 import type { ManagerSettings } from "../../managerTypes";
-import { orderStatusMix } from "../reports.data";
 import { getProgressToneClasses, getTrackClasses } from "../reports.helpers";
 import { ReportsSectionCard } from "../ReportsSectionCard";
+import type { OrdersReportProgressMetric } from "../reports.types";
 
 interface OrderStatusMixCardProps {
   settings: ManagerSettings;
+  items: OrdersReportProgressMetric[];
+  isLoading?: boolean;
 }
 
-export function OrderStatusMixCard({ settings }: OrderStatusMixCardProps) {
+export function OrderStatusMixCard({ settings, items, isLoading = false }: OrderStatusMixCardProps) {
   return (
     <ReportsSectionCard
       settings={settings}
@@ -19,7 +21,11 @@ export function OrderStatusMixCard({ settings }: OrderStatusMixCardProps) {
       className="h-full"
     >
       <div className="space-y-4">
-        {orderStatusMix.map((item) => (
+        {isLoading ? (
+          <div className="py-8 text-center text-[14px] font-semibold text-slate-400">
+            Loading order status mix...
+          </div>
+        ) : items.length ? items.map((item) => (
           <div key={item.label}>
             <div
               className={cn(
@@ -37,7 +43,11 @@ export function OrderStatusMixCard({ settings }: OrderStatusMixCardProps) {
               />
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="py-8 text-center text-[14px] font-semibold text-slate-400">
+            No order status data available.
+          </div>
+        )}
       </div>
     </ReportsSectionCard>
   );

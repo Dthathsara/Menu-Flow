@@ -1,4 +1,8 @@
 import Image from "next/image";
+<<<<<<< HEAD
+=======
+import { PLACEHOLDER_FOOD_IMAGE } from "@/lib/image-url";
+>>>>>>> Dulnith
 import { PencilIcon, TrashIcon } from "../icons";
 import {
   cn,
@@ -24,6 +28,11 @@ export function ManageMenuRow({
   onEdit,
   onRemove,
 }: ManageMenuRowProps) {
+<<<<<<< HEAD
+=======
+  const safeImageSrc = item.imageUrl || PLACEHOLDER_FOOD_IMAGE;
+
+>>>>>>> Dulnith
   return (
     <tr
       className={cn(
@@ -37,12 +46,23 @@ export function ManageMenuRow({
       <td className={getManagerTableCellPaddingClasses()}>
         <div className="relative size-14 overflow-hidden rounded-lg border border-white/10 bg-slate-200/40 shadow-[0_10px_22px_rgba(15,23,42,0.08)]">
           <Image
+<<<<<<< HEAD
             src={item.image}
             alt={item.name}
+=======
+            src={safeImageSrc}
+            alt={item.name || "Menu item"}
+>>>>>>> Dulnith
             fill
             unoptimized
             sizes="56px"
             className="h-full w-full object-cover"
+<<<<<<< HEAD
+=======
+            onError={(event) => {
+              event.currentTarget.src = PLACEHOLDER_FOOD_IMAGE;
+            }}
+>>>>>>> Dulnith
           />
         </div>
       </td>

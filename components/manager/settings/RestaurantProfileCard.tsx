@@ -26,6 +26,7 @@ export function RestaurantProfileCard({
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
           <div className="relative h-[118px] w-full overflow-hidden rounded-[18px] border border-blue-400/25 sm:w-[172px]">
+<<<<<<< HEAD
             <Image
               src={profile.imageSrc}
               alt={profile.name}
@@ -33,6 +34,14 @@ export function RestaurantProfileCard({
               sizes="(max-width: 640px) 100vw, 172px"
               className="object-cover"
               unoptimized={isBlobImage}
+=======
+            <RestaurantProfileImage
+              src={profile.restaurantImageUrl}
+              alt={displayName}
+              className="h-full w-full"
+              eager
+              highPriority
+>>>>>>> Dulnith
             />
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/18 via-transparent to-transparent" />
           </div>

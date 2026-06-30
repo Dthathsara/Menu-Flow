@@ -91,6 +91,7 @@ function buildForm(user: UserProfile | null): ProfileForm {
   };
 }
 
+<<<<<<< HEAD
 function logProfileError(error: unknown) {
   if (axios.isAxiosError(error)) {
     console.log("PROFILE ERROR", error.response?.data || error.message);
@@ -103,6 +104,8 @@ function logProfileError(error: unknown) {
   );
 }
 
+=======
+>>>>>>> Dulnith
 export function ProfileModal({
   open,
   onClose,
@@ -178,7 +181,6 @@ export function ProfileModal({
           return;
         }
 
-        logProfileError(error);
         setStatusType("error");
         setStatusMessage(getApiErrorMessage(error, "Unable to load profile details."));
       } finally {
@@ -317,7 +319,6 @@ export function ProfileModal({
         onClose();
       }, 900);
     } catch (error) {
-      logProfileError(error);
       setStatusType("error");
       setStatusMessage(getApiErrorMessage(error));
     } finally {

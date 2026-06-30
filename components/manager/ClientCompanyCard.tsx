@@ -30,6 +30,7 @@ export function ClientCompanyCard({
         )}
       >
         <div className="relative h-full w-full">
+<<<<<<< HEAD
           <Image
             src={profile.imageSrc}
             alt={profile.name}
@@ -39,6 +40,14 @@ export function ClientCompanyCard({
             sizes="(max-width: 1024px) 196px, 210px"
             className="h-full w-full object-cover"
             unoptimized={isBlobImage}
+=======
+          <RestaurantProfileImage
+            src={profile.restaurantImageUrl}
+            alt={displayName}
+            className="h-full w-full"
+            eager
+            highPriority
+>>>>>>> Dulnith
           />
           <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/20 to-transparent px-3 py-2">
             <div className="text-white leading-tight">

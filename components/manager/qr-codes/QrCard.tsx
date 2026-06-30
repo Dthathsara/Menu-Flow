@@ -17,9 +17,10 @@ interface QrCardProps {
   item: QrCodeRecord;
   onDownload: (item: QrCodeRecord) => void;
   onDelete: (item: QrCodeRecord) => void;
+  isDeleting?: boolean;
 }
 
-export function QrCard({ settings, item, onDownload, onDelete }: QrCardProps) {
+export function QrCard({ settings, item, onDownload, onDelete, isDeleting = false }: QrCardProps) {
   return (
     <article className={cn("flex h-full flex-col p-4", getManagerPanelShellClasses(settings.scheme))}>
       <div className="flex items-center justify-between gap-3">
@@ -37,6 +38,7 @@ export function QrCard({ settings, item, onDownload, onDelete }: QrCardProps) {
           onClick={() => onDelete(item)}
           className={cn(getManagerIconButtonClasses(settings.scheme, true), "size-8 rounded-[11px]")}
           aria-label={`Delete QR code for ${item.tableNumber}`}
+          disabled={isDeleting}
         >
           <TrashIcon className="size-3.5" />
         </button>

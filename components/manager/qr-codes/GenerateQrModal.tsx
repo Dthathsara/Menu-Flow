@@ -21,8 +21,17 @@ import type { GenerateQrFormValues } from "./types";
 
 interface GenerateQrModalProps {
   settings: ManagerSettings;
+<<<<<<< HEAD
   onClose: () => void;
   onSubmit: (values: GenerateQrFormValues) => void;
+=======
+  sectionSuggestions: readonly string[];
+  tableNumberSuggestions: readonly string[];
+  isSubmitting?: boolean;
+  errorMessage?: string;
+  onClose: () => void;
+  onSubmit: (values: GenerateQrFormValues) => Promise<void> | void;
+>>>>>>> Dulnith
 }
 
 const FOCUSABLE_SELECTOR =
@@ -37,10 +46,18 @@ function createEmptyFormValues(): GenerateQrFormValues {
 
 export function GenerateQrModal({
   settings,
+<<<<<<< HEAD
+=======
+  sectionSuggestions,
+  tableNumberSuggestions,
+  isSubmitting = false,
+  errorMessage = "",
+>>>>>>> Dulnith
   onClose,
   onSubmit,
 }: GenerateQrModalProps) {
   const [values, setValues] = useState<GenerateQrFormValues>(createEmptyFormValues);
+  const [localErrorMessage, setLocalErrorMessage] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const closeTimeoutRef = useRef<number | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -48,7 +65,16 @@ export function GenerateQrModal({
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const closingRef = useRef(false);
   const titleId = useId();
+<<<<<<< HEAD
+=======
+  const sectionListId = useId();
+  const tableNumberListId = useId();
+>>>>>>> Dulnith
   const requestClose = useCallback(() => {
+    if (isSubmitting) {
+      return;
+    }
+
     if (closingRef.current) {
       return;
     }
@@ -64,7 +90,7 @@ export function GenerateQrModal({
       closingRef.current = false;
       onClose();
     }, 180);
-  }, [onClose]);
+  }, [isSubmitting, onClose]);
 
   useEffect(() => {
     previousFocusRef.current = document.activeElement as HTMLElement | null;
@@ -129,15 +155,30 @@ export function GenerateQrModal({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+<<<<<<< HEAD
     onSubmit({
+=======
+    const nextValues = {
+>>>>>>> Dulnith
       tableNumber: values.tableNumber.trim(),
       section: values.section.trim(),
-    });
+    };
 
+<<<<<<< HEAD
     requestClose();
+=======
+    if (!nextValues.tableNumber || !nextValues.section) {
+      setLocalErrorMessage("Table number and section are required.");
+      return;
+    }
+
+    setLocalErrorMessage("");
+    await onSubmit(nextValues);
+>>>>>>> Dulnith
   }
 
   const inputClassName = cn(getManagerTextInputClasses(settings.scheme), "h-12 rounded-[14px] text-[14px]");
+  const displayErrorMessage = localErrorMessage || errorMessage;
 
   return (
     <div
@@ -200,6 +241,7 @@ export function GenerateQrModal({
                 <input
                   ref={firstInputRef}
                   id="table-number"
+                  list={tableNumberListId}
                   value={values.tableNumber}
                   onChange={(event) =>
                     setValues((current) => ({
@@ -211,6 +253,11 @@ export function GenerateQrModal({
                   className={inputClassName}
                   required
                 />
+                <datalist id={tableNumberListId}>
+                  {tableNumberSuggestions.map((tableNumber) => (
+                    <option key={tableNumber} value={tableNumber} />
+                  ))}
+                </datalist>
               </div>
 
               <div className="space-y-2.5">
@@ -222,6 +269,10 @@ export function GenerateQrModal({
                 </label>
                 <input
                   id="section"
+<<<<<<< HEAD
+=======
+                  list={sectionListId}
+>>>>>>> Dulnith
                   value={values.section}
                   onChange={(event) =>
                     setValues((current) => ({
@@ -233,11 +284,25 @@ export function GenerateQrModal({
                   className={inputClassName}
                   required
                 />
+<<<<<<< HEAD
+=======
+                <datalist id={sectionListId}>
+                  {sectionSuggestions.map((section) => (
+                    <option key={section} value={section} />
+                  ))}
+                </datalist>
+>>>>>>> Dulnith
               </div>
             </div>
           </div>
 
           <div className={getManagerModalFooterClasses(settings.scheme)}>
+            {displayErrorMessage ? (
+              <div className="text-sm font-medium text-rose-300 sm:mr-auto">
+                {displayErrorMessage}
+              </div>
+            ) : null}
+
             <button
               type="button"
               onClick={requestClose}

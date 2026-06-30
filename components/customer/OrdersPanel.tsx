@@ -2,33 +2,235 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+<<<<<<< HEAD
 import type { CartItem } from "@/types/customer";
 import { formatPrice } from "@/components/customer/customerUtils";
+=======
+import type {
+  CartItem,
+  CustomerOrderHistory,
+  RestaurantInfo,
+} from "@/types/customer";
+import {
+  CUSTOMER_PLACEHOLDER_IMAGE,
+  formatPrice,
+  getImageSrc,
+} from "@/components/customer/customerUtils";
+import {
+  createCustomerOrder,
+  fetchCustomerOrder,
+  fetchCustomerSessionOrders,
+  type CustomerOrderRecord,
+} from "@/lib/customer-menu-api";
+>>>>>>> Dulnith
 
 interface OrdersPanelProps {
   items: CartItem[];
   subtotal: number;
+<<<<<<< HEAD
   tax: number;
   serviceCharge: number;
   total: number;
+=======
+  restaurant: RestaurantInfo;
+  tenantId: string;
+  tableId?: string;
+  qrToken?: string;
+  onOrderSuccess: () => void;
+>>>>>>> Dulnith
   onEdit: (item: CartItem) => void;
   onRemove: (key: string) => void;
 }
 
+<<<<<<< HEAD
 const orderStatuses = ["Accepted", "Preparing", "Ready", "Delivered"] as const;
+=======
+type OrderType = "dine_in" | "takeaway" | "delivery";
+
+type DetailsForm = {
+  customerName: string;
+  mobileNumber: string;
+  orderType: OrderType | "";
+  note: string;
+};
+
+type PaymentForm = {
+  cardNumber: string;
+  expiry: string;
+  cvc: string;
+};
+
+const statusLabels: Record<string, string> = {
+  accepted: "Accepted",
+  preparing: "Preparing",
+  ready: "Ready",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
+const orderStatuses = ["accepted", "preparing", "ready", "delivered"] as const;
+const fallbackImage = CUSTOMER_PLACEHOLDER_IMAGE;
+function getCustomerSessionId(tenantId: string) {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const cleanTenantId = tenantId.trim();
+
+  if (!cleanTenantId) {
+    return "";
+  }
+
+  const sessionStorageKey = `menuflow_customer_session_id_${cleanTenantId}`;
+  const existing = window.localStorage.getItem(sessionStorageKey);
+
+  if (existing) {
+    return existing;
+  }
+
+  const next =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  window.localStorage.setItem(sessionStorageKey, next);
+  return next;
+}
+
+function getDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function getOrderStatus(
+  order: CustomerOrderRecord | CustomerOrderHistory | null,
+) {
+  return String(order?.order_status || "").toLowerCase();
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value || "-";
+  }
+
+  return date.toLocaleString();
+}
+
+function getOrderQuantity(order: CustomerOrderHistory) {
+  return order.items.reduce((total, item) => total + item.quantity, 0);
+}
+
+function getOrderItemsText(order: CustomerOrderHistory) {
+  if (!order.items.length) {
+    return "No items listed";
+  }
+
+  return order.items
+    .map((item) => `${item.food_name}${item.serving_size ? ` (${item.serving_size})` : ""} x ${item.quantity}`)
+    .join("\n");
+}
+>>>>>>> Dulnith
 
 export function OrdersPanel({
   items,
   subtotal,
+<<<<<<< HEAD
   tax,
   serviceCharge,
   total,
+=======
+  restaurant,
+  tenantId,
+  tableId = "",
+  qrToken = "",
+  onOrderSuccess,
+>>>>>>> Dulnith
   onEdit,
   onRemove,
 }: OrdersPanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+<<<<<<< HEAD
+=======
+  const [detailsOrder, setDetailsOrder] = useState<CustomerOrderHistory | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<CustomerOrderRecord | null>(null);
+  const historyLoadIdRef = useRef(0);
+  const cleanTenantId = tenantId.trim();
+  const cleanTableId = tableId.trim();
+  const cleanQrToken = qrToken.trim();
+  const taxRate = Number(restaurant.taxRate ?? 5);
+  const serviceChargeRate = Number(restaurant.serviceChargeRate ?? 3);
+  const discountRate = Number(restaurant.discountRate ?? 0);
+  const taxAmount = (subtotal * taxRate) / 100;
+  const serviceChargeAmount = (subtotal * serviceChargeRate) / 100;
+  const discountAmount = discountRate > 0 ? (subtotal * discountRate) / 100 : 0;
+  const totalAmount = subtotal + taxAmount + serviceChargeAmount - discountAmount;
+
+  const itemCount = useMemo(
+    () => items.reduce((count, item) => count + item.quantity, 0),
+    [items],
+  );
+  const latestHistoryOrder = orderHistory[0] ?? null;
+  const statusOrder = currentOrder ?? latestHistoryOrder;
+  const status = getOrderStatus(statusOrder);
+  const hasPlacedOrder = Boolean(statusOrder?.id);
+
+  const loadOrderHistory = useCallback(async () => {
+    const requestId = historyLoadIdRef.current + 1;
+    historyLoadIdRef.current = requestId;
+
+    if (!cleanTenantId) {
+      setOrderHistory([]);
+      setCurrentOrder(null);
+      setHistoryErrorMessage("");
+      setIsHistoryLoading(false);
+      return;
+    }
+
+    const customerSessionId = getCustomerSessionId(cleanTenantId);
+
+    if (!customerSessionId || !cleanTenantId) {
+      setOrderHistory([]);
+      setCurrentOrder(null);
+      return;
+    }
+
+    setIsHistoryLoading(true);
+
+    try {
+      const orders = await fetchCustomerSessionOrders(customerSessionId, cleanTenantId);
+
+      if (historyLoadIdRef.current !== requestId) {
+        return;
+      }
+
+      setOrderHistory(orders);
+      setHistoryErrorMessage("");
+
+      setCurrentOrder((current) => {
+        if (!orders[0]) {
+          return null;
+        }
+
+        return current ?? {
+          ...orders[0],
+          order_status: orders[0].order_status,
+        };
+      });
+    } catch {
+      if (historyLoadIdRef.current === requestId) {
+        setOrderHistory([]);
+        setCurrentOrder(null);
+        setHistoryErrorMessage("Unable to load your previous orders.");
+      }
+    } finally {
+      if (historyLoadIdRef.current === requestId) {
+        setIsHistoryLoading(false);
+      }
+    }
+  }, [cleanTenantId]);
+>>>>>>> Dulnith
 
   useEffect(() => {
     if (!isStatusModalOpen) {
@@ -53,7 +255,57 @@ export function OrdersPanel({
     setIsSubmitting(true);
     setSuccessMessage("");
 
+<<<<<<< HEAD
     window.setTimeout(() => {
+=======
+    try {
+      const customerSessionId = getCustomerSessionId(cleanTenantId);
+
+      const order = await createCustomerOrder({
+        tenant_id: cleanTenantId,
+        table_id: cleanTableId || undefined,
+        qr_token: cleanQrToken || undefined,
+        customer_session_id: customerSessionId,
+        customer_name: detailsForm.customerName.trim(),
+        customer_phone: detailsForm.mobileNumber.trim(),
+        order_type: detailsForm.orderType || "dine_in",
+        item_note: detailsForm.note.trim() || undefined,
+        items: items.map((item) => ({
+          menu_item_id: item.itemId,
+          food_name: item.name,
+          category_name: item.categoryName || "",
+          sub_category_name: item.subCategoryName || "",
+          serving_size: item.serving,
+          unit_price: item.unitPrice,
+          quantity: item.quantity,
+          prep_time_min: item.prepTime ?? 0,
+          image_url: item.image,
+          item_note: detailsForm.note.trim() || undefined,
+        })),
+        payment: {
+          status: "paid",
+          card_last4: cardDigits.slice(-4),
+        },
+      });
+
+      if (!order.id) {
+        throw new Error("Order was created, but the backend did not return an order id.");
+      }
+
+      setCurrentOrder(order);
+      setSuccessMessage("Order placed successfully.");
+      setIsPaymentModalOpen(false);
+      setPaymentForm({ cardNumber: "", expiry: "", cvc: "" });
+      onOrderSuccess();
+      await loadOrderHistory();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to create order. Please try again.",
+      );
+    } finally {
+>>>>>>> Dulnith
       setIsSubmitting(false);
       setSuccessMessage("Order placed successfully.");
     }, 900);
@@ -92,6 +344,7 @@ export function OrdersPanel({
         </div>
       </div>
 
+<<<<<<< HEAD
       <div className="mt-5 space-y-3">
         {items.map((item) => {
           const subtotal = item.unitPrice * item.quantity;
@@ -124,6 +377,32 @@ export function OrdersPanel({
                 <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-lg font-black text-[#2b8a38]">
                     {formatPrice(subtotal)}
+=======
+      {items.length ? (
+        <>
+          <div className="mt-5 space-y-3">
+            {items.map((item) => {
+              const itemSubtotal = item.unitPrice * item.quantity;
+              const imageSrc = getImageSrc(item.image);
+
+              return (
+                <article
+                  key={item.key}
+                  className="flex gap-3 rounded-[1.4rem] bg-[#f6efe5] p-3"
+                >
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[1rem] border border-[#eadfce] bg-white">
+                    <Image
+                      src={imageSrc}
+                      alt={item.name}
+                      fill
+                      unoptimized
+                      sizes="80px"
+                      className="object-cover"
+                      onError={(event) => {
+                        event.currentTarget.src = fallbackImage;
+                      }}
+                    />
+>>>>>>> Dulnith
                   </div>
                   <div className="flex max-w-full flex-wrap items-center gap-2">
                     <button

@@ -45,6 +45,26 @@ export interface ContactInfo {
 
 export interface RestaurantInfo {
   name: string;
+<<<<<<< HEAD
+=======
+  hotelName?: string;
+  businessType?: string;
+  location?: string;
+  address?: string;
+  email?: string;
+  businessEmail?: string;
+  restaurantImageUrl: string;
+  restaurantImageUpdatedAt?: string;
+  updatedAt?: string;
+  phone?: string;
+  kitchenOpenTime?: string;
+  kitchenCloseTime?: string;
+  openingHours?: string;
+  taxRate?: number;
+  serviceChargeRate?: number;
+  discountRate?: number;
+  status?: string;
+>>>>>>> Dulnith
   titlePrefix: string;
   titleAccent: string;
   tagline: string;

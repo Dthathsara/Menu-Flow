@@ -15,12 +15,14 @@ interface BillingHeaderProps {
   settings: ManagerSettings;
   stats: BillingStat[];
   onExportReport: () => void;
+  isExporting?: boolean;
 }
 
 export function BillingHeader({
   settings,
   stats,
   onExportReport,
+  isExporting = false,
 }: BillingHeaderProps) {
   return (
     <section
@@ -46,10 +48,15 @@ export function BillingHeader({
         <button
           type="button"
           onClick={onExportReport}
-          className={cn(getManagerSecondaryButtonClasses(settings.scheme), "h-10 rounded-[14px] px-4 text-[14px]")}
+          disabled={isExporting}
+          className={cn(
+            getManagerSecondaryButtonClasses(settings.scheme),
+            "h-10 rounded-[14px] px-4 text-[14px]",
+            isExporting && "cursor-wait opacity-70",
+          )}
         >
           <UploadIcon className="size-4" />
-          Export Report
+          {isExporting ? "Exporting..." : "Export Report"}
         </button>
       </div>
 

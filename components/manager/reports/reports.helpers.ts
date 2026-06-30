@@ -10,7 +10,7 @@ import {
   getMutedTextClasses,
 } from "../managerUtils";
 import type { Scheme } from "../managerTypes";
-import type { ProgressMetric, ReportStaffRole } from "./reports.types";
+import type { ProgressMetric } from "./reports.types";
 
 export function getReportsSurfaceClasses(scheme: Scheme, interactive = false) {
   return getManagerCardShellClasses(scheme, { interactive });
@@ -39,7 +39,7 @@ export function getReportsButtonClasses(scheme: Scheme) {
   );
 }
 
-export function getReportsRoleBadgeClasses(role: ReportStaffRole, scheme: Scheme) {
+export function getReportsRoleBadgeClasses(role: string, scheme: Scheme) {
   if (role === "Waiter") {
     return getManagerBadgeClasses("brand", scheme);
   }

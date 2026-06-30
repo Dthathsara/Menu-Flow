@@ -40,9 +40,9 @@ export function PaymentMethodsCard({
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        {methods.map((method) => (
+        {methods.map((method, index) => (
           <div
-            key={method.method}
+            key={`${method.method}-${index}`}
             className={cn(
               getManagerPanelShellClasses(settings.scheme),
               getInteractiveCardClasses(settings.scheme),
@@ -60,8 +60,8 @@ export function PaymentMethodsCard({
       </div>
 
       <div className="mt-5 space-y-4">
-        {methods.map((method) => (
-          <div key={`${method.method}-progress`} className="space-y-2">
+        {methods.map((method, index) => (
+          <div key={`${method.method}-${index}-progress`} className="space-y-2">
             <div className="flex items-center justify-between gap-3 text-[13px] font-semibold">
               <span className={getManagerStrongTextClasses(settings.scheme)}>{method.label}</span>
               <span className={getManagerStrongTextClasses(settings.scheme)}>{method.percent}%</span>

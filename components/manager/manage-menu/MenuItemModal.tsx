@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { ClockIcon, XIcon } from "../icons";
 import {
   cn,
@@ -25,6 +25,9 @@ interface MenuItemModalProps {
   settings: ManagerSettings;
   categories: readonly MenuCategory[];
   item?: MenuItemRecord | null;
+  categorySuggestions: readonly string[];
+  subCategorySuggestions: readonly string[];
+  menuItems: readonly MenuItemRecord[];
   onClose: () => void;
   onSave: (values: MenuItemFormValues) => void;
 }
@@ -53,10 +56,18 @@ function createFormValues(item: MenuItemRecord | null | undefined, fallbackCateg
     name: item.name,
     category: item.category,
     description: item.description,
+<<<<<<< HEAD
     smallPrice: String(item.prices.small),
     mediumPrice: String(item.prices.medium),
     largePrice: String(item.prices.large),
     image: item.image,
+=======
+    smallPrice: String(item.smallPrice),
+    mediumPrice: String(item.mediumPrice),
+    largePrice: String(item.largePrice),
+    image: item.imageUrl,
+    imageFile: null,
+>>>>>>> Dulnith
     available: item.available,
     prepTime: String(item.prepTime),
     sku: item.sku,
@@ -77,6 +88,9 @@ export function MenuItemModal({
   settings,
   categories,
   item,
+  categorySuggestions,
+  subCategorySuggestions,
+  menuItems,
   onClose,
   onSave,
 }: MenuItemModalProps) {
@@ -84,6 +98,12 @@ export function MenuItemModal({
     createFormValues(item, categories[0]),
   );
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+<<<<<<< HEAD
+=======
+  const [localErrorMessage, setLocalErrorMessage] = useState("");
+  const categoryListId = useId();
+  const subCategoryListId = useId();
+>>>>>>> Dulnith
   const isDark = settings.scheme === "dark";
   const modalFocusClasses =
     isDark
@@ -120,6 +140,27 @@ export function MenuItemModal({
       : "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-blue-500",
     modalFocusClasses,
   );
+<<<<<<< HEAD
+=======
+  const filteredSubCategorySuggestions = useMemo(() => {
+    const categoryName = values.categoryName.trim().toLowerCase();
+
+    if (!categoryName) {
+      return subCategorySuggestions;
+    }
+
+    const categorySubCategories = Array.from(
+      new Set(
+        menuItems
+          .filter((menuItem) => menuItem.categoryName.trim().toLowerCase() === categoryName)
+          .map((menuItem) => menuItem.subCategoryName?.trim() ?? "")
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => a.localeCompare(b));
+
+    return categorySubCategories.length ? categorySubCategories : subCategorySuggestions;
+  }, [menuItems, subCategorySuggestions, values.categoryName]);
+>>>>>>> Dulnith
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -204,7 +245,12 @@ export function MenuItemModal({
                       </label>
                       <select
                         id="menu-item-category"
+<<<<<<< HEAD
                         value={values.category}
+=======
+                        list={categoryListId}
+                        value={values.categoryName}
+>>>>>>> Dulnith
                         onChange={(event) =>
                           setValues((current) => ({
                             ...current,
@@ -212,6 +258,7 @@ export function MenuItemModal({
                           }))
                         }
                         className={inputClasses}
+<<<<<<< HEAD
                       >
                         {categories.map((category) => (
                           <option key={category} value={category}>
@@ -219,6 +266,39 @@ export function MenuItemModal({
                           </option>
                         ))}
                       </select>
+=======
+                        required
+                      />
+                      <datalist id={categoryListId}>
+                        {categorySuggestions.map((categoryName) => (
+                          <option key={categoryName} value={categoryName} />
+                        ))}
+                      </datalist>
+                    </div>
+
+                    <div className="min-w-0 space-y-2">
+                      <label htmlFor="menu-item-sub-category" className={getManagerLabelClasses(settings.scheme)}>
+                        Sub Category
+                      </label>
+                      <input
+                        id="menu-item-sub-category"
+                        list={subCategoryListId}
+                        value={values.subCategoryName}
+                        onChange={(event) =>
+                          setValues((current) => ({
+                            ...current,
+                            subCategoryName: event.target.value,
+                          }))
+                        }
+                        placeholder="Enter sub category name"
+                        className={inputClasses}
+                      />
+                      <datalist id={subCategoryListId}>
+                        {filteredSubCategorySuggestions.map((subCategoryName) => (
+                          <option key={subCategoryName} value={subCategoryName} />
+                        ))}
+                      </datalist>
+>>>>>>> Dulnith
                     </div>
 
                     <div className="min-w-0 space-y-2 sm:col-span-2">

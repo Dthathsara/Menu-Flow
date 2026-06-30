@@ -1,14 +1,16 @@
 import { cn, getManagerStrongTextClasses } from "../../managerUtils";
 import type { ManagerSettings } from "../../managerTypes";
-import { peakHoursData } from "../reports.data";
 import { getProgressToneClasses, getTrackClasses } from "../reports.helpers";
 import { ReportsSectionCard } from "../ReportsSectionCard";
+import type { OrdersReportProgressMetric } from "../reports.types";
 
 interface PeakHoursCardProps {
   settings: ManagerSettings;
+  items: OrdersReportProgressMetric[];
+  isLoading?: boolean;
 }
 
-export function PeakHoursCard({ settings }: PeakHoursCardProps) {
+export function PeakHoursCard({ settings, items, isLoading = false }: PeakHoursCardProps) {
   return (
     <ReportsSectionCard
       settings={settings}
@@ -18,7 +20,11 @@ export function PeakHoursCard({ settings }: PeakHoursCardProps) {
       className="h-full"
     >
       <div className="space-y-5">
-        {peakHoursData.map((item) => (
+        {isLoading ? (
+          <div className="py-8 text-center text-[14px] font-semibold text-slate-400">
+            Loading peak hours...
+          </div>
+        ) : items.length ? items.map((item) => (
           <div key={item.label}>
             <div
               className={cn(
@@ -36,7 +42,11 @@ export function PeakHoursCard({ settings }: PeakHoursCardProps) {
               />
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="py-8 text-center text-[14px] font-semibold text-slate-400">
+            No peak hour data available.
+          </div>
+        )}
       </div>
     </ReportsSectionCard>
   );

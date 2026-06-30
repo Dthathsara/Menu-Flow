@@ -4,8 +4,12 @@ import { useState } from "react";
 import { LANGUAGE_OPTIONS, MANAGER_NAV_ITEMS } from "./managerConfig";
 import { HorizontalShell } from "./HorizontalShell";
 import { VerticalShell } from "./VerticalShell";
+<<<<<<< HEAD
 import { DEFAULT_RESTAURANT_PROFILE } from "./settings/settings.data";
 import type { RestaurantProfile } from "./settings/settings.types";
+=======
+import { useRestaurantProfile } from "./restaurant-profile-context";
+>>>>>>> Dulnith
 import { cn, getShellBackgroundClasses } from "./managerUtils";
 import { useManagerSettings } from "./useManagerSettings";
 import type { LanguageOption, ManagerNavKey } from "./managerTypes";
@@ -22,8 +26,12 @@ export function ManagerDashboard({
 }: ManagerDashboardProps) {
   const [activeNav, setActiveNav] = useState<ManagerNavKey>(initialActiveNav);
   const [activeReportTab, setActiveReportTab] = useState<ReportTab>(initialReportTab);
+<<<<<<< HEAD
   const [restaurantProfile, setRestaurantProfile] =
     useState<RestaurantProfile>(DEFAULT_RESTAURANT_PROFILE);
+=======
+  const { restaurantProfile, updateRestaurantProfile } = useRestaurantProfile();
+>>>>>>> Dulnith
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
     LANGUAGE_OPTIONS[0],
   );
@@ -69,7 +77,7 @@ export function ManagerDashboard({
       setSelectedLanguage(language);
       setActiveDropdown(null);
     },
-    onUpdateRestaurantProfile: setRestaurantProfile,
+    onUpdateRestaurantProfile: updateRestaurantProfile,
   };
 
   return (

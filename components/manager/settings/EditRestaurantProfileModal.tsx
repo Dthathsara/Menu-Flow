@@ -103,12 +103,45 @@ export function EditRestaurantProfileModal({
     setPreviewSrc(nextUrl);
   }
 
+<<<<<<< HEAD
   function handleSave() {
     onSave({
       name,
       location,
       imageSrc: previewSrc,
     });
+=======
+  async function handleSave() {
+    setIsSaving(true);
+    setStatusMessage("");
+    setStatusType("success");
+
+    try {
+      const profileForDetails = selectedImageFile
+        ? { ...form, restaurantImageUrl: profile.restaurantImageUrl }
+        : form;
+      let nextProfile = await updateRestaurantProfile(profileForDetails);
+
+      if (selectedImageFile) {
+        nextProfile = await uploadRestaurantImage(selectedImageFile);
+      }
+
+      onSave(nextProfile);
+      setForm(nextProfile);
+      setSelectedImageFile(null);
+      if (previewObjectUrlRef.current) {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+        previewObjectUrlRef.current = null;
+      }
+      setStatusType("success");
+      setStatusMessage("Restaurant profile updated successfully.");
+    } catch {
+      setStatusType("error");
+      setStatusMessage("Unable to save restaurant profile.");
+    } finally {
+      setIsSaving(false);
+    }
+>>>>>>> Dulnith
   }
 
   const modalContent = (
@@ -158,6 +191,7 @@ export function EditRestaurantProfileModal({
           </div>
 
           <div className={cn("min-h-0 overflow-y-auto px-6 py-6", settings.scheme === "dark" ? "bg-slate-950/98" : "bg-white/98")}>
+<<<<<<< HEAD
             <div className="relative h-[160px] overflow-hidden rounded-[22px] border border-blue-400/20">
               <Image
                 src={previewSrc}
@@ -166,6 +200,15 @@ export function EditRestaurantProfileModal({
                 sizes="(max-width: 820px) 100vw, 760px"
                 className="object-cover"
                 unoptimized={isBlobPreview}
+=======
+            <div className="relative h-40 overflow-hidden rounded-[22px] border border-blue-400/20">
+              <RestaurantProfileImage
+                src={form.restaurantImageUrl}
+                alt={form.hotelName || "Restaurant profile image"}
+                className="h-full w-full"
+                eager
+                highPriority
+>>>>>>> Dulnith
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/18 via-transparent to-transparent" />
             </div>

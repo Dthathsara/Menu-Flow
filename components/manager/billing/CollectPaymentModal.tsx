@@ -18,7 +18,9 @@ interface CollectPaymentModalProps {
   settings: ManagerSettings;
   bill: BillRecord | null;
   onClose: () => void;
-  onConfirm: (method: Exclude<BillMethodFilter, "All Methods">) => void;
+  onConfirm: (method: Exclude<BillMethodFilter, "All Methods">) => void | Promise<void>;
+  isSaving?: boolean;
+  errorMessage?: string;
 }
 
 export function CollectPaymentModal({
@@ -27,6 +29,8 @@ export function CollectPaymentModal({
   bill,
   onClose,
   onConfirm,
+  isSaving = false,
+  errorMessage = "",
 }: CollectPaymentModalProps) {
   const [methodOverride, setMethodOverride] = useState<Exclude<BillMethodFilter, "All Methods"> | null>(
     null,
@@ -38,13 +42,18 @@ export function CollectPaymentModal({
   );
 
   function handleClose() {
+    if (isSaving) {
+      return;
+    }
+
     setMethodOverride(null);
     onClose();
   }
 
   function handleConfirm() {
-    onConfirm(method);
-    setMethodOverride(null);
+    if (!isSaving) {
+      void onConfirm(method);
+    }
   }
 
   return (
@@ -57,21 +66,32 @@ export function CollectPaymentModal({
       onClose={handleClose}
       footer={
         <>
-          <button type="button" onClick={handleClose} className={getMutedButtonClasses(settings.scheme)}>
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={isSaving}
+            className={getMutedButtonClasses(settings.scheme)}
+          >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleConfirm}
+            disabled={isSaving}
             className={getSuccessButtonClasses(settings.scheme)}
           >
-            Confirm Payment
+            {isSaving ? "Confirming..." : "Confirm Payment"}
           </button>
         </>
       }
     >
       {bill ? (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          {errorMessage ? (
+            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300 md:col-span-2">
+              {errorMessage}
+            </div>
+          ) : null}
           <div className="space-y-2">
             <label htmlFor="collect-payment-bill" className={getManagerLabelClasses(settings.scheme)}>
               Bill ID
