@@ -12,7 +12,7 @@ export function ClientCompanyCard({
   inverted = false,
   profile = DEFAULT_RESTAURANT_PROFILE,
 }: ClientCompanyCardProps) {
-  const displayName = profile.hotelName || "Restaurant";
+  const displayName = profile.restaurantName || "Restaurant";
 
   return (
     <div
@@ -40,7 +40,7 @@ export function ClientCompanyCard({
           <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/20 to-transparent px-3 py-2">
             <div className="text-white leading-tight">
               <p className="truncate text-sm font-semibold">{displayName}</p>
-              <p className="text-xs opacity-80">{profile.businessLocation}</p>
+              <p className="text-xs opacity-80">{profile.location}</p>
             </div>
           </div>
         </div>

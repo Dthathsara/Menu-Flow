@@ -50,7 +50,7 @@ export interface ContactInfo {
 export interface RestaurantInfo {
   id?: string | null;
   name: string;
-  hotelName?: string;
+  restaurantName?: string;
   businessType?: string;
   location?: string;
   address?: string;
@@ -60,12 +60,12 @@ export interface RestaurantInfo {
   restaurantImageUpdatedAt?: string;
   updatedAt?: string;
   phone?: string;
-  kitchenOpenTime?: string;
-  kitchenCloseTime?: string;
+  openingTime?: string;
+  closingTime?: string;
   openingHours?: string;
-  taxRate?: number;
-  serviceChargeRate?: number;
-  discountRate?: number;
+  taxPercentage?: number;
+  serviceChargePercentage?: number;
+  discountPercentage?: number;
   status?: string;
   titlePrefix: string;
   titleAccent: string;

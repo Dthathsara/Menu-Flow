@@ -16,6 +16,7 @@ export function AuthInputField({
   placeholder,
   autoComplete,
   inputMode,
+  readOnly,
   error,
   onChange,
 }: {
@@ -27,6 +28,7 @@ export function AuthInputField({
   placeholder?: string;
   autoComplete?: string;
   inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
+  readOnly?: boolean;
   error?: string;
   onChange: (value: string) => void;
 }) {
@@ -42,6 +44,7 @@ export function AuthInputField({
         placeholder={placeholder}
         autoComplete={autoComplete}
         inputMode={inputMode}
+        readOnly={readOnly}
         onChange={(event) => onChange(event.target.value)}
         className={getAuthInputClasses(theme, Boolean(error))}
         required

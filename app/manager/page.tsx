@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
-import { ManagerDashboard } from "@/components/manager/ManagerDashboard";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "MenuFlow | Manager Dashboard",
-  description: "Production-style manager dashboard shell for MenuFlow.",
-};
-
-export default function ManagerPage() {
-  return <ManagerDashboard />;
+export default function ManagerAliasPage() {
+  redirect("/manager/dashboard");
 }

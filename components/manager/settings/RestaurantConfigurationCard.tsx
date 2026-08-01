@@ -116,8 +116,8 @@ export function RestaurantConfigurationCard({
         </ConfigurationField>
         <ConfigurationField settings={settings} label="Tax Rate (%)">
           <input
-            value={value.taxRate}
-            onChange={(event) => onChange({ ...value, taxRate: event.target.value })}
+            value={value.taxPercentage}
+            onChange={(event) => onChange({ ...value, taxPercentage: event.target.value })}
             className={getConfigurationInputClasses(settings)}
           />
         </ConfigurationField>

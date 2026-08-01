@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { DEFAULT_MANAGER_SETTINGS, MANAGER_STORAGE_KEY } from "@/components/manager/managerConfig";
 import { parseManagerSettingsValue } from "@/components/manager/managerTheme";
 import { ManagerRestaurantProfileProvider } from "@/components/manager/restaurant-profile-context";
@@ -18,9 +19,11 @@ export default async function ManagerLayout({
 
   return (
     <ManagerThemeProvider initialSettings={initialSettings}>
-      <ManagerRestaurantProfileProvider>
-        {children}
-      </ManagerRestaurantProfileProvider>
+      <RoleGuard allowedRole="manager">
+        <ManagerRestaurantProfileProvider>
+          {children}
+        </ManagerRestaurantProfileProvider>
+      </RoleGuard>
     </ManagerThemeProvider>
   );
 }

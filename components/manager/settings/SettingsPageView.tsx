@@ -127,8 +127,7 @@ export function SettingsPageView({
         onClose={() => setProfileModalOpen(false)}
         onSave={(profile) => {
           onUpdateRestaurantProfile(profile);
-          setProfileModalOpen(false);
-          pushToast("Restaurant profile updated");
+          pushToast("Restaurant profile updated successfully.");
         }}
       />
 

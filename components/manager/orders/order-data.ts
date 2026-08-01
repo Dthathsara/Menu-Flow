@@ -9,11 +9,11 @@ import type {
 
 export const ORDER_STATUS_OPTIONS = [
   "All Statuses",
+  "pending",
   "accepted",
   "preparing",
   "ready",
   "delivered",
-  "cancelled",
 ] as const;
 
 export const PAYMENT_STATUS_OPTIONS = [
@@ -25,19 +25,19 @@ export const PAYMENT_STATUS_OPTIONS = [
 ] as const;
 
 export const EDITABLE_ORDER_STATUSES: OrderStatus[] = [
+  "pending",
   "accepted",
   "preparing",
   "ready",
   "delivered",
-  "cancelled",
 ];
 
 const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
-  accepted: ["preparing", "cancelled"],
-  preparing: ["ready", "cancelled"],
-  ready: ["delivered", "cancelled"],
+  pending: ["accepted"],
+  accepted: ["preparing"],
+  preparing: ["ready"],
+  ready: ["delivered"],
   delivered: [],
-  cancelled: [],
 };
 
 export function getAllowedOrderStatusTransitions(
@@ -74,7 +74,7 @@ export function getOrdersSummaryCards(summary: OrdersSummary): OrdersSummaryCard
     {
       title: "Active Orders",
       value: String(summary.activeOrders),
-      note: "Accepted, preparing, and ready queues combined",
+      note: "Pending, accepted, preparing, and ready queues combined",
       accent: "purple",
     },
     {

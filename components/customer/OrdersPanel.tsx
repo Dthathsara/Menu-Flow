@@ -45,13 +45,13 @@ type PaymentForm = {
 };
 
 const statusLabels: Record<string, string> = {
+  pending: "Pending",
   accepted: "Accepted",
   preparing: "Preparing",
   ready: "Ready",
   delivered: "Delivered",
-  cancelled: "Cancelled",
 };
-const orderStatuses = ["accepted", "preparing", "ready", "delivered"] as const;
+const orderStatuses = ["pending", "accepted", "preparing", "ready", "delivered"] as const;
 const fallbackImage = CUSTOMER_PLACEHOLDER_IMAGE;
 function getCustomerSessionId(tenantId: string) {
   if (typeof window === "undefined") {
@@ -149,12 +149,13 @@ export function OrdersPanel({
   const [currentOrder, setCurrentOrder] = useState<CustomerOrderRecord | null>(null);
   const historyLoadIdRef = useRef(0);
   const cleanTenantId = tenantId.trim();
-  const taxRate = Number(restaurant.taxRate ?? 5);
-  const serviceChargeRate = Number(restaurant.serviceChargeRate ?? 3);
-  const discountRate = Number(restaurant.discountRate ?? 0);
-  const taxAmount = (subtotal * taxRate) / 100;
-  const serviceChargeAmount = (subtotal * serviceChargeRate) / 100;
-  const discountAmount = discountRate > 0 ? (subtotal * discountRate) / 100 : 0;
+  const taxPercentage = Number(restaurant.taxPercentage ?? 5);
+  const serviceChargePercentage = Number(restaurant.serviceChargePercentage ?? 3);
+  const discountPercentage = Number(restaurant.discountPercentage ?? 0);
+  const taxAmount = (subtotal * taxPercentage) / 100;
+  const serviceChargeAmount = (subtotal * serviceChargePercentage) / 100;
+  const discountAmount =
+    discountPercentage > 0 ? (subtotal * discountPercentage) / 100 : 0;
   const totalAmount = subtotal + taxAmount + serviceChargeAmount - discountAmount;
 
   const itemCount = useMemo(
@@ -166,7 +167,7 @@ export function OrdersPanel({
   const status = getOrderStatus(statusOrder);
   const hasPlacedOrder = Boolean(statusOrder?.id);
 
-  const loadOrderHistory = useCallback(async () => {
+  const loadOrderHistory = useCallback(async (showLoading = true) => {
     const requestId = historyLoadIdRef.current + 1;
     historyLoadIdRef.current = requestId;
 
@@ -186,12 +187,9 @@ export function OrdersPanel({
       return;
     }
 
-    console.log("CUSTOMER ORDERS LOAD", {
-      tenantId: cleanTenantId,
-      customerSessionId,
-    });
-
-    setIsHistoryLoading(true);
+    if (showLoading) {
+      setIsHistoryLoading(true);
+    }
 
     try {
       const orders = await fetchCustomerSessionOrders(customerSessionId, cleanTenantId);
@@ -205,22 +203,30 @@ export function OrdersPanel({
 
       setCurrentOrder((current) => {
         if (!orders[0]) {
-          return null;
+          return current ?? null;
         }
 
-        return current ?? {
-          ...orders[0],
-          order_status: orders[0].order_status,
+        const matchingOrder = current?.id
+          ? orders.find((order) => order.id === current.id)
+          : null;
+        const nextOrder = matchingOrder ?? orders[0];
+
+        return {
+          ...current,
+          ...nextOrder,
+          order_status: nextOrder.order_status,
         };
       });
     } catch {
       if (historyLoadIdRef.current === requestId) {
-        setOrderHistory([]);
-        setCurrentOrder(null);
-        setHistoryErrorMessage("Unable to load your previous orders.");
+        if (showLoading) {
+          setOrderHistory([]);
+          setCurrentOrder(null);
+          setHistoryErrorMessage("Unable to load your previous orders.");
+        }
       }
     } finally {
-      if (historyLoadIdRef.current === requestId) {
+      if (showLoading && historyLoadIdRef.current === requestId) {
         setIsHistoryLoading(false);
       }
     }
@@ -241,6 +247,18 @@ export function OrdersPanel({
   }, [loadOrderHistory]);
 
   useEffect(() => {
+    if (!cleanTenantId) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void loadOrderHistory(false);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [cleanTenantId, loadOrderHistory]);
+
+  useEffect(() => {
     if (!isStatusModalOpen || !statusOrder?.id) {
       return;
     }
@@ -256,7 +274,7 @@ export function OrdersPanel({
 
         if (active) {
           setCurrentOrder(nextOrder);
-          void loadOrderHistory();
+          void loadOrderHistory(false);
         }
       } catch {
         if (active) {
@@ -276,7 +294,7 @@ export function OrdersPanel({
 
   const closeStatusModal = useCallback(() => {
     setIsStatusModalOpen(false);
-    void loadOrderHistory();
+    void loadOrderHistory(false);
   }, [loadOrderHistory]);
 
   useEffect(() => {
@@ -384,11 +402,6 @@ export function OrdersPanel({
     try {
       const customerSessionId = getCustomerSessionId(cleanTenantId);
 
-      console.log("CUSTOMER ORDER CREATE", {
-        tenantId: cleanTenantId,
-        customerSessionId,
-      });
-
       const order = await createCustomerOrder({
         tenant_id: cleanTenantId,
         customer_session_id: customerSessionId,
@@ -418,12 +431,12 @@ export function OrdersPanel({
         throw new Error("Order was created, but the backend did not return an order id.");
       }
 
-      setCurrentOrder(order);
+      setCurrentOrder({ ...order, order_status: "pending" });
       setSuccessMessage("Order placed successfully.");
       setIsPaymentModalOpen(false);
       setPaymentForm({ cardNumber: "", expiry: "", cvc: "" });
       onOrderSuccess();
-      await loadOrderHistory();
+      await loadOrderHistory(false);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -443,16 +456,16 @@ export function OrdersPanel({
           <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span>Tax ({taxRate}%)</span>
+          <span>Tax ({taxPercentage}%)</span>
           <span>{formatPrice(taxAmount)}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span>Service Charge ({serviceChargeRate}%)</span>
+          <span>Service Charge ({serviceChargePercentage}%)</span>
           <span>{formatPrice(serviceChargeAmount)}</span>
         </div>
-        {discountRate > 0 ? (
+        {discountPercentage > 0 ? (
           <div className="flex items-center justify-between">
-            <span>Discount ({discountRate}%)</span>
+            <span>Discount ({discountPercentage}%)</span>
             <span>- {formatPrice(discountAmount)}</span>
           </div>
         ) : null}
@@ -495,8 +508,8 @@ export function OrdersPanel({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#eadfce] text-[#7a6050]">
-            {orderHistory.map((order) => (
-              <tr key={order.id || order.order_number}>
+            {orderHistory.map((order, index) => (
+              <tr key={order.id || order.order_number || `order-${index}`}>
                 <td className="px-4 py-3 font-bold text-[#7a2a24]">
                   {order.order_number || order.id}
                 </td>
@@ -1011,17 +1024,11 @@ export function OrdersPanel({
               <p className="mt-6 rounded-[1.3rem] bg-[#f6efe5] px-4 py-3 text-sm font-semibold text-[#7a6050]">
                 No order has been placed yet.
               </p>
-            ) : status === "cancelled" ? (
-              <p className="mt-6 rounded-[1.3rem] bg-[#fff1ee] px-4 py-3 text-sm font-semibold text-[#b03a34]">
-                Order status: {statusLabels.cancelled}
-              </p>
             ) : (
               <div className="mt-6 space-y-4">
                 {orderStatuses.map((entry, index) => {
-                  const currentIndex = Math.max(
-                    0,
-                    orderStatuses.findIndex((item) => item === status),
-                  );
+                  const foundStatusIndex = orderStatuses.findIndex((item) => item === status);
+                  const currentIndex = foundStatusIndex >= 0 ? foundStatusIndex : 0;
                   const isActive = index === currentIndex;
                   const isComplete = index < currentIndex;
 

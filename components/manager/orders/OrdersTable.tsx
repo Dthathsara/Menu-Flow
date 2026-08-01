@@ -76,9 +76,9 @@ export function OrdersTable({
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
+              {orders.map((order, index) => (
                 <tr
-                  key={order.id}
+                  key={order.id || order.order_number || `order-${index}`}
                   className={cn(
                     "group/row border-b border-black/5 transition-all duration-200 ease-out",
                     getManagerTableRowTextClasses(),
@@ -140,12 +140,12 @@ export function OrdersTable({
       </div>
 
       <div className="grid gap-3 md:hidden">
-        {orders.map((order) => {
+        {orders.map((order, index) => {
           const itemCount = getOrderItemCount(order);
 
           return (
             <article
-              key={order.id}
+              key={order.id || order.order_number || `order-${index}`}
               className={cn(
                 "rounded-[18px] border p-5 transition-all duration-200 ease-out",
                 settings.scheme === "dark"

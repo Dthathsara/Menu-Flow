@@ -198,6 +198,12 @@ export function secondaryButtonClassName(settings: ManagerSettings) {
 function getOrderStatusBadgeClasses(status: OrderStatus, scheme: ManagerSettings["scheme"]) {
   const normalizedStatus = String(status).trim().toLowerCase();
 
+  if (normalizedStatus === "pending") {
+    return scheme === "dark"
+      ? "bg-slate-500/16 text-slate-100 ring-1 ring-inset ring-slate-400/28"
+      : "bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200";
+  }
+
   if (normalizedStatus === "accepted") {
     return scheme === "dark"
       ? "bg-sky-500/16 text-sky-100 ring-1 ring-inset ring-sky-400/28"
@@ -214,12 +220,6 @@ function getOrderStatusBadgeClasses(status: OrderStatus, scheme: ManagerSettings
     return scheme === "dark"
       ? "bg-violet-500/16 text-violet-100 ring-1 ring-inset ring-violet-400/28"
       : "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200";
-  }
-
-  if (normalizedStatus === "cancelled" || normalizedStatus === "canceled") {
-    return scheme === "dark"
-      ? "bg-rose-500/16 text-rose-100 ring-1 ring-inset ring-rose-400/28"
-      : "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200";
   }
 
   return scheme === "dark"

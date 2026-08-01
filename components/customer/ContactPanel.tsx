@@ -8,8 +8,8 @@ interface ContactPanelProps {
 export function ContactPanel({ restaurant, contact }: ContactPanelProps) {
   const openingHours =
     restaurant.openingHours ||
-    (restaurant.kitchenOpenTime || restaurant.kitchenCloseTime
-      ? `Daily ${restaurant.kitchenOpenTime || ""} - ${restaurant.kitchenCloseTime || ""}`.trim()
+    (restaurant.openingTime || restaurant.closingTime
+      ? `Daily ${restaurant.openingTime || ""} - ${restaurant.closingTime || ""}`.trim()
       : "");
   const phone = restaurant.phone || "Not provided";
   const email = restaurant.businessEmail || restaurant.email || "Not provided";

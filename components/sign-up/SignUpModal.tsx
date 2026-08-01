@@ -150,10 +150,7 @@ export function SignUpModal({
         password: form.password,
       };
 
-      console.log("REGISTER PAYLOAD:", payload);
-
       const registerUrl = apiUrl("/auth/register");
-      console.log("REGISTER REQUEST URL:", registerUrl);
 
       await axios.post(registerUrl, payload);
 
@@ -165,14 +162,6 @@ export function SignUpModal({
         router.push("/");
       }, 1000);
     } catch (error) {
-      const data = axios.isAxiosError(error) ? error.response?.data : null;
-
-      console.log(
-        "REGISTER ERROR STATUS:",
-        axios.isAxiosError(error) ? error.response?.status : null,
-      );
-      console.log("REGISTER ERROR DATA:", data);
-
       setStatusType("error");
       setStatusMessage(getApiErrorMessage(error, "Registration failed. Please try again."));
     } finally {

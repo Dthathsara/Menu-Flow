@@ -8,6 +8,7 @@ const STATUS_MESSAGES: Record<number, string> = {
   403: "You do not have permission to perform this action.",
   404: "The requested item was not found.",
   409: "This record already exists. Please check your details and try again.",
+  429: "Too many requests. Please wait a moment and try again.",
   422: "Some information is invalid. Please check the form and try again.",
   500: "Something went wrong on our side. Please try again later.",
 };
@@ -33,9 +34,21 @@ function cleanMessage(message: string) {
     (normalized.startsWith("{") && normalized.endsWith("}")) ||
     (normalized.startsWith("[") && normalized.endsWith("]")) ||
     lower.includes('"statuscode"') ||
-    lower.includes('"timestamp"')
+    lower.includes('"timestamp"') ||
+    /cannot\s+(get|post|put|patch|delete)\s+\/api\//i.test(normalized) ||
+    lower.includes("prisma") ||
+    lower.includes("invocation") ||
+    lower.includes("does not exist in the current database") ||
+    lower.includes("should not exist") ||
+    /^property .+ should not exist$/i.test(normalized) ||
+    lower.includes("orders.assigned_chef_id") ||
+    lower.includes("assigned_chef_id")
   ) {
     return "";
+  }
+
+  if (lower.includes("throttleexception") || lower.includes("too many requests")) {
+    return STATUS_MESSAGES[429];
   }
 
   if (
@@ -87,6 +100,14 @@ function tryParseJsonString(value: string): unknown {
 function getStatusCode(value: unknown): number | null {
   if (!isRecord(value)) {
     return null;
+  }
+
+  const response = value.response;
+  if (isRecord(response)) {
+    const responseStatus = response.status ?? response.statusCode;
+    if (typeof responseStatus === "number") {
+      return responseStatus;
+    }
   }
 
   const statusCode = value.statusCode ?? value.status;
@@ -157,6 +178,8 @@ export function getApiErrorMessage(
   error: unknown,
   fallback = DEFAULT_ERROR_MESSAGE,
 ): string {
+  const statusCode = getStatusCode(error);
+
   if (axios.isAxiosError(error)) {
     if (!error.response) {
       return "Unable to connect to the server. Please check your internet connection.";
@@ -172,13 +195,28 @@ export function getApiErrorMessage(
     return getStatusFallback(error.response.status, fallback);
   }
 
+  if (isRecord(error) && isRecord(error.response)) {
+    const responseData = error.response.data;
+    const message = extractMessage(responseData);
+
+    if (message) {
+      return message;
+    }
+
+    return getStatusFallback(statusCode, fallback);
+  }
+
   const message = extractMessage(error);
 
   if (message) {
     return message;
   }
 
-  return getStatusFallback(getStatusCode(error), fallback);
+  return getStatusFallback(statusCode, fallback);
+}
+
+export function getApiStatusCode(error: unknown) {
+  return getStatusCode(error);
 }
 
 export function getErrorMessage(

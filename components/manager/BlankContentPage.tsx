@@ -1,14 +1,8 @@
-import { BillingPageView } from "./billing/BillingPageView";
-import { DashboardContent } from "./DashboardContent";
-import { GenerateQrPage } from "./qr-codes/GenerateQrPage";
-import { InvoicePageView } from "./invoices/InvoicePageView";
-import { ManageMenuPage } from "./manage-menu/ManageMenuPage";
-import { ReportsPageView } from "./reports";
+"use client";
+
+import { lazy, Suspense } from "react";
 import type { ReportTab } from "./reports/reports.types";
-import { SettingsPageView } from "./settings/SettingsPageView";
 import type { RestaurantProfile } from "./settings/settings.types";
-import { UsersPageView } from "./users";
-import { OrdersPageView } from "./orders";
 import {
   cn,
   getManagerCardShellClasses,
@@ -21,6 +15,52 @@ import {
   getMutedTextClasses,
 } from "./managerUtils";
 import type { ManagerNavItem, ManagerSettings } from "./managerTypes";
+
+const BillingPageView = lazy(() =>
+  import("./billing/BillingPageView").then((module) => ({
+    default: module.BillingPageView,
+  })),
+);
+const DashboardContent = lazy(() =>
+  import("./DashboardContent").then((module) => ({
+    default: module.DashboardContent,
+  })),
+);
+const GenerateQrPage = lazy(() =>
+  import("./qr-codes/GenerateQrPage").then((module) => ({
+    default: module.GenerateQrPage,
+  })),
+);
+const InvoicePageView = lazy(() =>
+  import("./invoices/InvoicePageView").then((module) => ({
+    default: module.InvoicePageView,
+  })),
+);
+const ManageMenuPage = lazy(() =>
+  import("./manage-menu/ManageMenuPage").then((module) => ({
+    default: module.ManageMenuPage,
+  })),
+);
+const OrdersPageView = lazy(() =>
+  import("./orders/OrdersPageView").then((module) => ({
+    default: module.OrdersPageView,
+  })),
+);
+const ReportsPageView = lazy(() =>
+  import("./reports/ReportsPageView").then((module) => ({
+    default: module.ReportsPageView,
+  })),
+);
+const SettingsPageView = lazy(() =>
+  import("./settings/SettingsPageView").then((module) => ({
+    default: module.SettingsPageView,
+  })),
+);
+const UsersPageView = lazy(() =>
+  import("./users/UsersPageView").then((module) => ({
+    default: module.UsersPageView,
+  })),
+);
 
 interface BlankContentPageProps {
   activeItem: ManagerNavItem;
@@ -37,46 +77,90 @@ export function BlankContentPage({
   restaurantProfile,
   onUpdateRestaurantProfile,
 }: BlankContentPageProps) {
+  const fallback = (
+    <section className={getManagerPageSectionClasses()}>
+      <div className={cn("p-6", getManagerCardShellClasses(settings.scheme, { interactive: false }))}>
+        <div className={cn("text-[15px]", getMutedTextClasses(settings.scheme))}>
+          Loading {activeItem.pageTitle.toLowerCase()}...
+        </div>
+      </div>
+    </section>
+  );
+
   if (activeItem.key === "dashboard") {
-    return <DashboardContent settings={settings} />;
+    return (
+      <Suspense fallback={fallback}>
+        <DashboardContent settings={settings} />
+      </Suspense>
+    );
   }
 
   if (activeItem.key === "manage-menu") {
-    return <ManageMenuPage settings={settings} />;
+    return (
+      <Suspense fallback={fallback}>
+        <ManageMenuPage settings={settings} />
+      </Suspense>
+    );
   }
 
   if (activeItem.key === "orders") {
-    return <OrdersPageView settings={settings} />;
+    return (
+      <Suspense fallback={fallback}>
+        <OrdersPageView settings={settings} />
+      </Suspense>
+    );
   }
 
   if (activeItem.key === "generate-qr") {
-    return <GenerateQrPage settings={settings} />;
+    return (
+      <Suspense fallback={fallback}>
+        <GenerateQrPage settings={settings} />
+      </Suspense>
+    );
   }
 
   if (activeItem.key === "users") {
-    return <UsersPageView settings={settings} />;
+    return (
+      <Suspense fallback={fallback}>
+        <UsersPageView settings={settings} />
+      </Suspense>
+    );
   }
 
   if (activeItem.key === "reports") {
-    return <ReportsPageView settings={settings} initialTab={initialReportTab} />;
+    return (
+      <Suspense fallback={fallback}>
+        <ReportsPageView settings={settings} initialTab={initialReportTab} />
+      </Suspense>
+    );
   }
 
   if (activeItem.key === "billing") {
-    return <BillingPageView settings={settings} />;
+    return (
+      <Suspense fallback={fallback}>
+        <BillingPageView settings={settings} />
+      </Suspense>
+    );
   }
 
   if (activeItem.key === "settings") {
     return (
-      <SettingsPageView
-        settings={settings}
-        restaurantProfile={restaurantProfile}
-        onUpdateRestaurantProfile={onUpdateRestaurantProfile}
-      />
+      <Suspense fallback={fallback}>
+        <SettingsPageView
+          settings={settings}
+          restaurantProfile={restaurantProfile}
+          onUpdateRestaurantProfile={onUpdateRestaurantProfile}
+        />
+      </Suspense>
     );
   }
 
   if (activeItem.key === "invoices") {
-    return <InvoicePageView settings={settings} />;
+    return (
+      <Suspense fallback={fallback}>
+        <InvoicePageView settings={settings} />
+      </Suspense>
+    );
   }
 
   return (

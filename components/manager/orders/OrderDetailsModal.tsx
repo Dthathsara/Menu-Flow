@@ -51,17 +51,17 @@ const ORDER_STATUS_TIMELINE: Array<{
   label: string;
   status: OrderStatus;
   timeField:
+    | "pendingAt"
     | "acceptedAt"
     | "preparingAt"
     | "readyAt"
-    | "deliveredAt"
-    | "cancelledAt";
+    | "deliveredAt";
 }> = [
+  { label: "Pending", status: "pending", timeField: "pendingAt" },
   { label: "Accepted", status: "accepted", timeField: "acceptedAt" },
   { label: "Preparing", status: "preparing", timeField: "preparingAt" },
   { label: "Ready", status: "ready", timeField: "readyAt" },
   { label: "Delivered", status: "delivered", timeField: "deliveredAt" },
-  { label: "Cancelled", status: "cancelled", timeField: "cancelledAt" },
 ];
 
 export function OrderDetailsModal({
@@ -244,13 +244,14 @@ export function OrderDetailsModal({
       await updateAdminOrderStatus(modalOrder.id, nextStatus);
       const freshOrder = await fetchAdminOrder(modalOrder.id);
 
-      console.log("FRESH ORDER AFTER STATUS UPDATE", freshOrder);
       setModalOrder(freshOrder);
       await onOrderUpdated(freshOrder);
     } catch (error) {
       setErrorMessage(
         error instanceof SessionExpiredError
           ? "Your session has expired. Please log in again."
+          : error instanceof Error && error.message
+            ? error.message
           : "Unable to update order status. Please try again.",
       );
     } finally {

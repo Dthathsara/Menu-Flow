@@ -1,4 +1,5 @@
 import { RestaurantProfileImage } from "../RestaurantProfileImage";
+import { ClockIcon, HomeIcon, MapPinIcon } from "../icons";
 import { cn, getManagerPrimaryButtonClasses } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import type { RestaurantProfile } from "./settings.types";
@@ -19,7 +20,13 @@ export function RestaurantProfileCard({
   profile,
   onEdit,
 }: RestaurantProfileCardProps) {
-  const displayName = profile.hotelName || "Restaurant";
+  const displayName = profile.restaurantName || "Restaurant";
+  const detailItems = [
+    { label: "Location", value: profile.location || "Not set", icon: MapPinIcon },
+    { label: "Address", value: profile.address || "Not set", icon: HomeIcon },
+    { label: "Opening Time", value: profile.openingTime || "Not set", icon: ClockIcon },
+    { label: "Closing Time", value: profile.closingTime || "Not set", icon: ClockIcon },
+  ];
 
   return (
     <div className={cn("mt-6 p-4 sm:p-5", getSettingsPanelClasses(settings.scheme))}>
@@ -40,11 +47,27 @@ export function RestaurantProfileCard({
             <h3 className={cn("text-[1.15rem] font-semibold sm:text-[1.2rem]", getSettingsStrongTextClasses(settings.scheme))}>
               {displayName}
             </h3>
-            <p className={cn("mt-2", getSettingsMutedTextClasses(settings.scheme))}>{profile.businessLocation}</p>
-            <p className={cn("mt-3 max-w-3xl", getSettingsMutedTextClasses(settings.scheme))}>
-              This profile appears on the manager sidebar, customer QR menu, receipts,
-              and order pages.
-            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {detailItems.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <div key={item.label} className="flex min-w-0 items-start gap-2.5">
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-blue-500/12 text-blue-300 ring-1 ring-inset ring-blue-400/20">
+                      <Icon className="size-3.5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className={cn("block text-[11px] font-semibold uppercase tracking-[0.18em]", getSettingsMutedTextClasses(settings.scheme))}>
+                        {item.label}
+                      </span>
+                      <span className={cn("mt-0.5 block truncate text-[14px] font-medium", getSettingsStrongTextClasses(settings.scheme))}>
+                        {item.value}
+                      </span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 

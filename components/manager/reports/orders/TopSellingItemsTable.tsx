@@ -48,8 +48,8 @@ export function TopSellingItemsTable({ settings, rows, isLoading = false }: TopS
                   Loading top items...
                 </td>
               </tr>
-            ) : rows.length ? rows.map((row) => (
-              <tr key={row.item} className="border-b border-black/5 last:border-b-0">
+            ) : rows.length ? rows.map((row, index) => (
+              <tr key={row.item || `item-${index}`} className="border-b border-black/5 last:border-b-0">
                 <td
                   className={cn(
                     getManagerTableCellPaddingClasses(),

@@ -10,16 +10,19 @@ import type {
 } from "./settings.types";
 
 export const DEFAULT_RESTAURANT_PROFILE: RestaurantProfile = {
-  hotelName: "",
+  restaurantName: "",
   businessEmail: "",
+  phone: "",
+  website: "",
+  description: "",
   businessType: "",
-  businessLocation: "",
-  businessAddress: "",
-  kitchenOpenTime: "",
-  kitchenCloseTime: "",
-  taxRate: "5",
-  serviceChargeRate: "3",
-  discountRate: "",
+  location: "",
+  address: "",
+  openingTime: "",
+  closingTime: "",
+  taxPercentage: "5",
+  serviceChargePercentage: "3",
+  discountPercentage: "",
   restaurantImageUrl: "/customer/placeholder-food.svg",
 };
 
@@ -81,7 +84,7 @@ export const DEFAULT_SETTINGS_STATE: SettingsState = {
   restaurantConfiguration: {
     businessType: "Restaurant",
     defaultServiceType: "Dine-in",
-    taxRate: "5",
+    taxPercentage: "5",
     serviceCharge: "10",
     openingTime: "09:00 AM",
     closingTime: "11:00 PM",

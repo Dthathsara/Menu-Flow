@@ -304,3 +304,22 @@ export function ClockIcon({ className }: IconProps) {
     </BaseIcon>
   );
 }
+
+export function MapPinIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </BaseIcon>
+  );
+}
+
+export function HomeIcon({ className }: IconProps) {
+  return (
+    <BaseIcon className={className}>
+      <path d="m3 10 9-7 9 7" />
+      <path d="M5 9v11h14V9" />
+      <path d="M10 20v-6h4v6" />
+    </BaseIcon>
+  );
+}

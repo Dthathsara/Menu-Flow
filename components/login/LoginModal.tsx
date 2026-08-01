@@ -8,8 +8,13 @@ import { primaryButtonClassName } from "@/components/common/buttons";
 import { AuthInputField } from "@/components/common/inputs";
 import { AuthModalShell } from "@/components/common/modals";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
-import { API_BASE_URL } from "@/lib/api-config";
-import { normalizeAuthUser } from "@/lib/auth-session";
+import { API_ROUTES, apiUrl } from "@/lib/api-config";
+import {
+  clearAuthSession,
+  getDashboardPathForRole,
+  getStoredAuthUser,
+  storeAuthResponse,
+} from "@/lib/auth-session";
 import {
   cn,
   getAuthInlineLinkClasses,
@@ -92,7 +97,7 @@ export function LoginModal({
       const password = form.password;
 
       const response = await axios.post(
-        `${API_BASE_URL}/auth/login`,
+        apiUrl(API_ROUTES.auth.login),
         {
           email,
           password,
@@ -105,15 +110,20 @@ export function LoginModal({
         },
       );
 
-      window.localStorage.setItem("accessToken", response.data.accessToken);
-      window.localStorage.setItem("refreshToken", response.data.refreshToken);
-      window.localStorage.setItem(
-        "user",
-        JSON.stringify(normalizeAuthUser(response.data.user)),
-      );
+      const accessToken = storeAuthResponse(response.data);
+      const user = getStoredAuthUser();
+      const dashboardPath = getDashboardPathForRole(user?.role);
+
+      if (!accessToken || !user || !dashboardPath) {
+        clearAuthSession();
+        setStatusType("error");
+        setStatusMessage("Login succeeded, but the account role is not supported.");
+        return;
+      }
+
       setStatusType("success");
       setStatusMessage("Login successful.");
-      router.push("/manager");
+      router.push(dashboardPath);
     } catch (error) {
       setStatusType("error");
       if (axios.isAxiosError(error)) {
@@ -131,7 +141,7 @@ export function LoginModal({
           setStatusMessage(getLoginApiErrorMessage(error.response.data));
         } else if (error.request) {
           setStatusMessage(
-            "Cannot connect to backend. Start NestJS on port 3001 and check NEXT_PUBLIC_API_URL.",
+            "Cannot connect to backend. Start NestJS on port 3001 and check NEXT_PUBLIC_API_BASE_URL.",
           );
         } else {
           setStatusMessage(error.message);

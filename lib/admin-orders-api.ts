@@ -56,16 +56,16 @@ function normalizeOrderStatus(value: unknown): OrderStatus {
   const status = asString(value).toLowerCase();
 
   if (
+    status === "pending" ||
     status === "accepted" ||
     status === "preparing" ||
     status === "ready" ||
-    status === "delivered" ||
-    status === "cancelled"
+    status === "delivered"
   ) {
     return status;
   }
 
-  return "accepted";
+  return "pending";
 }
 
 function normalizePaymentStatus(value: unknown): PaymentStatus {
@@ -172,11 +172,11 @@ export function mapAdminOrder(payload: unknown): OrderRecord {
       order.placed_at ?? order.placedAt ?? order.created_at ?? order.createdAt,
     ),
     updated_at: asString(order.updated_at ?? order.updatedAt),
+    pendingAt: asNullableString(order.pending_at ?? order.pendingAt ?? order.placed_at ?? order.placedAt ?? order.created_at ?? order.createdAt),
     acceptedAt: asNullableString(order.accepted_at ?? order.acceptedAt),
     preparingAt: asNullableString(order.preparing_at ?? order.preparingAt),
     readyAt: asNullableString(order.ready_at ?? order.readyAt),
     deliveredAt: asNullableString(order.delivered_at ?? order.deliveredAt),
-    cancelledAt: asNullableString(order.cancelled_at ?? order.cancelledAt),
     order_type: asString(order.order_type ?? order.orderType),
     order_status: normalizeOrderStatus(
       order.order_status ?? order.orderStatus ?? order.status,
@@ -202,6 +202,7 @@ function getSummary(payload: unknown, orders: OrderRecord[]): OrdersSummary {
   const activeOrders = orders.filter(
     (order) =>
       order.order_status === "accepted" ||
+      order.order_status === "pending" ||
       order.order_status === "preparing" ||
       order.order_status === "ready",
   );
@@ -231,7 +232,10 @@ function getSummary(payload: unknown, orders: OrderRecord[]): OrdersSummary {
       deliveredToday.length,
     ),
     pendingAmount: asNumber(
-      summary.pending_amount ?? summary.pendingAmount,
+      summary.pending_amount ??
+        summary.pendingAmount ??
+        summary.pending_payment_amount ??
+        summary.pendingPaymentAmount,
       pendingOrders.reduce((total, order) => total + order.total_amount, 0),
     ),
   };
@@ -284,7 +288,11 @@ export async function fetchAdminOrders(filters: {
     const data = await readJson(response);
 
     if (!response.ok) {
-      throw new AdminOrdersApiError();
+      const message =
+        isRecord(data) && (data.message || data.error)
+          ? String(data.message ?? data.error)
+          : "Backend rejected the order status update.";
+      throw new AdminOrdersApiError(message);
     }
 
     const orders = getOrdersArray(data).map(mapAdminOrder);

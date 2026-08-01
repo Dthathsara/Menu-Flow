@@ -31,7 +31,7 @@ export function DashboardOverview({ scheme, searchQuery }: AdminPageProps) {
   const [modalMode, setModalMode] = useState<AdminModalMode>("add");
 
   function handleClientSave(client: ClientRecord) {
-    console.log("Dummy client registered", client);
+    void client;
     setClientModalOpen(false);
   }
 

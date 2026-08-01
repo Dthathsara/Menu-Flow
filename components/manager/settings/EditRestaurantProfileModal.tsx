@@ -1,11 +1,14 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ErrorMessage } from "@/components/common/ui/ErrorMessage";
 import {
+  fetchRestaurantProfile,
+  getRestaurantProfileSaveErrorMessage,
   updateRestaurantProfile,
   uploadRestaurantImage,
+  validateRestaurantImageFile,
 } from "@/lib/users-api";
 import { RestaurantProfileImage } from "../RestaurantProfileImage";
 import { UploadIcon, XIcon } from "../icons";
@@ -38,23 +41,29 @@ export function EditRestaurantProfileModal({
   onClose,
   onSave,
 }: EditRestaurantProfileModalProps) {
-  const hotelNameId = useId();
+  const restaurantNameId = useId();
   const businessEmailId = useId();
+  const phoneId = useId();
+  const websiteId = useId();
+  const descriptionId = useId();
   const businessTypeId = useId();
-  const businessLocationId = useId();
-  const businessAddressId = useId();
-  const kitchenOpenTimeId = useId();
-  const kitchenCloseTimeId = useId();
-  const taxRateId = useId();
-  const serviceChargeRateId = useId();
-  const discountRateId = useId();
+  const locationId = useId();
+  const addressId = useId();
+  const openingTimeId = useId();
+  const closingTimeId = useId();
+  const taxPercentageId = useId();
+  const serviceChargePercentageId = useId();
+  const discountPercentageId = useId();
   const [form, setForm] = useState<RestaurantProfile>(profile);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"success" | "error">("success");
-  const [isSaving, setIsSaving] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const previewObjectUrlRef = useRef<string | null>(null);
+  const selectedImageSignatureRef = useRef("");
+  const submitInFlightRef = useRef(false);
   const fileInputId = useId();
+  const isSaving = saveState === "saving";
 
   useEffect(() => {
     if (!open) {
@@ -64,13 +73,16 @@ export function EditRestaurantProfileModal({
       }
 
       setSelectedImageFile(null);
+      selectedImageSignatureRef.current = "";
       return;
     }
 
     setForm(profile);
     setSelectedImageFile(null);
+    selectedImageSignatureRef.current = "";
     setStatusMessage("");
     setStatusType("success");
+    setSaveState("idle");
   }, [open, profile]);
 
   useEffect(() => {
@@ -115,13 +127,23 @@ export function EditRestaurantProfileModal({
   function handleSelectFile(file: File | null) {
     if (!file) {
       setSelectedImageFile(null);
+      selectedImageSignatureRef.current = "";
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
+    const validationMessage = validateRestaurantImageFile(file);
+
+    if (validationMessage) {
       setSelectedImageFile(null);
+      selectedImageSignatureRef.current = "";
       setStatusType("error");
-      setStatusMessage("Please select a valid image file.");
+      setStatusMessage(validationMessage);
+      return;
+    }
+
+    const nextSignature = getFileSignature(file);
+
+    if (selectedImageSignatureRef.current === nextSignature) {
       return;
     }
 
@@ -132,13 +154,27 @@ export function EditRestaurantProfileModal({
     const nextUrl = URL.createObjectURL(file);
     previewObjectUrlRef.current = nextUrl;
     setSelectedImageFile(file);
+    selectedImageSignatureRef.current = nextSignature;
     setStatusMessage("");
     setStatusType("success");
+    setSaveState("idle");
     setForm((current) => ({ ...current, restaurantImageUrl: nextUrl }));
   }
 
-  async function handleSave() {
-    setIsSaving(true);
+  function updateForm(nextProfile: RestaurantProfile) {
+    setSaveState("idle");
+    setForm(nextProfile);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (isSaving || submitInFlightRef.current) {
+      return;
+    }
+
+    submitInFlightRef.current = true;
+    setSaveState("saving");
     setStatusMessage("");
     setStatusType("success");
 
@@ -146,26 +182,58 @@ export function EditRestaurantProfileModal({
       const profileForDetails = selectedImageFile
         ? { ...form, restaurantImageUrl: profile.restaurantImageUrl }
         : form;
-      let nextProfile = await updateRestaurantProfile(profileForDetails);
+      let nextProfile = await updateRestaurantProfile(profileForDetails, profile);
+      let imageUploadFailed = false;
+      let imageUploadErrorMessage = "";
 
       if (selectedImageFile) {
-        nextProfile = await uploadRestaurantImage(selectedImageFile);
+        try {
+          nextProfile = await uploadRestaurantImage(selectedImageFile);
+        } catch (error) {
+          imageUploadFailed = true;
+          imageUploadErrorMessage = getRestaurantProfileSaveErrorMessage(error);
+        }
+      }
+
+      try {
+        nextProfile = await fetchRestaurantProfile();
+      } catch {
+        // Keep the successful PATCH response visible if the refresh request fails.
       }
 
       onSave(nextProfile);
       setForm(nextProfile);
-      setSelectedImageFile(null);
-      if (previewObjectUrlRef.current) {
-        URL.revokeObjectURL(previewObjectUrlRef.current);
-        previewObjectUrlRef.current = null;
+
+      if (!imageUploadFailed) {
+        setSelectedImageFile(null);
+        selectedImageSignatureRef.current = "";
+        if (previewObjectUrlRef.current) {
+          URL.revokeObjectURL(previewObjectUrlRef.current);
+          previewObjectUrlRef.current = null;
+        }
       }
+
+      if (imageUploadFailed) {
+        setSaveState("idle");
+        setStatusType("error");
+        setStatusMessage(
+          `Profile details were saved, but the image upload failed. ${imageUploadErrorMessage}`,
+        );
+        return;
+      }
+
+      setSaveState("saved");
       setStatusType("success");
       setStatusMessage("Restaurant profile updated successfully.");
-    } catch {
+      window.setTimeout(() => {
+        setSaveState((current) => (current === "saved" ? "idle" : current));
+      }, 1800);
+    } catch (error) {
+      setSaveState("idle");
       setStatusType("error");
-      setStatusMessage("Unable to save restaurant profile.");
+      setStatusMessage(getRestaurantProfileSaveErrorMessage(error));
     } finally {
-      setIsSaving(false);
+      submitInFlightRef.current = false;
     }
   }
 
@@ -187,7 +255,11 @@ export function EditRestaurantProfileModal({
           getManagerModalSurfaceClasses(settings.scheme),
         )}
       >
-        <div className="flex max-h-[calc(100vh-80px)] flex-col overflow-hidden rounded-3xl">
+        <form
+          className="flex max-h-[calc(100vh-80px)] flex-col overflow-hidden rounded-3xl"
+          noValidate
+          onSubmit={handleSubmit}
+        >
           <div
             className={cn(
               "flex shrink-0 items-start justify-between gap-4 border-b px-6 py-5",
@@ -219,7 +291,7 @@ export function EditRestaurantProfileModal({
             <div className="relative h-40 overflow-hidden rounded-[22px] border border-blue-400/20">
               <RestaurantProfileImage
                 src={form.restaurantImageUrl}
-                alt={form.hotelName || "Restaurant profile image"}
+                alt={form.restaurantName || "Restaurant profile image"}
                 className="h-full w-full"
                 eager
                 highPriority
@@ -229,28 +301,28 @@ export function EditRestaurantProfileModal({
 
             <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor={hotelNameId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
-                  Business / Hotel name
+                <label htmlFor={restaurantNameId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Restaurant name
                 </label>
                 <input
-                  id={hotelNameId}
-                  value={form.hotelName}
+                  id={restaurantNameId}
+                  value={form.restaurantName}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, hotelName: event.target.value }))
+                    updateForm({ ...form, restaurantName: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
               </div>
               <div>
                 <label htmlFor={businessEmailId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
-                  Business email
+                  Email
                 </label>
                 <input
                   id={businessEmailId}
                   type="email"
                   value={form.businessEmail}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, businessEmail: event.target.value }))
+                    updateForm({ ...form, businessEmail: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
@@ -266,20 +338,51 @@ export function EditRestaurantProfileModal({
                   id={businessTypeId}
                   value={form.businessType}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, businessType: event.target.value }))
+                    updateForm({ ...form, businessType: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
               </div>
               <div>
-                <label htmlFor={businessLocationId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                <label htmlFor={locationId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
                   Location
                 </label>
                 <input
-                  id={businessLocationId}
-                  value={form.businessLocation}
+                  id={locationId}
+                  value={form.location}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, businessLocation: event.target.value }))
+                    updateForm({ ...form, location: event.target.value })
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label htmlFor={phoneId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Phone
+                </label>
+                <input
+                  id={phoneId}
+                  type="tel"
+                  value={form.phone}
+                  onChange={(event) =>
+                    updateForm({ ...form, phone: event.target.value })
+                  }
+                  className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
+                />
+              </div>
+              <div>
+                <label htmlFor={websiteId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Website
+                </label>
+                <input
+                  id={websiteId}
+                  type="url"
+                  value={form.website}
+                  onChange={(event) =>
+                    updateForm({ ...form, website: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
@@ -287,42 +390,56 @@ export function EditRestaurantProfileModal({
             </div>
 
             <div className="mt-4">
-              <label htmlFor={businessAddressId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+              <label htmlFor={addressId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
                 Address
               </label>
               <input
-                id={businessAddressId}
-                value={form.businessAddress}
+                id={addressId}
+                value={form.address}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, businessAddress: event.target.value }))
+                  updateForm({ ...form, address: event.target.value })
                 }
                 className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
               />
             </div>
 
+            <div className="mt-4">
+              <label htmlFor={descriptionId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                Description
+              </label>
+              <textarea
+                id={descriptionId}
+                value={form.description}
+                onChange={(event) =>
+                  updateForm({ ...form, description: event.target.value })
+                }
+                className={cn(getManagerTextInputClasses(settings.scheme, { multiline: true }), "rounded-[14px]")}
+              />
+            </div>
+
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor={kitchenOpenTimeId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
-                  Kitchen open time
+                <label htmlFor={openingTimeId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Opening time
                 </label>
                 <input
-                  id={kitchenOpenTimeId}
-                  value={form.kitchenOpenTime}
+                  id={openingTimeId}
+                  value={form.openingTime}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, kitchenOpenTime: event.target.value }))
+                    updateForm({ ...form, openingTime: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
               </div>
               <div>
-                <label htmlFor={kitchenCloseTimeId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
-                  Kitchen close time
+                <label htmlFor={closingTimeId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                  Closing time
                 </label>
                 <input
-                  id={kitchenCloseTimeId}
-                  value={form.kitchenCloseTime}
+                  id={closingTimeId}
+                  value={form.closingTime}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, kitchenCloseTime: event.target.value }))
+                    updateForm({ ...form, closingTime: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
@@ -331,43 +448,43 @@ export function EditRestaurantProfileModal({
 
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
-                <label htmlFor={taxRateId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                <label htmlFor={taxPercentageId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
                   Tax percentage
                 </label>
                 <input
-                  id={taxRateId}
+                  id={taxPercentageId}
                   type="number"
-                  value={form.taxRate}
+                  value={form.taxPercentage}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, taxRate: event.target.value }))
+                    updateForm({ ...form, taxPercentage: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
               </div>
               <div>
-                <label htmlFor={serviceChargeRateId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                <label htmlFor={serviceChargePercentageId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
                   Service charge percentage
                 </label>
                 <input
-                  id={serviceChargeRateId}
+                  id={serviceChargePercentageId}
                   type="number"
-                  value={form.serviceChargeRate}
+                  value={form.serviceChargePercentage}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, serviceChargeRate: event.target.value }))
+                    updateForm({ ...form, serviceChargePercentage: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
               </div>
               <div>
-                <label htmlFor={discountRateId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
+                <label htmlFor={discountPercentageId} className={cn("mb-2 block", getManagerLabelClasses(settings.scheme))}>
                   Discount percentage
                 </label>
                 <input
-                  id={discountRateId}
+                  id={discountPercentageId}
                   type="number"
-                  value={form.discountRate}
+                  value={form.discountPercentage}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, discountRate: event.target.value }))
+                    updateForm({ ...form, discountPercentage: event.target.value })
                   }
                   className={cn(getManagerTextInputClasses(settings.scheme), "h-10 rounded-[14px]")}
                 />
@@ -401,7 +518,7 @@ export function EditRestaurantProfileModal({
               <input
                 id={fileInputId}
                 type="file"
-                accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
                 className="sr-only"
                 onChange={(event) => handleSelectFile(event.target.files?.[0] ?? null)}
               />
@@ -409,7 +526,7 @@ export function EditRestaurantProfileModal({
 
             {isSaving ? (
               <p className={cn("mt-4 text-sm", getManagerLabelClasses(settings.scheme))}>
-                Uploading restaurant image and saving profile...
+                Saving restaurant profile...
               </p>
             ) : null}
 
@@ -434,18 +551,25 @@ export function EditRestaurantProfileModal({
               Cancel
             </button>
             <button
-              type="button"
-              onClick={handleSave}
+              type="submit"
               disabled={isSaving}
               className={cn(getManagerPrimaryButtonClasses(settings.scheme), "h-10 rounded-[14px] px-5 text-[14px]")}
             >
-              {isSaving ? "Saving..." : "Save Profile"}
+              {saveState === "saving"
+                ? "Saving..."
+                : saveState === "saved"
+                  ? "Saved successfully"
+                  : "Save Profile"}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
 
   return createPortal(modalContent, document.body);
+}
+
+function getFileSignature(file: File) {
+  return `${file.name}:${file.size}:${file.lastModified}:${file.type}`;
 }

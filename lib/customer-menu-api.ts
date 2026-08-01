@@ -240,8 +240,13 @@ function buildServingPrices(item: ApiRecord) {
 
 function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
   const restaurant: ApiRecord = isRecord(rawRestaurant) ? rawRestaurant : {};
-  const hotelName = asNonEmptyString(restaurant.hotelName ?? restaurant.hotel_name);
-  const name = asNonEmptyString(restaurant.name ?? hotelName, "MenuFlow");
+  const restaurantName = asNonEmptyString(
+    restaurant.restaurantName ??
+      restaurant.restaurant_name ??
+      restaurant.hotelName ??
+      restaurant.hotel_name,
+  );
+  const name = asNonEmptyString(restaurant.name ?? restaurantName, "MenuFlow");
   const businessType = asNonEmptyString(
     restaurant.businessType ?? restaurant.business_type,
     "Menu",
@@ -250,20 +255,26 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
     restaurant.location ?? restaurant.businessLocation ?? restaurant.business_location,
     "",
   );
-  const kitchenCloseTime = asNonEmptyString(
-    restaurant.kitchenCloseTime ?? restaurant.kitchen_close_time,
+  const closingTime = asNonEmptyString(
+    restaurant.closingTime ??
+      restaurant.closing_time ??
+      restaurant.kitchenCloseTime ??
+      restaurant.kitchen_close_time,
     "",
   );
-  const kitchenOpenTime = asString(
-    restaurant.kitchenOpenTime ?? restaurant.kitchen_open_time,
+  const openingTime = asString(
+    restaurant.openingTime ??
+      restaurant.opening_time ??
+      restaurant.kitchenOpenTime ??
+      restaurant.kitchen_open_time,
   );
   const explicitOpeningHours = asString(
     restaurant.openingHours ?? restaurant.opening_hours,
   );
   const openingHours =
     explicitOpeningHours ||
-    (kitchenOpenTime || kitchenCloseTime
-      ? `Daily ${kitchenOpenTime} - ${kitchenCloseTime}`.trim()
+    (openingTime || closingTime
+      ? `Daily ${openingTime} - ${closingTime}`.trim()
       : "");
   const address = asString(
     restaurant.address ?? restaurant.businessAddress ?? restaurant.business_address,
@@ -279,7 +290,7 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
   );
   const status = asNonEmptyString(
     restaurant.status,
-    kitchenCloseTime ? `Kitchen open until ${kitchenCloseTime}` : "Kitchen open",
+    closingTime ? `Kitchen open until ${closingTime}` : "Kitchen open",
   );
   const restaurantImageUrl = firstNonEmptyString([
     restaurant.restaurantImageUrl,
@@ -296,7 +307,7 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
   return {
     id: asString(restaurant.id ?? restaurant.tenantId ?? restaurant.tenant_id) || null,
     name,
-    hotelName,
+    restaurantName,
     businessType,
     location,
     address,
@@ -311,16 +322,28 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
     ),
     updatedAt: asString(restaurant.updatedAt ?? restaurant.updated_at),
     phone,
-    kitchenOpenTime,
-    kitchenCloseTime,
+    openingTime,
+    closingTime,
     openingHours,
-    taxRate: asNumber(restaurant.taxRate ?? restaurant.tax_rate, 5),
-    serviceChargeRate: asNumber(
-      restaurant.serviceChargeRate ?? restaurant.service_charge_rate,
+    taxPercentage: asNumber(
+      restaurant.taxPercentage ??
+        restaurant.tax_percentage ??
+        restaurant.taxRate ??
+        restaurant.tax_rate,
+      5,
+    ),
+    serviceChargePercentage: asNumber(
+      restaurant.serviceChargePercentage ??
+        restaurant.service_charge_percentage ??
+        restaurant.serviceChargeRate ??
+        restaurant.service_charge_rate,
       3,
     ),
-    discountRate: asNumber(
-      restaurant.discountRate ?? restaurant.discount_rate,
+    discountPercentage: asNumber(
+      restaurant.discountPercentage ??
+        restaurant.discount_percentage ??
+        restaurant.discountRate ??
+        restaurant.discount_rate,
       0,
     ),
     status,
@@ -343,15 +366,21 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
 function mapContact(rawContact: unknown, rawRestaurant: unknown): ContactInfo {
   const contact: ApiRecord = isRecord(rawContact) ? rawContact : {};
   const restaurant: ApiRecord = isRecord(rawRestaurant) ? rawRestaurant : {};
-  const kitchenOpenTime = asString(
-    restaurant.kitchenOpenTime ?? restaurant.kitchen_open_time,
+  const openingTime = asString(
+    restaurant.openingTime ??
+      restaurant.opening_time ??
+      restaurant.kitchenOpenTime ??
+      restaurant.kitchen_open_time,
   );
-  const kitchenCloseTime = asString(
-    restaurant.kitchenCloseTime ?? restaurant.kitchen_close_time,
+  const closingTime = asString(
+    restaurant.closingTime ??
+      restaurant.closing_time ??
+      restaurant.kitchenCloseTime ??
+      restaurant.kitchen_close_time,
   );
   const fallbackOpeningHours =
-    kitchenOpenTime || kitchenCloseTime
-      ? `Daily ${kitchenOpenTime} - ${kitchenCloseTime}`.trim()
+    openingTime || closingTime
+      ? `Daily ${openingTime} - ${closingTime}`.trim()
       : "";
 
   return {
@@ -442,12 +471,6 @@ function mapMenuItem(
       true,
     ),
   };
-
-  console.log("Customer mapped item:", {
-    name: mapped.name,
-    imageStart: mapped.image?.slice?.(0, 40),
-    servingPrices: mapped.servingPrices,
-  });
 
   return mapped;
 }
@@ -791,9 +814,9 @@ export function mapCustomerOrderRecord(payload: unknown): CustomerOrderRecord {
   return {
     ...order,
     id,
-    order_status: asString(
+    order_status: asNonEmptyString(
       order.order_status ?? order.orderStatus ?? order.status,
-      "accepted",
+      "pending",
     ),
   };
 }
@@ -874,9 +897,9 @@ export function mapCustomerOrderHistory(payload: unknown): CustomerOrderHistory 
     customer_name: asString(order.customer_name ?? order.customerName),
     customer_phone: asString(order.customer_phone ?? order.customerPhone),
     order_type: asString(order.order_type ?? order.orderType, "dine_in"),
-    order_status: asString(
+    order_status: asNonEmptyString(
       order.order_status ?? order.orderStatus ?? order.status,
-      "accepted",
+      "pending",
     ),
     payment_status: asString(
       order.payment_status ?? order.paymentStatus ?? payment.status,

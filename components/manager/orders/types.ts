@@ -1,11 +1,11 @@
 import type { SummaryCardAccent } from "@/components/common/SummaryCard";
 
 export type OrderStatus =
+  | "pending"
   | "accepted"
   | "preparing"
   | "ready"
-  | "delivered"
-  | "cancelled";
+  | "delivered";
 
 export type PaymentStatus = "paid" | "unpaid" | "failed" | "refunded";
 
@@ -32,11 +32,11 @@ export interface OrderRecord {
   customer_phone: string;
   placed_at: string;
   updated_at: string;
+  pendingAt?: string | null;
   acceptedAt?: string | null;
   preparingAt?: string | null;
   readyAt?: string | null;
   deliveredAt?: string | null;
-  cancelledAt?: string | null;
   order_type: string;
   order_status: OrderStatus;
   payment_status: PaymentStatus;

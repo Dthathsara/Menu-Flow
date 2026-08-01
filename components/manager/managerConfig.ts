@@ -92,7 +92,7 @@ export function getManagerNavHref(
 ) {
   switch (key) {
     case "dashboard":
-      return "/manager";
+      return "/manager/dashboard";
     case "orders":
       return "/manager/orders";
     case "manage-menu":

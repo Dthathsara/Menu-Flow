@@ -86,10 +86,7 @@ function buildForm(user: UserProfile | null): ProfileForm {
 }
 
 function logProfileError(error: unknown) {
-  console.log(
-    "PROFILE ERROR",
-    error instanceof Error ? error.message : "Unknown profile error",
-  );
+  void error;
 }
 
 export function ProfileModal({

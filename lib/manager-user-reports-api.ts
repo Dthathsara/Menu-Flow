@@ -23,6 +23,9 @@ export class ManagerUserReportsApiError extends Error {
   }
 }
 
+let userReportsSyncPromise: Promise<void> | null = null;
+let userReportsSyncCompleted = false;
+
 function isRecord(value: unknown): value is ApiRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -131,6 +134,22 @@ function mapApiError(error: unknown, fallback?: string) {
   }
 
   return new ManagerUserReportsApiError(fallback);
+}
+
+function isAlreadyExistingReportSyncError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : "";
+  const normalized = message.toLowerCase();
+
+  return (
+    (normalized.includes("already") && normalized.includes("report")) ||
+    normalized.includes("unique constraint") ||
+    normalized.includes("p2002")
+  );
 }
 
 async function requestUserReport(path: string, init: RequestInit = {}) {
@@ -314,8 +333,35 @@ export async function fetchUserReportFilters(): Promise<UserReportFilters> {
   return mapFilters(payload, []);
 }
 
-export async function syncUserReports(): Promise<void> {
-  await requestUserReport("/reports/users/sync", { method: "POST" });
+export async function syncUserReports(options: { force?: boolean } = {}): Promise<void> {
+  if (userReportsSyncCompleted && !options.force) {
+    return;
+  }
+
+  if (userReportsSyncPromise) {
+    return userReportsSyncPromise;
+  }
+
+  const syncPromise = requestUserReport("/reports/users/sync", { method: "POST" })
+    .then(() => {
+      userReportsSyncCompleted = true;
+    })
+    .catch((error) => {
+      if (isAlreadyExistingReportSyncError(error)) {
+        userReportsSyncCompleted = true;
+        return;
+      }
+
+      throw error;
+    })
+    .finally(() => {
+      if (userReportsSyncPromise === syncPromise) {
+        userReportsSyncPromise = null;
+      }
+    });
+
+  userReportsSyncPromise = syncPromise;
+  return syncPromise;
 }
 
 export async function fetchUserReportExport(filters?: {

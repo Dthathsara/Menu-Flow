@@ -22,7 +22,7 @@ export const customerMenuData: CustomerMenuData = {
   restaurant: {
     name: "Letona Cafe",
     businessType: "Cafe",
-    kitchenCloseTime: "11:00 PM",
+    closingTime: "11:00 PM",
     status: "Kitchen open until 11:00 PM",
     titlePrefix: "Letona",
     titleAccent: "Cafe",
