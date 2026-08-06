@@ -6,8 +6,7 @@ export type WaiterNavKey =
   | "my-orders"
   | "tables"
   | "notifications"
-  | "profile"
-  | "settings";
+  | "profile";
 
 export type WaiterOrderStatus =
   | "pending"
@@ -31,7 +30,7 @@ export interface WaiterNavItem {
   pageTitle: string;
   description: string;
   href: string;
-  icon: "dashboard" | "orders" | "tables" | "notifications" | "profile" | "settings";
+  icon: "dashboard" | "orders" | "tables" | "notifications" | "profile";
 }
 
 export interface WaiterOrderItem {

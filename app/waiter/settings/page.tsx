@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { WaiterDashboard } from "@/components/waiter/WaiterDashboard";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "MenuFlow | Waiter Settings",
 };
 
 export default function WaiterSettingsPage() {
-  return <WaiterDashboard initialActiveNav="settings" />;
+  redirect("/waiter/dashboard");
 }

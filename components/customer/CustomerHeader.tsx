@@ -11,7 +11,7 @@ interface CustomerHeaderProps {
 
 export function CustomerHeader({ restaurant }: CustomerHeaderProps) {
   const imageSrc = getCustomerRestaurantImageSrc(restaurant);
-  const businessType = restaurant.businessType?.trim() ?? "";
+  const businessType = restaurant.businessType?.trim() || "Menu";
   const shouldInlineBusinessType = businessType.length > 0 && businessType.length <= 12;
 
   return (
@@ -45,15 +45,13 @@ export function CustomerHeader({ restaurant }: CustomerHeaderProps) {
             <span className="text-[2.05rem] font-black text-[#19724d] sm:text-[2.85rem] md:text-[3.3rem]">
               {restaurant.name}
             </span>
-            {businessType ? (
-              <span
-                className={`font-serif text-[1.85rem] italic text-[#c7463d] sm:text-[2.45rem] md:text-[3rem] ${
-                  shouldInlineBusinessType ? "" : "w-full md:w-auto"
-                }`}
-              >
-                {businessType}
-              </span>
-            ) : null}
+            <span
+              className={`font-serif text-[1.85rem] italic text-[#c7463d] sm:text-[2.45rem] md:text-[3rem] ${
+                shouldInlineBusinessType ? "" : "w-full md:w-auto"
+              }`}
+            >
+              {businessType}
+            </span>
           </div>
           <p className="text-xs uppercase tracking-[0.26em] text-[#927663] md:text-sm">
             {restaurant.tagline || "CUSTOMER MENU"}

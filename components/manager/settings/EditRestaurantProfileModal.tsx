@@ -320,7 +320,7 @@ export function EditRestaurantProfileModal({
                 <input
                   id={businessEmailId}
                   type="email"
-                  value={form.businessEmail}
+                  value={form.businessEmail ?? ""}
                   onChange={(event) =>
                     updateForm({ ...form, businessEmail: event.target.value })
                   }
@@ -336,7 +336,7 @@ export function EditRestaurantProfileModal({
                 </label>
                 <input
                   id={businessTypeId}
-                  value={form.businessType}
+                  value={form.businessType ?? ""}
                   onChange={(event) =>
                     updateForm({ ...form, businessType: event.target.value })
                   }

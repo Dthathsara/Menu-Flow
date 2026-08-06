@@ -4,7 +4,6 @@ import {
   DashboardIcon,
   HomeIcon,
   OrdersIcon,
-  SettingsIcon,
   UserIcon,
 } from "@/components/manager/icons";
 import { cn, getContentSurfaceClasses, getInteractiveCardClasses } from "@/components/manager/managerUtils";
@@ -21,8 +20,6 @@ export function getWaiterNavIcon(icon: WaiterNavItem["icon"]) {
       return BellIcon;
     case "profile":
       return UserIcon;
-    case "settings":
-      return SettingsIcon;
     case "dashboard":
     default:
       return DashboardIcon;
@@ -49,6 +46,15 @@ export function WaiterSurface({
     >
       {children}
     </div>
+  );
+}
+
+export function getWorkspaceBadgeClasses(scheme: ManagerSettings["scheme"]) {
+  return cn(
+    "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]",
+    scheme === "dark"
+      ? "border-blue-400/24 bg-blue-500/14 text-blue-100"
+      : "border-blue-200 bg-blue-50 text-blue-700",
   );
 }
 

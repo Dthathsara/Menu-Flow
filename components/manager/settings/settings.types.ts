@@ -27,11 +27,11 @@ export type SettingsThemePreference = "dark-premium" | "light-clean" | "auto";
 
 export interface RestaurantProfile {
   restaurantName: string;
-  businessEmail: string;
+  businessEmail: string | null;
   phone: string;
   website: string;
   description: string;
-  businessType: string;
+  businessType: string | null;
   location: string;
   address: string;
   openingTime: string;

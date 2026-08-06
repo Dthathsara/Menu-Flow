@@ -21,7 +21,7 @@ import { WaiterLoading } from "./WaiterLoading";
 import { WaiterOrderModal } from "./WaiterOrderModal";
 import { WaiterQuickActions } from "./WaiterQuickActions";
 import { WaiterStatCard } from "./WaiterStatCard";
-import { formatWaiterTime, WaiterSurface } from "./waiter-utils";
+import { formatWaiterTime, getWorkspaceBadgeClasses, WaiterSurface } from "./waiter-utils";
 import { WaiterStatusBadge } from "./WaiterStatusBadge";
 import { WaiterTableCard } from "./WaiterTableCard";
 
@@ -55,7 +55,7 @@ const NEXT_STATUS_BY_STATUS: Partial<Record<WaiterOrderStatus, WaiterOrderStatus
 function PageHero({ title, subtitle, settings }: { title: string; subtitle: string; settings: WaiterPageProps["settings"] }) {
   return (
     <WaiterSurface settings={settings}>
-      <span className="inline-flex rounded-full border border-blue-400/24 bg-blue-500/14 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-100">
+      <span className={getWorkspaceBadgeClasses(settings.scheme)}>
         Waiter workspace
       </span>
       <h2 className={cn("mt-5", getManagerPageTitleClasses())}>{title}</h2>
@@ -491,21 +491,6 @@ function ProfilePage(props: WaiterPagesProps) {
   );
 }
 
-function SettingsPage(props: WaiterPagesProps) {
-  return (
-    <section className={getManagerPageSectionClasses()}>
-      <PageHero title="Settings" subtitle="Control language, theme, and notification preferences for the waiter dashboard." settings={props.settings} />
-      <WaiterSurface settings={props.settings}>
-        <div className="grid gap-4 md:grid-cols-3">
-          {["Language: English", "Theme: Dashboard default", "Notifications: Enabled"].map((item) => (
-            <button key={item} type="button" className={getManagerSecondaryButtonClasses(props.settings.scheme)}>{item}</button>
-          ))}
-        </div>
-      </WaiterSurface>
-    </section>
-  );
-}
-
 export function WaiterPages(props: WaiterPagesProps) {
   if (props.errorMessage) {
     return (
@@ -533,10 +518,6 @@ export function WaiterPages(props: WaiterPagesProps) {
 
   if (props.activeKey === "profile") {
     return <ProfilePage {...props} />;
-  }
-
-  if (props.activeKey === "settings") {
-    return <SettingsPage {...props} />;
   }
 
   return <DashboardPage {...props} />;

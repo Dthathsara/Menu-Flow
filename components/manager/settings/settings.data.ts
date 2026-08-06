@@ -11,11 +11,11 @@ import type {
 
 export const DEFAULT_RESTAURANT_PROFILE: RestaurantProfile = {
   restaurantName: "",
-  businessEmail: "",
+  businessEmail: null,
   phone: "",
   website: "",
   description: "",
-  businessType: "",
+  businessType: null,
   location: "",
   address: "",
   openingTime: "",
@@ -23,7 +23,7 @@ export const DEFAULT_RESTAURANT_PROFILE: RestaurantProfile = {
   taxPercentage: "5",
   serviceChargePercentage: "3",
   discountPercentage: "",
-  restaurantImageUrl: "/customer/placeholder-food.svg",
+  restaurantImageUrl: "",
 };
 
 export const BUSINESS_TYPE_OPTIONS: readonly SettingsSelectOption<SettingsBusinessType>[] = [

@@ -13,14 +13,14 @@ import {
 import { WaiterEmptyState } from "@/components/waiter/WaiterEmptyState";
 import { WaiterLoading } from "@/components/waiter/WaiterLoading";
 import { WaiterStatCard } from "@/components/waiter/WaiterStatCard";
-import { WaiterSurface } from "@/components/waiter/waiter-utils";
+import { getWorkspaceBadgeClasses, WaiterSurface } from "@/components/waiter/waiter-utils";
 import { ChefOrderTable } from "./ChefOrderTable";
 import type { ChefPageProps } from "./types";
 
 function PageHero({ settings }: Pick<ChefPageProps, "settings">) {
   return (
     <WaiterSurface settings={settings}>
-      <span className="inline-flex rounded-full border border-blue-400/24 bg-blue-500/14 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-100">
+      <span className={getWorkspaceBadgeClasses(settings.scheme)}>
         Chef workspace
       </span>
       <h2 className={cn("mt-5", getManagerPageTitleClasses())}>Chef Dashboard</h2>
@@ -41,7 +41,9 @@ export function ChefDashboardOverview(props: ChefPageProps) {
   };
   const maxStatusValue = Math.max(...Object.values(statusCounts), 1);
   const maxHourlyValue = Math.max(...(summary?.hourlyActivity.map((item) => item.count) ?? [0]), 1);
-  const recentOrders = [...props.acceptedOrders, ...props.myOrders]
+  const recentOrders = (summary?.recentOrders.length
+    ? summary.recentOrders
+    : [...props.acceptedOrders, ...props.myOrders])
     .sort((left, right) => (Date.parse(right.updatedAt || right.time) || 0) - (Date.parse(left.updatedAt || left.time) || 0))
     .slice(0, 6);
 

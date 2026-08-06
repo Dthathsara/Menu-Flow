@@ -450,6 +450,8 @@ export function OrderDetailsModal({
                   ))}
                 </div>
               </SecondaryPanel>
+
+              <StatusActorDetailsCard settings={settings} order={modalOrder} />
             </div>
 
             <div className="space-y-5">
@@ -646,4 +648,120 @@ function formatStatusChangedAt(value: string) {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
+}
+
+function StatusActorDetailsCard({
+  settings,
+  order,
+}: {
+  settings: ManagerSettings;
+  order: OrderRecord;
+}) {
+  return (
+    <SecondaryPanel settings={settings} className="p-4 sm:p-5">
+      <div className={getManagerSectionTitleClasses()}>Order Handling Details</div>
+      <div className={getManagerSectionSubtitleClasses(settings.scheme)}>
+        Completed status transitions and the actor returned by the backend.
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {ORDER_STATUS_TIMELINE.map(({ label, status, timeField }) => {
+          const historyEntry = findStatusHistoryEntry(order, status);
+          const changedAt = historyEntry?.changedAt || order[timeField] || "";
+          const actor = getStatusActorDisplay(status, historyEntry, Boolean(changedAt));
+
+          return (
+            <div
+              key={historyEntry?.id || `${status}-${changedAt || "not-updated"}`}
+              className={cn(
+                "rounded-[14px] border p-4",
+                settings.scheme === "dark"
+                  ? "border-white/10 bg-white/[0.035]"
+                  : "border-slate-200 bg-slate-50/80",
+              )}
+            >
+              <div className="text-sm font-semibold">{label}</div>
+              {changedAt ? (
+                <div className="mt-3 space-y-1">
+                  <div className="text-[15px] font-semibold">{actor.name}</div>
+                  <div className={cn("text-sm", getMutedTextClasses(settings.scheme))}>
+                    {actor.role}
+                  </div>
+                  {actor.email ? (
+                    <div className={cn("break-all text-sm", getMutedTextClasses(settings.scheme))}>
+                      {actor.email}
+                    </div>
+                  ) : null}
+                  <div className="pt-1 text-sm font-medium">
+                    {formatStatusChangedAt(changedAt)}
+                  </div>
+                </div>
+              ) : (
+                <div className={cn("mt-3 text-sm font-medium", getMutedTextClasses(settings.scheme))}>
+                  Not updated
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </SecondaryPanel>
+  );
+}
+
+function findStatusHistoryEntry(order: OrderRecord, status: OrderStatus) {
+  return order.statusHistory.find(
+    (entry) => entry.status.trim().toLowerCase() === status,
+  );
+}
+
+function formatRole(value?: string | null) {
+  const role = value?.trim();
+
+  if (!role) {
+    return "";
+  }
+
+  return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+}
+
+function getStatusActorDisplay(
+  status: OrderStatus,
+  historyEntry: OrderRecord["statusHistory"][number] | undefined,
+  hasChangedAt: boolean,
+) {
+  const actor = historyEntry?.changedBy;
+  const name = actor?.name?.trim();
+  const role = formatRole(actor?.role || historyEntry?.changedByRole);
+  const email = actor?.email?.trim() || null;
+
+  if (name || role || email) {
+    return {
+      name: name || "Former staff member",
+      role: role || "Staff",
+      email,
+    };
+  }
+
+  if (hasChangedAt && status === "pending") {
+    return {
+      name: "Customer",
+      role: "Customer",
+      email: null,
+    };
+  }
+
+  if (hasChangedAt) {
+    return {
+      name: "Former staff member",
+      role: "Staff",
+      email: null,
+    };
+  }
+
+  return {
+    name: "Not updated",
+    role: "",
+    email: null,
+  };
 }

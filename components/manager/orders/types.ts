@@ -24,6 +24,22 @@ export interface OrderItem {
   note: string;
 }
 
+export interface OrderStatusHistoryUser {
+  id: string;
+  name: string;
+  role: string;
+  email?: string | null;
+}
+
+export interface OrderStatusHistoryEntry {
+  id?: string | null;
+  status: string;
+  changedAt: string;
+  changedById?: string | null;
+  changedByRole?: string | null;
+  changedBy?: OrderStatusHistoryUser | null;
+}
+
 export interface OrderRecord {
   id: string;
   order_number: string;
@@ -47,6 +63,7 @@ export interface OrderRecord {
   discount_amount: number;
   total_amount: number;
   items: OrderItem[];
+  statusHistory: OrderStatusHistoryEntry[];
 }
 
 export interface OrdersFilterState {

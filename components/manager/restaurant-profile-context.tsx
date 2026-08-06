@@ -15,6 +15,7 @@ import {
   getCachedRestaurantProfile,
   mapRestaurantProfile,
 } from "@/lib/users-api";
+import { getStoredAuthUser } from "@/lib/auth-session";
 import { getRestaurantImageUrl } from "@/lib/image-url";
 import { DEFAULT_RESTAURANT_PROFILE } from "./settings/settings.data";
 import type { RestaurantProfile } from "./settings/settings.types";
@@ -32,31 +33,6 @@ function withProfileDefaults(profile: RestaurantProfile | null) {
     ...DEFAULT_RESTAURANT_PROFILE,
     ...(profile ?? {}),
   };
-}
-
-function isValidRestaurantImageUrl(value?: string | null) {
-  const normalized = getRestaurantImageUrl(value, "");
-
-  return Boolean(normalized);
-}
-
-function mergeProfilePreservingImage(
-  current: RestaurantProfile,
-  incoming: RestaurantProfile | null,
-) {
-  const nextProfile = withProfileDefaults(incoming);
-
-  if (
-    !isValidRestaurantImageUrl(nextProfile.restaurantImageUrl) &&
-    isValidRestaurantImageUrl(current.restaurantImageUrl)
-  ) {
-    return {
-      ...nextProfile,
-      restaurantImageUrl: current.restaurantImageUrl,
-    };
-  }
-
-  return nextProfile;
 }
 
 function mergeProfileAllowingImageClear(incoming: RestaurantProfile | null) {
@@ -85,6 +61,7 @@ export function ManagerRestaurantProfileProvider({
   );
   const [hasProfileForSync, setHasProfileForSync] = useState(false);
   const lastSyncedProfileRef = useRef("");
+  const activeScopeRef = useRef("");
 
   const updateRestaurantProfile = useCallback((profile: RestaurantProfile) => {
     setHasProfileForSync(true);
@@ -97,6 +74,11 @@ export function ManagerRestaurantProfileProvider({
 
   useEffect(() => {
     let active = true;
+    const user = getStoredAuthUser();
+    activeScopeRef.current = user?.tenantId || user?.restaurantId || user?.id || user?.userId || "";
+    setHasProfileForSync(false);
+    setRestaurantProfile(DEFAULT_RESTAURANT_PROFILE);
+
     const cacheTimeoutId = window.setTimeout(() => {
       if (!active) {
         return;
@@ -107,7 +89,7 @@ export function ManagerRestaurantProfileProvider({
       if (cachedProfile) {
         setHasProfileForSync(true);
         setRestaurantProfile((current) => {
-          const nextProfile = mergeProfilePreservingImage(current, cachedProfile);
+          const nextProfile = mergeProfileAllowingImageClear(cachedProfile);
 
           return areProfilesEqual(current, nextProfile) ? current : nextProfile;
         });
@@ -122,7 +104,7 @@ export function ManagerRestaurantProfileProvider({
 
         setHasProfileForSync(true);
         setRestaurantProfile((current) => {
-          const nextProfile = mergeProfilePreservingImage(current, profile);
+          const nextProfile = mergeProfileAllowingImageClear(profile);
 
           return areProfilesEqual(current, nextProfile) ? current : nextProfile;
         });
@@ -139,10 +121,17 @@ export function ManagerRestaurantProfileProvider({
       }
 
       const incomingProfile = mapRestaurantProfile(detail);
+      const nextUser = getStoredAuthUser();
+      const nextScope = nextUser?.tenantId || nextUser?.restaurantId || nextUser?.id || nextUser?.userId || "";
+
+      if (nextScope && nextScope !== activeScopeRef.current) {
+        activeScopeRef.current = nextScope;
+        setRestaurantProfile(DEFAULT_RESTAURANT_PROFILE);
+      }
 
       setHasProfileForSync(true);
       setRestaurantProfile((current) => {
-        const nextProfile = mergeProfilePreservingImage(current, incomingProfile);
+        const nextProfile = mergeProfileAllowingImageClear(incomingProfile);
 
         return areProfilesEqual(current, nextProfile) ? current : nextProfile;
       });

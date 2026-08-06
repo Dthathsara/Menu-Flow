@@ -33,12 +33,4 @@ export const WAITER_NAV_ITEMS: WaiterNavItem[] = [
     href: "/waiter/tables",
     icon: "tables",
   },
-  {
-    key: "settings",
-    label: "Settings",
-    pageTitle: "Settings",
-    description: "Language, theme, and notification preferences.",
-    href: "/waiter/settings",
-    icon: "settings",
-  },
 ];

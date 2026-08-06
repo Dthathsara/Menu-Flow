@@ -89,6 +89,11 @@ function asNonEmptyString(value: unknown, fallback = "") {
   return text || fallback;
 }
 
+function asNullableString(value: unknown): string | null {
+  const text = asString(value).trim();
+  return text || null;
+}
+
 function firstNonEmptyString(values: unknown[]) {
   for (const value of values) {
     const text = asString(value).trim();
@@ -247,9 +252,8 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
       restaurant.hotel_name,
   );
   const name = asNonEmptyString(restaurant.name ?? restaurantName, "MenuFlow");
-  const businessType = asNonEmptyString(
+  const businessType = asNullableString(
     restaurant.businessType ?? restaurant.business_type,
-    "Menu",
   );
   const location = asNonEmptyString(
     restaurant.location ?? restaurant.businessLocation ?? restaurant.business_location,
@@ -279,7 +283,7 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
   const address = asString(
     restaurant.address ?? restaurant.businessAddress ?? restaurant.business_address,
   );
-  const businessEmail = asString(
+  const businessEmail = asNullableString(
     restaurant.businessEmail ?? restaurant.business_email,
   );
   const email = asString(restaurant.email);
@@ -348,7 +352,7 @@ function mapRestaurant(rawRestaurant: unknown): RestaurantInfo {
     ),
     status,
     titlePrefix: asString(restaurant.titlePrefix ?? restaurant.title_prefix, name),
-    titleAccent: asString(restaurant.titleAccent ?? restaurant.title_accent, businessType),
+    titleAccent: asString(restaurant.titleAccent ?? restaurant.title_accent, businessType ?? "Menu"),
     tagline: asString(restaurant.tagline, "customer menu"),
     heroSummary: asString(
       restaurant.heroSummary ?? restaurant.hero_summary,
@@ -390,12 +394,7 @@ function mapContact(rawContact: unknown, rawRestaurant: unknown): ContactInfo {
         restaurant.contactPersonMobileNumber ??
         restaurant.contact_person_mobile_number,
     ),
-    email: asString(
-      contact.email ??
-        restaurant.businessEmail ??
-        restaurant.business_email ??
-        restaurant.email,
-    ),
+    email: asString(contact.email ?? restaurant.businessEmail ?? restaurant.business_email),
     address: asString(
       contact.address ??
         restaurant.address ??

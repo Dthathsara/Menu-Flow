@@ -13,7 +13,7 @@ import {
 import { useManagerSettings } from "@/components/manager/useManagerSettings";
 import { WaiterEmptyState } from "@/components/waiter/WaiterEmptyState";
 import { WaiterLoading } from "@/components/waiter/WaiterLoading";
-import { WaiterSurface } from "@/components/waiter/waiter-utils";
+import { getWorkspaceBadgeClasses, WaiterSurface } from "@/components/waiter/waiter-utils";
 import {
   fetchChefAcceptedOrders,
   startChefOrderPreparing,
@@ -128,7 +128,7 @@ export function ChefOrders() {
   return (
     <section className={getManagerPageSectionClasses()}>
       <WaiterSurface settings={settings}>
-        <span className="inline-flex rounded-full border border-blue-400/24 bg-blue-500/14 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-100">
+        <span className={getWorkspaceBadgeClasses(settings.scheme)}>
           Chef workspace
         </span>
         <h2 className={cn("mt-5", getManagerPageTitleClasses())}>Orders</h2>

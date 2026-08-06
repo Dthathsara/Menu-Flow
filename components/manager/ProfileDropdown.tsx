@@ -6,7 +6,7 @@ import { ChevronDownIcon, LogoutIcon, UserIcon } from "./icons";
 import { cn, getFocusRingClasses, getMutedTextClasses, getPopoverClasses } from "./managerUtils";
 import { ProfileModal } from "./ProfileModal";
 import { useOnClickOutside } from "./useOnClickOutside";
-import { initializeSessionActivity } from "@/lib/auth-session";
+import { clearAuthSession, initializeSessionActivity } from "@/lib/auth-session";
 import type { Scheme } from "./managerTypes";
 
 type StoredUser = {
@@ -115,9 +115,7 @@ export function ProfileDropdown({
   }
 
   function handleSignOut() {
-    window.localStorage.removeItem("accessToken");
-    window.localStorage.removeItem("refreshToken");
-    window.localStorage.removeItem("user");
+    clearAuthSession();
     onClose();
     router.push("/");
   }

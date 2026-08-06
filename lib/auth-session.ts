@@ -8,6 +8,8 @@ import { API_ROUTES, apiUrl } from "@/lib/api-config";
 import { getSafeImageSrcFromCandidates } from "@/lib/image-url";
 
 const LAST_ACTIVITY_KEY = "menuflow:lastActivityAt";
+const RESTAURANT_PROFILE_CACHE_KEY = "menuflow:restaurantProfile";
+const RESTAURANT_PROFILE_CACHE_PREFIX = `${RESTAURANT_PROFILE_CACHE_KEY}:`;
 const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
 const PROACTIVE_REFRESH_MS = 22 * 60 * 1000;
 const ACTIVITY_EVENTS = ["mousemove", "keydown", "click", "scroll", "touchstart"];
@@ -102,10 +104,27 @@ function clearStoredSession() {
   window.localStorage.removeItem("accessToken");
   window.localStorage.removeItem("refreshToken");
   window.localStorage.removeItem("user");
+  clearRestaurantProfileCaches();
 }
 
 export function clearAuthSession() {
   clearStoredSession();
+}
+
+export function clearRestaurantProfileCaches() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(RESTAURANT_PROFILE_CACHE_KEY);
+
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+
+    if (key?.startsWith(RESTAURANT_PROFILE_CACHE_PREFIX)) {
+      window.localStorage.removeItem(key);
+    }
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -385,7 +404,16 @@ export function storeAuthResponse(data: unknown) {
   const userSource = getAuthUserSource(record);
 
   if (userSource) {
+    const previousUser = getStoredAuthUser();
     const user = normalizeAuthUser(userSource);
+    const previousScope =
+      previousUser?.tenantId || previousUser?.restaurantId || previousUser?.id || previousUser?.userId;
+    const nextScope = user?.tenantId || user?.restaurantId || user?.id || user?.userId;
+
+    if (previousScope && nextScope && previousScope !== nextScope) {
+      clearRestaurantProfileCaches();
+    }
+
     window.localStorage.setItem("user", JSON.stringify(user));
     window.dispatchEvent(
       new CustomEvent("menuflow:user-updated", { detail: user }),

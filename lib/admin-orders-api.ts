@@ -3,6 +3,8 @@ import { API_BASE_URL } from "@/lib/api-config";
 import type {
   OrderItem,
   OrderRecord,
+  OrderStatusHistoryEntry,
+  OrderStatusHistoryUser,
   OrdersSummary,
   OrderStatus,
   OrderStatusFilter,
@@ -148,6 +150,80 @@ function mapOrderItem(payload: unknown): OrderItem {
   };
 }
 
+function mapStatusHistoryUser(payload: unknown): OrderStatusHistoryUser | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const id = asString(payload.id ?? payload.userId ?? payload.user_id);
+  const name = asString(
+    payload.name ?? payload.fullName ?? payload.full_name ?? payload.contactPersonName ?? payload.contact_person_name,
+  );
+  const role = asString(payload.role);
+  const email = asNullableString(payload.email);
+
+  if (!id && !name && !role && !email) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+    role,
+    email,
+  };
+}
+
+function mapStatusHistoryEntry(payload: unknown): OrderStatusHistoryEntry | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const status = asString(
+    payload.status ?? payload.orderStatus ?? payload.order_status,
+  ).toLowerCase();
+  const changedAt = asString(
+    payload.changedAt ??
+      payload.changed_at ??
+      payload.createdAt ??
+      payload.created_at ??
+      payload.updatedAt ??
+      payload.updated_at,
+  );
+
+  if (!status || !changedAt) {
+    return null;
+  }
+
+  const changedBy = mapStatusHistoryUser(
+    payload.changedBy ?? payload.changed_by ?? payload.user ?? payload.changedByUser ?? payload.changed_by_user,
+  );
+
+  return {
+    id: asNullableString(payload.id ?? payload.historyId ?? payload.history_id),
+    status,
+    changedAt,
+    changedById: asNullableString(
+      payload.changedById ?? payload.changed_by_id ?? payload.userId ?? payload.user_id,
+    ),
+    changedByRole: asNullableString(
+      payload.changedByRole ?? payload.changed_by_role ?? payload.role,
+    ),
+    changedBy,
+  };
+}
+
+function getStatusHistoryArray(order: ApiRecord) {
+  const rawHistory =
+    order.statusHistory ??
+    order.status_history ??
+    order.orderStatusHistory ??
+    order.order_status_history ??
+    order.history;
+
+  return Array.isArray(rawHistory) ? rawHistory : [];
+}
+
 export function mapAdminOrder(payload: unknown): OrderRecord {
   const order = getOrderRecord(payload);
   const rawItems = Array.isArray(order.items)
@@ -193,6 +269,9 @@ export function mapAdminOrder(payload: unknown): OrderRecord {
     discount_amount: asNumber(order.discount_amount ?? order.discountAmount),
     total_amount: asNumber(order.total_amount ?? order.totalAmount ?? order.total),
     items: rawItems.map(mapOrderItem),
+    statusHistory: getStatusHistoryArray(order)
+      .map(mapStatusHistoryEntry)
+      .filter((entry): entry is OrderStatusHistoryEntry => Boolean(entry)),
   };
 }
 

@@ -53,6 +53,7 @@ export interface ChefDashboardSummary {
   completedToday: number;
   averagePreparationTimeMinutes: number;
   statusCounts: Record<ChefOrderStatus, number>;
+  recentOrders: ChefOrder[];
   hourlyActivity: Array<{ hour: string; count: number }>;
   topItems: Array<{ id: string; name: string; quantity: number }>;
 }

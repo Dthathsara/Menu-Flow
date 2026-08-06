@@ -51,11 +51,11 @@ export interface RestaurantInfo {
   id?: string | null;
   name: string;
   restaurantName?: string;
-  businessType?: string;
+  businessType: string | null;
   location?: string;
   address?: string;
   email?: string;
-  businessEmail?: string;
+  businessEmail: string | null;
   restaurantImageUrl: string;
   restaurantImageUpdatedAt?: string;
   updatedAt?: string;

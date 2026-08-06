@@ -3,6 +3,7 @@ import {
   NetworkError,
   SessionExpiredError,
   authJson,
+  getStoredAuthUser,
 } from "@/lib/auth-session";
 import { apiUrl } from "@/lib/api-config";
 import { getSafeImageSrcFromCandidates } from "@/lib/image-url";
@@ -11,6 +12,7 @@ import type { RestaurantProfile } from "@/components/manager/settings/settings.t
 const RESTAURANT_PROFILE_URL = apiUrl("/users/me/restaurant-profile");
 const RESTAURANT_IMAGE_URL = apiUrl("/users/me/restaurant-image");
 const RESTAURANT_PROFILE_CACHE_KEY = "menuflow:restaurantProfile";
+const RESTAURANT_PROFILE_CACHE_PREFIX = `${RESTAURANT_PROFILE_CACHE_KEY}:`;
 export const RESTAURANT_IMAGE_FORM_FIELD_NAME = "image";
 export const RESTAURANT_IMAGE_MAX_SIZE_BYTES = 5 * 1024 * 1024;
 export const RESTAURANT_IMAGE_ALLOWED_TYPES = [
@@ -22,6 +24,8 @@ export const RESTAURANT_IMAGE_ALLOWED_TYPES = [
 type ApiRecord = Record<string, unknown>;
 type RestaurantProfilePayload = {
   restaurantName?: string;
+  businessType?: string | null;
+  businessEmail?: string | null;
   location?: string;
   address?: string;
   openingTime?: string;
@@ -67,6 +71,11 @@ function asString(value: unknown, fallback = "") {
   return fallback;
 }
 
+function asNullableString(value: unknown): string | null {
+  const text = asString(value).trim();
+  return text || null;
+}
+
 function addTrimmedText<T extends object, K extends keyof T>(
   payload: T,
   key: K,
@@ -102,6 +111,29 @@ function addChangedTrimmedText<T extends object, K extends keyof T>(
   }
 
   addTrimmedText(payload, key, value, transform);
+}
+
+function addChangedNullableText<T extends object, K extends keyof T>(
+  payload: T,
+  key: K,
+  value: string | null,
+  originalValue?: string | null,
+) {
+  const trimmed = (value ?? "").trim();
+  const originalTrimmed = (originalValue ?? "").trim();
+
+  if (trimmed === originalTrimmed) {
+    return;
+  }
+
+  if (trimmed) {
+    payload[key] = trimmed as T[K];
+    return;
+  }
+
+  if (originalTrimmed) {
+    payload[key] = null as T[K];
+  }
 }
 
 function normalizeTimeInput(value: string, label: string) {
@@ -264,6 +296,18 @@ export function buildRestaurantProfilePayload(
     profile.restaurantName,
     originalProfile?.restaurantName,
   );
+  addChangedNullableText(
+    payload,
+    "businessType",
+    profile.businessType,
+    originalProfile?.businessType,
+  );
+  addChangedNullableText(
+    payload,
+    "businessEmail",
+    profile.businessEmail,
+    originalProfile?.businessEmail,
+  );
   addChangedTrimmedText(payload, "location", profile.location, originalProfile?.location);
   addChangedTrimmedText(payload, "address", profile.address, originalProfile?.address);
   addChangedTrimmedText(
@@ -345,7 +389,7 @@ export function mapRestaurantProfile(payload: unknown): RestaurantProfile {
     restaurantName: asString(
       user.restaurantName ?? user.restaurant_name ?? user.hotelName ?? user.hotel_name,
     ),
-    businessEmail: asString(user.businessEmail ?? user.business_email),
+    businessEmail: asNullableString(user.businessEmail ?? user.business_email),
     phone: asString(
       user.phone ??
         user.businessPhone ??
@@ -357,7 +401,7 @@ export function mapRestaurantProfile(payload: unknown): RestaurantProfile {
     description: asString(
       user.description ?? user.businessDescription ?? user.business_description,
     ),
-    businessType: asString(user.businessType ?? user.business_type),
+    businessType: asNullableString(user.businessType ?? user.business_type),
     location: asString(user.location ?? user.businessLocation ?? user.business_location),
     address: asString(user.address ?? user.businessAddress ?? user.business_address),
     openingTime: asString(
@@ -393,8 +437,19 @@ export function mapRestaurantProfile(payload: unknown): RestaurantProfile {
       user.logo,
       user.image,
       user.avatar,
-    ]),
+    ], ""),
   };
+}
+
+function getRestaurantProfileCacheKey() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const user = getStoredAuthUser();
+  const scope = user?.tenantId || user?.restaurantId || user?.id || user?.userId;
+
+  return scope ? `${RESTAURANT_PROFILE_CACHE_PREFIX}${scope}` : "";
 }
 
 export function getCachedRestaurantProfile() {
@@ -402,13 +457,16 @@ export function getCachedRestaurantProfile() {
     return null;
   }
 
-  const cachedProfile = window.localStorage.getItem(RESTAURANT_PROFILE_CACHE_KEY);
+  const scopedCacheKey = getRestaurantProfileCacheKey();
+  const cachedProfile = scopedCacheKey
+    ? window.localStorage.getItem(scopedCacheKey)
+    : null;
 
   if (cachedProfile) {
     try {
       return mapRestaurantProfile(JSON.parse(cachedProfile));
     } catch {
-      window.localStorage.removeItem(RESTAURANT_PROFILE_CACHE_KEY);
+      window.localStorage.removeItem(scopedCacheKey);
     }
   }
 
@@ -430,7 +488,11 @@ export function cacheRestaurantProfile(profile: RestaurantProfile) {
     return profile;
   }
 
-  window.localStorage.setItem(RESTAURANT_PROFILE_CACHE_KEY, JSON.stringify(profile));
+  const scopedCacheKey = getRestaurantProfileCacheKey();
+
+  if (scopedCacheKey) {
+    window.localStorage.setItem(scopedCacheKey, JSON.stringify(profile));
+  }
 
   const storedUser = window.localStorage.getItem("user");
   let storedUserObject: Record<string, unknown> = {};

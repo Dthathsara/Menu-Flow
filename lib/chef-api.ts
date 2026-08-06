@@ -45,6 +45,16 @@ function asNumber(value: unknown, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function firstNumber(values: unknown[], fallback = 0) {
+  for (const value of values) {
+    if (value !== undefined && value !== null && value !== "") {
+      return asNumber(value, fallback);
+    }
+  }
+
+  return fallback;
+}
+
 function unwrapData(payload: unknown) {
   return isRecord(payload) && isRecord(payload.data) ? payload.data : payload;
 }
@@ -199,25 +209,69 @@ export function mapChefDashboardSummary(payload: unknown): ChefDashboardSummary 
   const summary = unwrapRecord(payload, ["summary", "dashboard"]);
   const statusCounts = unwrapRecord(summary.statusCounts ?? summary.status_counts, []);
   const hourlyActivity = unwrapList(summary.hourlyActivity ?? summary.hourly_activity, ["hourlyActivity", "hourly_activity"]);
-  const topItems = unwrapList(summary.topItems ?? summary.top_items, ["topItems", "top_items", "items"]);
+  const topItems = unwrapList(summary.topItems ?? summary.top_items ?? summary.topOrderedItems ?? summary.top_ordered_items, ["topItems", "top_items", "items"]);
+  const recentOrders = unwrapList(
+    summary.recentKitchenOrders ?? summary.recent_kitchen_orders ?? summary.recentOrders ?? summary.recent_orders,
+    ["recentKitchenOrders", "recent_kitchen_orders", "recentOrders", "recent_orders", "orders"],
+  );
 
   return {
-    acceptedOrdersToday: asNumber(summary.acceptedOrdersToday ?? summary.accepted_orders_today),
-    myPreparingOrders: asNumber(summary.myPreparingOrders ?? summary.my_preparing_orders),
-    readyOrders: asNumber(summary.readyOrders ?? summary.ready_orders),
-    completedToday: asNumber(summary.completedToday ?? summary.completed_today),
-    averagePreparationTimeMinutes: asNumber(summary.averagePreparationTimeMinutes ?? summary.average_preparation_time_minutes),
+    acceptedOrdersToday: firstNumber([
+      summary.acceptedOrdersToday,
+      summary.accepted_orders_today,
+      summary.todaysAccepted,
+      summary.todays_accepted,
+      summary.todayAccepted,
+      summary.today_accepted,
+      summary.acceptedCount,
+      summary.accepted_count,
+    ]),
+    myPreparingOrders: firstNumber([
+      summary.myPreparingOrders,
+      summary.my_preparing_orders,
+      summary.myPreparing,
+      summary.my_preparing,
+      summary.preparingCount,
+      summary.preparing_count,
+    ]),
+    readyOrders: firstNumber([
+      summary.readyOrders,
+      summary.ready_orders,
+      summary.readyCount,
+      summary.ready_count,
+    ]),
+    completedToday: firstNumber([
+      summary.completedToday,
+      summary.completed_today,
+      summary.deliveredToday,
+      summary.delivered_today,
+      summary.completedCount,
+      summary.completed_count,
+      summary.deliveredCount,
+      summary.delivered_count,
+    ]),
+    averagePreparationTimeMinutes: firstNumber([
+      summary.averagePreparationTimeMinutes,
+      summary.average_preparation_time_minutes,
+      summary.averagePreparationMinutes,
+      summary.average_preparation_minutes,
+      summary.avgPrepTime,
+      summary.avg_prep_time,
+      summary.avgPrepMinutes,
+      summary.avg_prep_minutes,
+    ]),
     statusCounts: {
-      accepted: asNumber(statusCounts.accepted),
-      preparing: asNumber(statusCounts.preparing),
-      ready: asNumber(statusCounts.ready),
-      delivered: asNumber(statusCounts.delivered),
+      accepted: firstNumber([statusCounts.accepted, summary.acceptedCount, summary.accepted_count]),
+      preparing: firstNumber([statusCounts.preparing, summary.preparingCount, summary.preparing_count]),
+      ready: firstNumber([statusCounts.ready, summary.readyCount, summary.ready_count]),
+      delivered: firstNumber([statusCounts.delivered, summary.deliveredCount, summary.delivered_count]),
     },
+    recentOrders: recentOrders.map(mapChefOrder),
     hourlyActivity: hourlyActivity.map((item) => {
       const record = isRecord(item) ? item : {};
       return {
-        hour: asString(record.hour ?? record.label),
-        count: asNumber(record.count ?? record.total),
+        hour: asString(record.hour ?? record.label ?? record.time),
+        count: firstNumber([record.count, record.total, record.orders, record.orderCount, record.order_count]),
       };
     }),
     topItems: topItems.map(mapTopItem),
