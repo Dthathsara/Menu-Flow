@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { AdminLayout } from "@/components/admin/common/AdminLayout";
 
 export const metadata: Metadata = {
@@ -7,6 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPage() {
-  return <AdminLayout />;
+  return (
+    <RoleGuard allowedRole="admin">
+      <AdminLayout />
+    </RoleGuard>
+  );
 }
-

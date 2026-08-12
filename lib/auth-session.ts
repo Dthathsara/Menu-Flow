@@ -10,6 +10,8 @@ import { getSafeImageSrcFromCandidates } from "@/lib/image-url";
 const LAST_ACTIVITY_KEY = "menuflow:lastActivityAt";
 const RESTAURANT_PROFILE_CACHE_KEY = "menuflow:restaurantProfile";
 const RESTAURANT_PROFILE_CACHE_PREFIX = `${RESTAURANT_PROFILE_CACHE_KEY}:`;
+const SYSTEM_ADMIN_PROFILE_CACHE_KEY = "menuflow:systemAdminProfile";
+const SYSTEM_ADMIN_PROFILE_CACHE_PREFIX = `${SYSTEM_ADMIN_PROFILE_CACHE_KEY}:`;
 const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
 const PROACTIVE_REFRESH_MS = 22 * 60 * 1000;
 const ACTIVITY_EVENTS = ["mousemove", "keydown", "click", "scroll", "touchstart"];
@@ -17,7 +19,7 @@ const ACTIVITY_EVENTS = ["mousemove", "keydown", "click", "scroll", "touchstart"
 let initialized = false;
 let refreshPromise: Promise<string> | null = null;
 
-export type AuthRole = "manager" | "waiter" | "chef";
+export type AuthRole = "admin" | "manager" | "waiter" | "chef";
 
 export class SessionExpiredError extends Error {
   constructor(message = "Your session has expired. Please log in again.") {
@@ -104,7 +106,16 @@ function clearStoredSession() {
   window.localStorage.removeItem("accessToken");
   window.localStorage.removeItem("refreshToken");
   window.localStorage.removeItem("user");
+  window.localStorage.removeItem(SYSTEM_ADMIN_PROFILE_CACHE_KEY);
   clearRestaurantProfileCaches();
+
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+
+    if (key?.startsWith(SYSTEM_ADMIN_PROFILE_CACHE_PREFIX)) {
+      window.localStorage.removeItem(key);
+    }
+  }
 }
 
 export function clearAuthSession() {
@@ -201,10 +212,27 @@ function getSafeApiStatusMessage(status: number) {
 }
 
 export function normalizeAuthRole(value: unknown): AuthRole | "" {
-  const role = authString(value).trim().toLowerCase();
+  const role = authString(value).trim().toLowerCase().replace(/[\s-]+/g, "_");
 
-  if (role === "manager" || role === "waiter" || role === "chef") {
-    return role;
+  if (
+    role === "admin" ||
+    role === "super_admin" ||
+    role === "support" ||
+    role === "finance"
+  ) {
+    return "admin";
+  }
+
+  if (role === "manager" || role === "client_admin") {
+    return "manager";
+  }
+
+  if (role === "chef") {
+    return "chef";
+  }
+
+  if (role === "waiter" || role === "staff") {
+    return "waiter";
   }
 
   return "";
@@ -212,6 +240,10 @@ export function normalizeAuthRole(value: unknown): AuthRole | "" {
 
 export function getDashboardPathForRole(role: unknown) {
   const normalizedRole = normalizeAuthRole(role);
+
+  if (normalizedRole === "admin") {
+    return "/admin";
+  }
 
   if (normalizedRole === "manager") {
     return "/manager/dashboard";
@@ -240,6 +272,7 @@ export function normalizeAuthUser(user: unknown) {
     userId: authString(rawUser.userId ?? rawUser.user_id ?? rawUser.id),
     managerId: authString(rawUser.managerId ?? rawUser.manager_id ?? rawUser.createdByManagerId ?? rawUser.created_by_manager_id),
     name: authString(rawUser.name ?? rawUser.fullName ?? rawUser.full_name ?? rawUser.contactPersonName ?? rawUser.contact_person_name),
+    fullName: authString(rawUser.fullName ?? rawUser.full_name ?? rawUser.name ?? rawUser.contactPersonName ?? rawUser.contact_person_name),
     email: authString(rawUser.email),
     businessEmail: authString(rawUser.businessEmail ?? rawUser.business_email),
     role: authString(rawUser.role),

@@ -1,4 +1,4 @@
-import { BILLING_EMAIL, COMPANY_ADDRESS, RESTAURANT_ADDRESS } from "./invoice.data";
+import { COMPANY_ADDRESS } from "./invoice.data";
 import { InvoiceModalFrame } from "./InvoiceModalFrame";
 import {
   cn,
@@ -14,6 +14,7 @@ interface InvoicePreviewModalProps {
   onClose: () => void;
   onDownload: () => void;
   onPrint: () => void;
+  isActionLoading?: boolean;
 }
 
 export function InvoicePreviewModal({
@@ -22,6 +23,7 @@ export function InvoicePreviewModal({
   onClose,
   onDownload,
   onPrint,
+  isActionLoading,
 }: InvoicePreviewModalProps) {
   return (
     <InvoicePreviewModalFrame
@@ -30,6 +32,7 @@ export function InvoicePreviewModal({
       onClose={onClose}
       onDownload={onDownload}
       onPrint={onPrint}
+      isActionLoading={isActionLoading}
     />
   );
 }
@@ -40,22 +43,26 @@ function InvoicePreviewModalFrame({
   onClose,
   onDownload,
   onPrint,
+  isActionLoading = false,
 }: InvoicePreviewModalProps) {
+  const billedTo = invoice.billedTo;
+
   return (
     <InvoiceModalFrame
       open
       settings={settings}
       title="Invoice Preview"
-      subtitle="Print-ready subscription invoice for Chinese Dragon Cafe."
+      subtitle={`Print-ready subscription invoice for ${billedTo.restaurantName}.`}
       maxWidthClassName="max-w-[980px]"
       footer={
         <>
           <button
             type="button"
             onClick={onDownload}
+            disabled={isActionLoading}
             className={cn(
               getManagerSecondaryButtonClasses(settings.scheme),
-              "rounded-[12px] px-5",
+              "rounded-[12px] px-5 disabled:cursor-not-allowed disabled:opacity-55",
             )}
           >
             Download
@@ -63,9 +70,10 @@ function InvoicePreviewModalFrame({
           <button
             type="button"
             onClick={onPrint}
+            disabled={isActionLoading}
             className={cn(
               getManagerPrimaryButtonClasses(settings.scheme),
-              "rounded-[12px] px-5",
+              "rounded-[12px] px-5 disabled:cursor-not-allowed disabled:opacity-55",
             )}
           >
             Print Invoice
@@ -87,7 +95,7 @@ function InvoicePreviewModalFrame({
           <div className="text-left md:text-right">
             <div className="text-[2rem] font-bold leading-none text-slate-900">INVOICE</div>
             <p className="mt-3 text-[15px] leading-7 text-slate-600">
-              Invoice: #{invoice.id}
+              Invoice: #{invoice.invoiceNumber || invoice.id}
               <br />
               Billing Date: {invoice.billingDate}
               <br />
@@ -99,11 +107,11 @@ function InvoicePreviewModalFrame({
         <div className="mt-10">
           <div className="text-[1.15rem] font-semibold text-slate-600">Billed To:</div>
           <p className="mt-2 text-[15px] leading-7 text-slate-600">
-            Chinese Dragon Cafe
+            {billedTo.restaurantName}
             <br />
-            {RESTAURANT_ADDRESS}
+            {billedTo.restaurantAddress}
             <br />
-            {BILLING_EMAIL}
+            {billedTo.billingEmail}
           </p>
         </div>
 
@@ -129,6 +137,9 @@ function InvoicePreviewModalFrame({
                   amount: invoice.lineAmount,
                 },
                 { label: "Tax / Service", cycle: "-", amount: invoice.taxDisplay },
+                ...(invoice.discountAmount && invoice.discountAmount > 0
+                  ? [{ label: "Discount", cycle: "-", amount: invoice.discountDisplay }]
+                  : []),
                 { label: "Total", cycle: "", amount: invoice.totalDisplay },
               ].map((row) => (
                 <tr key={row.label}>
@@ -148,7 +159,7 @@ function InvoicePreviewModalFrame({
         </div>
 
         <p className="mt-5 text-[15px] leading-7 text-slate-600">
-          Status: <span className="font-semibold text-slate-800">Paid</span>
+          Status: <span className="font-semibold text-slate-800">{invoice.status}</span>
           <br />
           Thank you for using MenuFlow.
         </p>

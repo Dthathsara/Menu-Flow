@@ -16,6 +16,12 @@ import {
 } from "@/components/manager/managerUtils";
 import type { ManagerSettings } from "@/components/manager/managerTypes";
 import type { ManagerDashboardData } from "@/lib/manager-dashboard-api";
+import {
+  MANAGER_DASHBOARD_ACTIVITY_CARD_HEADER,
+  MANAGER_DASHBOARD_ACTIVITY_CARD_HEIGHT,
+  MANAGER_DASHBOARD_ACTIVITY_CARD_LAYOUT,
+  MANAGER_DASHBOARD_ACTIVITY_CARD_SCROLL_AREA,
+} from "./dashboardLayout";
 
 const quickActionRoutes = {
   todayPerformance: "/manager/reports?tab=orders",
@@ -86,13 +92,20 @@ export function DashboardQuickActions({
   ];
 
   return (
-    <div className={cn("h-full rounded-[22px] border p-5 sm:p-6", getContentSurfaceClasses(settings.scheme))}>
-      <div>
+    <div
+      className={cn(
+        MANAGER_DASHBOARD_ACTIVITY_CARD_HEIGHT,
+        MANAGER_DASHBOARD_ACTIVITY_CARD_LAYOUT,
+        "rounded-[22px] border p-5 sm:p-6",
+        getContentSurfaceClasses(settings.scheme),
+      )}
+    >
+      <div className={MANAGER_DASHBOARD_ACTIVITY_CARD_HEADER}>
         <h3 className={getManagerSectionTitleClasses()}>Quick Actions</h3>
         <p className={getManagerSectionSubtitleClasses(settings.scheme)}>Manager shortcuts</p>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+      <div className={cn(MANAGER_DASHBOARD_ACTIVITY_CARD_SCROLL_AREA, "mt-6 grid gap-3 pr-1 sm:grid-cols-2 xl:grid-cols-1")}>
         {actions.map((action) => {
           const Icon = action.icon;
 
@@ -102,7 +115,7 @@ export function DashboardQuickActions({
               type="button"
               onClick={action.run}
               className={cn(
-                "flex items-center gap-3 rounded-[18px] border px-4 py-4 text-left text-[15px] font-semibold",
+                "flex shrink-0 items-center gap-3 rounded-[18px] border px-4 py-4 text-left text-[15px] font-semibold",
                 settings.scheme === "dark"
                   ? "border-white/10 bg-white/6 hover:bg-white/9"
                   : "border-slate-200 bg-slate-50 hover:bg-white",

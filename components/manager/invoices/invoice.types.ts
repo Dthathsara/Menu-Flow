@@ -1,10 +1,18 @@
-export type PlanId = "starter" | "growth" | "premium";
-export type InvoiceStatus = "Paid";
+export type PlanId = string;
+
+export type InvoiceStatus =
+  | "Paid"
+  | "Pending"
+  | "Overdue"
+  | "Failed"
+  | "Cancelled"
+  | "Draft";
+
 export type InvoiceHistoryStatusFilter = "All Status" | InvoiceStatus;
 
 export interface UsageLimit {
   used: number;
-  limit: number;
+  limit: number | null;
 }
 
 export interface SubscriptionPlan {
@@ -46,8 +54,15 @@ export interface SubscriptionPlan {
   invoiceLineAmount: string;
 }
 
+export interface BillingProfile {
+  restaurantName: string;
+  restaurantAddress: string;
+  billingEmail: string;
+}
+
 export interface InvoiceRecord {
   id: string;
+  invoiceNumber: string;
   packageLabel: string;
   billingDate: string;
   renewalDate: string;
@@ -59,16 +74,47 @@ export interface InvoiceRecord {
   taxDisplay: string;
   discountDisplay: string;
   totalDisplay: string;
+  billedTo: BillingProfile;
+  baseAmount: number | null;
+  taxAmount: number | null;
+  discountAmount: number | null;
+  totalAmount: number | null;
+  issuedAt: string;
+  dueAt: string;
+}
+
+export interface ManagerInvoicesPageData {
+  currentPlan: SubscriptionPlan;
+  availablePlans: SubscriptionPlan[];
+  invoices: InvoiceRecord[];
+  latestInvoice: InvoiceRecord | null;
+  billingProfile: BillingProfile;
+  paymentMethods: PaymentMethodRecord[];
 }
 
 export interface PaymentMethodRecord {
   id: string;
+  brand: string;
+  last4: string;
   label: string;
   holderName: string;
+  expiryDate: string;
+}
+
+export interface PaymentMethodFormValues {
   cardNumber: string;
+  holderName: string;
   expiryDate: string;
   cvc: string;
 }
+
+export interface RenewSubscriptionPayload {
+  paymentMethodId: string;
+  cardHolderName: string;
+  billingEmail: string;
+}
+
+export type UpdatePaymentMethodPayload = PaymentMethodFormValues;
 
 export interface ToastMessage {
   id: string;

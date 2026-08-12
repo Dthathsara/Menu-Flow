@@ -22,6 +22,8 @@ interface PaymentModalProps {
   onBillingEmailChange: (value: string) => void;
   onClose: () => void;
   onConfirm: () => void;
+  isSaving?: boolean;
+  errorMessage?: string;
 }
 
 export function PaymentModal({
@@ -36,7 +38,11 @@ export function PaymentModal({
   onBillingEmailChange,
   onClose,
   onConfirm,
+  isSaving = false,
+  errorMessage = "",
 }: PaymentModalProps) {
+  const hasPaymentMethods = paymentMethods.length > 0;
+
   return (
     <InvoiceModalFrame
       open
@@ -49,21 +55,36 @@ export function PaymentModal({
           <button
             type="button"
             onClick={onClose}
-            className={cn(getManagerSecondaryButtonClasses(settings.scheme), "rounded-[12px] px-5")}
+            disabled={isSaving}
+            className={cn(getManagerSecondaryButtonClasses(settings.scheme), "rounded-[12px] px-5 disabled:cursor-not-allowed disabled:opacity-55")}
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={cn(getManagerPrimaryButtonClasses(settings.scheme), "rounded-[12px] px-5")}
+            disabled={isSaving || !hasPaymentMethods}
+            className={cn(getManagerPrimaryButtonClasses(settings.scheme), "rounded-[12px] px-5 disabled:cursor-not-allowed disabled:opacity-55")}
           >
-            Confirm Payment
+            {isSaving ? "Processing..." : "Confirm Payment"}
           </button>
         </>
       }
       onClose={onClose}
+      disableClose={isSaving}
     >
+      {errorMessage ? (
+        <div className="mb-4 rounded-[14px] border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-[13px] font-semibold text-rose-300">
+          {errorMessage}
+        </div>
+      ) : null}
+
+      {!hasPaymentMethods ? (
+        <div className="mb-4 rounded-[14px] border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-[13px] font-semibold text-amber-300">
+          Add a payment method before renewing this subscription.
+        </div>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className={getManagerLabelClasses(settings.scheme)}>Card Holder Name</label>
@@ -71,6 +92,7 @@ export function PaymentModal({
             type="text"
             value={cardHolderName}
             onChange={(event) => onCardHolderNameChange(event.target.value)}
+            disabled={isSaving}
             className={cn("mt-2", getManagerTextInputClasses(settings.scheme))}
           />
         </div>
@@ -80,8 +102,9 @@ export function PaymentModal({
             <select
               value={selectedPaymentMethodId}
               onChange={(event) => onPaymentMethodChange(event.target.value)}
+              disabled={isSaving || !hasPaymentMethods}
               className={cn(
-                "w-full appearance-none pr-10",
+                "w-full appearance-none pr-10 disabled:cursor-not-allowed disabled:opacity-60",
                 getManagerTextInputClasses(settings.scheme),
               )}
             >
@@ -109,6 +132,7 @@ export function PaymentModal({
             type="email"
             value={billingEmail}
             onChange={(event) => onBillingEmailChange(event.target.value)}
+            disabled={isSaving}
             className={cn("mt-2", getManagerTextInputClasses(settings.scheme))}
           />
         </div>

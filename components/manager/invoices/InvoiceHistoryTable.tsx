@@ -1,4 +1,5 @@
 import { ChevronDownIcon, SearchIcon } from "../icons";
+import { INVOICE_STATUS_FILTER_OPTIONS } from "./invoice.data";
 import {
   cn,
   getManagerAccentPillClasses,
@@ -32,6 +33,7 @@ interface InvoiceHistoryTableProps {
   onStatusChange: (value: InvoiceHistoryStatusFilter) => void;
   onView: (invoiceId: string) => void;
   onDownload: (invoiceId: string) => void;
+  isActionLoading?: boolean;
 }
 
 export function InvoiceHistoryTable({
@@ -43,6 +45,7 @@ export function InvoiceHistoryTable({
   onStatusChange,
   onView,
   onDownload,
+  isActionLoading = false,
 }: InvoiceHistoryTableProps) {
   return (
     <section
@@ -86,8 +89,11 @@ export function InvoiceHistoryTable({
               getManagerTextInputClasses(settings.scheme),
             )}
           >
-            <option value="All Status">All Status</option>
-            <option value="Paid">Paid</option>
+            {INVOICE_STATUS_FILTER_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
           </select>
           <ChevronDownIcon className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
         </div>
@@ -175,10 +181,10 @@ export function InvoiceHistoryTable({
                     <span
                       className={cn(
                         "inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold",
-                        getManagerBadgeClasses("success", settings.scheme),
+                        getManagerBadgeClasses(getInvoiceStatusTone(invoice.status), settings.scheme),
                       )}
                     >
-                      Paid
+                      {invoice.status}
                     </span>
                   </td>
                   <td className={getManagerTableCellPaddingClasses()}>
@@ -186,9 +192,10 @@ export function InvoiceHistoryTable({
                       <button
                         type="button"
                         onClick={() => onView(invoice.id)}
+                        disabled={isActionLoading}
                         className={cn(
                           getManagerTableActionButtonClasses(settings.scheme),
-                          "h-9 rounded-[10px] px-4 text-[13px]",
+                          "h-9 rounded-[10px] px-4 text-[13px] disabled:cursor-not-allowed disabled:opacity-55",
                         )}
                       >
                         View
@@ -196,9 +203,10 @@ export function InvoiceHistoryTable({
                       <button
                         type="button"
                         onClick={() => onDownload(invoice.id)}
+                        disabled={isActionLoading}
                         className={cn(
                           getManagerTableActionButtonClasses(settings.scheme),
-                          "h-9 rounded-[10px] px-4 text-[13px]",
+                          "h-9 rounded-[10px] px-4 text-[13px] disabled:cursor-not-allowed disabled:opacity-55",
                         )}
                       >
                         Download
@@ -213,4 +221,16 @@ export function InvoiceHistoryTable({
       </div>
     </section>
   );
+}
+
+function getInvoiceStatusTone(status: InvoiceRecord["status"]) {
+  if (status === "Paid") {
+    return "success";
+  }
+
+  if (status === "Pending" || status === "Draft") {
+    return "warning";
+  }
+
+  return "danger";
 }

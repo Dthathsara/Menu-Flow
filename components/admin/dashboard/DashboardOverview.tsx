@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import { cn } from "@/components/manager/managerUtils";
+import { getApiErrorMessage } from "@/lib/error-handler";
+import {
+  type CreateAdminClientInput,
+  type UpdateAdminClientInput,
+  createAdminClient,
+} from "@/lib/system-admin-api";
 import { ClientModal } from "../clients/ClientModal";
-import type { ClientRecord } from "../clients/ClientTable";
 import { AdminButton } from "../common/AdminButton";
 import { AdminStatCard } from "../common/AdminStatCard";
 import { adminCardClasses, adminMutedClasses, adminPageClasses } from "../common/adminStyles";
@@ -29,10 +34,27 @@ const statCards = [
 export function DashboardOverview({ scheme, searchQuery }: AdminPageProps) {
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<AdminModalMode>("add");
+  const [modalError, setModalError] = useState("");
+  const [submittingClient, setSubmittingClient] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  function handleClientSave(client: ClientRecord) {
-    void client;
-    setClientModalOpen(false);
+  async function handleClientSave(clientId: string | null, values: CreateAdminClientInput | UpdateAdminClientInput) {
+    if (clientId || submittingClient) {
+      return;
+    }
+
+    setSubmittingClient(true);
+    setModalError("");
+
+    try {
+      await createAdminClient(values as CreateAdminClientInput);
+      setSuccessMessage("Client created successfully.");
+      setClientModalOpen(false);
+    } catch (error) {
+      setModalError(getApiErrorMessage(error, "Unable to create client."));
+    } finally {
+      setSubmittingClient(false);
+    }
   }
 
   return (
@@ -60,6 +82,7 @@ export function DashboardOverview({ scheme, searchQuery }: AdminPageProps) {
           >
             + Register New Client
           </AdminButton>
+          {successMessage ? <p className="relative mt-4 text-sm font-semibold text-emerald-200">{successMessage}</p> : null}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -103,9 +126,11 @@ export function DashboardOverview({ scheme, searchQuery }: AdminPageProps) {
         mode={modalMode}
         client={null}
         open={clientModalOpen}
-        onClose={() => setClientModalOpen(false)}
+        submitting={submittingClient}
+        error={modalError}
+        onClose={() => !submittingClient && setClientModalOpen(false)}
         onSave={handleClientSave}
-        onConfirmDelete={() => undefined}
+        onConfirmDelete={async () => undefined}
       />
     </section>
   );

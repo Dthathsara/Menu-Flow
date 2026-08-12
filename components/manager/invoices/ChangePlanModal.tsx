@@ -18,6 +18,8 @@ interface ChangePlanModalProps {
   onChangeTarget: (planId: PlanId) => void;
   onClose: () => void;
   onContinue: () => void;
+  isSaving?: boolean;
+  errorMessage?: string;
 }
 
 export function ChangePlanModal({
@@ -28,6 +30,8 @@ export function ChangePlanModal({
   onChangeTarget,
   onClose,
   onContinue,
+  isSaving = false,
+  errorMessage = "",
 }: ChangePlanModalProps) {
   return (
     <InvoiceModalFrame
@@ -41,21 +45,36 @@ export function ChangePlanModal({
           <button
             type="button"
             onClick={onClose}
-            className={cn(getManagerSecondaryButtonClasses(settings.scheme), "rounded-[12px] px-5")}
+            disabled={isSaving}
+            className={cn(
+              getManagerSecondaryButtonClasses(settings.scheme),
+              "rounded-[12px] px-5 disabled:cursor-not-allowed disabled:opacity-55",
+            )}
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onContinue}
-            className={cn(getManagerPrimaryButtonClasses(settings.scheme), "rounded-[12px] px-5")}
+            disabled={isSaving || availablePlans.length === 0}
+            className={cn(
+              getManagerPrimaryButtonClasses(settings.scheme),
+              "rounded-[12px] px-5 disabled:cursor-not-allowed disabled:opacity-55",
+            )}
           >
             Continue
           </button>
         </>
       }
       onClose={onClose}
+      disableClose={isSaving}
     >
+      {errorMessage ? (
+        <div className="mb-4 rounded-[14px] border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-[13px] font-semibold text-rose-300">
+          {errorMessage}
+        </div>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className={getManagerLabelClasses(settings.scheme)}>Current Plan</label>
@@ -73,8 +92,9 @@ export function ChangePlanModal({
             <select
               value={targetPlanId}
               onChange={(event) => onChangeTarget(event.target.value as PlanId)}
+              disabled={isSaving || availablePlans.length === 0}
               className={cn(
-                "w-full appearance-none pr-10",
+                "w-full appearance-none pr-10 disabled:cursor-not-allowed disabled:opacity-60",
                 getManagerTextInputClasses(settings.scheme),
               )}
             >

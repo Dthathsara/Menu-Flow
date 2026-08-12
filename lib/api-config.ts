@@ -27,6 +27,16 @@ export const API_ROUTES = {
     me: "/auth/me",
     refresh: "/auth/refresh",
   },
+  systemAdmin: {
+    me: "/system-admin/me",
+    profile: "/system-admin/me",
+    changePassword: "/system-admin/me/password",
+    clients: "/system-admin/clients",
+    client: (clientId: string) => `/system-admin/clients/${encodeURIComponent(clientId)}`,
+    users: "/system-admin/users",
+    user: (userId: string) => `/system-admin/users/${encodeURIComponent(userId)}`,
+    roles: "/system-admin/users/roles",
+  },
   chef: {
     dashboardSummary: "/chef/dashboard/summary",
     orders: "/chef/orders",

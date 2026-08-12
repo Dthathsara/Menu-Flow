@@ -2,29 +2,23 @@ import { AdminButton } from "../common/AdminButton";
 import { AdminStatusBadge } from "../common/AdminStatusBadge";
 import { AdminTable, type AdminTableColumn } from "../common/AdminTable";
 import type { AdminScheme } from "../common/adminTypes";
-
-export interface StaffUserRecord {
-  id: string;
-  name: string;
-  email: string;
-  role: "Super Admin" | "Admin" | "Support" | "Finance";
-  lastLogin: string;
-  status: "Active" | "Inactive";
-}
+import { formatSystemStaffRole, type SystemStaffUser } from "@/lib/system-admin-api";
 
 interface UsersTableProps {
   scheme: AdminScheme;
-  users: StaffUserRecord[];
-  onEdit: (user: StaffUserRecord) => void;
-  onDelete: (user: StaffUserRecord) => void;
+  users: SystemStaffUser[];
+  onEdit: (user: SystemStaffUser) => void;
+  onDelete: (user: SystemStaffUser) => void;
+  emptyText?: string;
 }
 
-export function UsersTable({ scheme, users, onEdit, onDelete }: UsersTableProps) {
-  const columns: Array<AdminTableColumn<StaffUserRecord>> = [
-    { key: "name", label: "NAME", render: (row) => row.name },
+export function UsersTable({ scheme, users, onEdit, onDelete, emptyText }: UsersTableProps) {
+  const columns: Array<AdminTableColumn<SystemStaffUser>> = [
+    { key: "fullName", label: "NAME", render: (row) => row.fullName || "Unavailable" },
     { key: "email", label: "EMAIL", render: (row) => row.email },
-    { key: "role", label: "ROLE", render: (row) => row.role },
+    { key: "role", label: "ROLE", render: (row) => formatSystemStaffRole(row.role) },
     { key: "lastLogin", label: "LAST LOGIN", render: (row) => row.lastLogin },
+    { key: "createdAt", label: "CREATED", render: (row) => row.createdAt || "Unavailable" },
     { key: "status", label: "STATUS", render: (row) => <AdminStatusBadge scheme={scheme} status={row.status} /> },
     {
       key: "actions",
@@ -38,6 +32,5 @@ export function UsersTable({ scheme, users, onEdit, onDelete }: UsersTableProps)
     },
   ];
 
-  return <AdminTable scheme={scheme} columns={columns} data={users} getRowKey={(row) => row.id} />;
+  return <AdminTable scheme={scheme} columns={columns} data={users} getRowKey={(row) => row.id} emptyText={emptyText} />;
 }
-

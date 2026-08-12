@@ -12,14 +12,7 @@ export interface AdminNavItem {
   icon: "dashboard" | "clients" | "users" | "packages" | "invoices" | "settings";
 }
 
-export interface AdminUserProfile {
-  name: string;
-  email: string;
-  role: string;
-}
-
 export interface AdminPageProps {
   scheme: AdminScheme;
   searchQuery: string;
 }
-

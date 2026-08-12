@@ -16,6 +16,7 @@ interface InvoiceSummaryCardProps {
   plan: SubscriptionPlan;
   onRenew: () => void;
   onChangeCard: () => void;
+  isActionLoading?: boolean;
 }
 
 export function InvoiceSummaryCard({
@@ -23,6 +24,7 @@ export function InvoiceSummaryCard({
   plan,
   onRenew,
   onChangeCard,
+  isActionLoading = false,
 }: InvoiceSummaryCardProps) {
   const rows = [
     { label: plan.billingLabel, value: plan.invoiceLineAmount },
@@ -75,8 +77,9 @@ export function InvoiceSummaryCard({
         <button
           type="button"
           onClick={onRenew}
+          disabled={isActionLoading}
           className={cn(
-            "flex-1 rounded-[12px] px-4 text-[14px]",
+            "flex-1 rounded-[12px] px-4 text-[14px] disabled:cursor-not-allowed disabled:opacity-55",
             getManagerPrimaryButtonClasses(settings.scheme),
           )}
         >
@@ -85,8 +88,9 @@ export function InvoiceSummaryCard({
         <button
           type="button"
           onClick={onChangeCard}
+          disabled={isActionLoading}
           className={cn(
-            "rounded-[12px] px-4 text-[14px]",
+            "rounded-[12px] px-4 text-[14px] disabled:cursor-not-allowed disabled:opacity-55",
             getManagerSecondaryButtonClasses(settings.scheme),
           )}
         >

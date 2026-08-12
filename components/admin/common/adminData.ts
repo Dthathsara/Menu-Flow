@@ -1,12 +1,6 @@
-import type { AdminNavItem, AdminUserProfile } from "./adminTypes";
+import type { AdminNavItem } from "./adminTypes";
 
 export const ADMIN_STORAGE_KEY = "menuFlowAdminTheme";
-
-export const ADMIN_PROFILE: AdminUserProfile = {
-  name: "Dulnith Thathsara",
-  email: "dragon6@gmail.com",
-  role: "STAFF",
-};
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {

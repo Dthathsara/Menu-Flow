@@ -23,6 +23,7 @@ interface InvoiceModalFrameProps {
   footer?: ReactNode;
   children: ReactNode;
   onClose: () => void;
+  disableClose?: boolean;
 }
 
 export function InvoiceModalFrame({
@@ -35,6 +36,7 @@ export function InvoiceModalFrame({
   footer,
   children,
   onClose,
+  disableClose = false,
 }: InvoiceModalFrameProps) {
   useEffect(() => {
     if (!open) {
@@ -45,7 +47,7 @@ export function InvoiceModalFrame({
     document.body.style.overflow = "hidden";
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !disableClose) {
         event.preventDefault();
         onClose();
       }
@@ -57,7 +59,7 @@ export function InvoiceModalFrame({
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose, open]);
+  }, [disableClose, onClose, open]);
 
   if (!open) {
     return null;
@@ -67,7 +69,7 @@ export function InvoiceModalFrame({
     <div
       className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-slate-950/76 px-4 py-5 backdrop-blur-md sm:px-6"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (event.target === event.currentTarget && !disableClose) {
           onClose();
         }
       }}
@@ -101,8 +103,12 @@ export function InvoiceModalFrame({
             <button
               type="button"
               onClick={onClose}
+              disabled={disableClose}
               aria-label={`Close ${title}`}
-              className={getManagerIconButtonClasses(settings.scheme, true)}
+              className={cn(
+                getManagerIconButtonClasses(settings.scheme, true),
+                disableClose && "cursor-not-allowed opacity-55",
+              )}
             >
               <XIcon className="size-4" />
             </button>

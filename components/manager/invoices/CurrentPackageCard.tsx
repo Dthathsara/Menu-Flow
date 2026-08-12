@@ -11,6 +11,7 @@ import {
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
 import type { SubscriptionPlan } from "./invoice.types";
+import { calculateUsageProgress, formatUsageLimit } from "./invoice.helpers";
 
 interface CurrentPackageCardProps {
   settings: ManagerSettings;
@@ -26,9 +27,9 @@ function UsageMetric({
   scheme: ManagerSettings["scheme"];
   label: string;
   used: number;
-  limit: number;
+  limit: number | null;
 }) {
-  const progress = Math.min(100, (used / limit) * 100);
+  const progress = calculateUsageProgress(used, limit);
 
   return (
     <div
@@ -48,7 +49,7 @@ function UsageMetric({
         {label}
       </div>
       <div className={cn("mt-2 text-[1.05rem] font-bold", getManagerStrongTextClasses(scheme))}>
-        {used}/{limit}
+        {formatUsageLimit({ used, limit })}
       </div>
       <div className={cn("mt-3 h-1.5 rounded-full", scheme === "dark" ? "bg-white/8" : "bg-slate-200")}>
         <div

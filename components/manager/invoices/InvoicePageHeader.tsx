@@ -15,6 +15,8 @@ interface InvoicePageHeaderProps {
   onPrintLatest: () => void;
   onDownloadLatest: () => void;
   onOpenChangePlan: () => void;
+  hasLatestInvoice: boolean;
+  isActionLoading?: boolean;
 }
 
 export function InvoicePageHeader({
@@ -23,6 +25,8 @@ export function InvoicePageHeader({
   onPrintLatest,
   onDownloadLatest,
   onOpenChangePlan,
+  hasLatestInvoice,
+  isActionLoading = false,
 }: InvoicePageHeaderProps) {
   return (
     <section
@@ -56,9 +60,10 @@ export function InvoicePageHeader({
           <button
             type="button"
             onClick={onViewLatest}
+            disabled={!hasLatestInvoice || isActionLoading}
             className={cn(
               getManagerSecondaryButtonClasses(settings.scheme),
-              "h-10 rounded-[12px] px-4 text-[13px]",
+              "h-10 rounded-[12px] px-4 text-[13px] disabled:cursor-not-allowed disabled:opacity-55",
             )}
           >
             View Latest Invoice
@@ -66,9 +71,10 @@ export function InvoicePageHeader({
           <button
             type="button"
             onClick={onPrintLatest}
+            disabled={!hasLatestInvoice || isActionLoading}
             className={cn(
               getManagerSecondaryButtonClasses(settings.scheme),
-              "h-10 rounded-[12px] px-4 text-[13px]",
+              "h-10 rounded-[12px] px-4 text-[13px] disabled:cursor-not-allowed disabled:opacity-55",
             )}
           >
             Print
@@ -76,9 +82,10 @@ export function InvoicePageHeader({
           <button
             type="button"
             onClick={onDownloadLatest}
+            disabled={!hasLatestInvoice || isActionLoading}
             className={cn(
               getManagerSecondaryButtonClasses(settings.scheme),
-              "h-10 rounded-[12px] px-4 text-[13px]",
+              "h-10 rounded-[12px] px-4 text-[13px] disabled:cursor-not-allowed disabled:opacity-55",
             )}
           >
             Download
@@ -86,9 +93,10 @@ export function InvoicePageHeader({
           <button
             type="button"
             onClick={onOpenChangePlan}
+            disabled={isActionLoading}
             className={cn(
               getManagerPrimaryButtonClasses(settings.scheme),
-              "h-10 rounded-[12px] px-4 text-[13px]",
+              "h-10 rounded-[12px] px-4 text-[13px] disabled:cursor-not-allowed disabled:opacity-55",
             )}
           >
             Upgrade Plan

@@ -14,6 +14,8 @@ interface ConfirmPlanModalProps {
   targetPlan: SubscriptionPlan;
   onClose: () => void;
   onConfirm: () => void;
+  isSaving?: boolean;
+  errorMessage?: string;
 }
 
 export function ConfirmPlanModal({
@@ -22,17 +24,25 @@ export function ConfirmPlanModal({
   targetPlan,
   onClose,
   onConfirm,
+  isSaving = false,
+  errorMessage = "",
 }: ConfirmPlanModalProps) {
   const verb = getPlanChangeVerb(currentPlan.id, targetPlan.id);
   const usageImpactLines: string[] = [];
 
-  if (currentPlan.usage.locations.used > targetPlan.usage.locations.limit) {
+  if (
+    targetPlan.usage.locations.limit !== null &&
+    currentPlan.usage.locations.used > targetPlan.usage.locations.limit
+  ) {
     usageImpactLines.push(
       `Locations in use: ${currentPlan.usage.locations.used} / ${targetPlan.usage.locations.limit}`,
     );
   }
 
-  if (currentPlan.usage.qrTables.used > targetPlan.usage.qrTables.limit) {
+  if (
+    targetPlan.usage.qrTables.limit !== null &&
+    currentPlan.usage.qrTables.used > targetPlan.usage.qrTables.limit
+  ) {
     usageImpactLines.push(
       `QR tables in use: ${currentPlan.usage.qrTables.used} / ${targetPlan.usage.qrTables.limit}`,
     );
@@ -66,21 +76,30 @@ export function ConfirmPlanModal({
           <button
             type="button"
             onClick={onClose}
-            className={cn(getManagerSecondaryButtonClasses(settings.scheme), "rounded-[12px] px-5")}
+            disabled={isSaving}
+            className={cn(getManagerSecondaryButtonClasses(settings.scheme), "rounded-[12px] px-5 disabled:cursor-not-allowed disabled:opacity-55")}
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={cn(getManagerPrimaryButtonClasses(settings.scheme), "rounded-[12px] px-5")}
+            disabled={isSaving}
+            className={cn(getManagerPrimaryButtonClasses(settings.scheme), "rounded-[12px] px-5 disabled:cursor-not-allowed disabled:opacity-55")}
           >
-            {verb} Plan
+            {isSaving ? "Saving..." : `${verb} Plan`}
           </button>
         </>
       }
       onClose={onClose}
+      disableClose={isSaving}
     >
+      {errorMessage ? (
+        <div className="mb-4 rounded-[14px] border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-[13px] font-semibold text-rose-300">
+          {errorMessage}
+        </div>
+      ) : null}
+
       <div
         className={cn(
           "rounded-[18px] border p-4 sm:p-5",

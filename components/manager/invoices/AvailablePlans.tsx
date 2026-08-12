@@ -1,4 +1,3 @@
-import { PLAN_ORDER, SUBSCRIPTION_PLANS } from "./invoice.data";
 import { getPlanActionLabel } from "./invoice.helpers";
 import { CheckIcon } from "../icons";
 import {
@@ -12,18 +11,22 @@ import {
   getMutedTextClasses,
 } from "../managerUtils";
 import type { ManagerSettings } from "../managerTypes";
-import type { PlanId } from "./invoice.types";
+import type { PlanId, SubscriptionPlan } from "./invoice.types";
 
 interface AvailablePlansProps {
   settings: ManagerSettings;
   currentPlanId: PlanId;
+  plans: SubscriptionPlan[];
   onSelectPlan: (planId: PlanId) => void;
+  isSaving?: boolean;
 }
 
 export function AvailablePlans({
   settings,
   currentPlanId,
+  plans,
   onSelectPlan,
+  isSaving = false,
 }: AvailablePlansProps) {
   return (
     <section
@@ -40,8 +43,8 @@ export function AvailablePlans({
       </div>
 
       <div className="mt-5 grid gap-4 xl:grid-cols-3">
-        {PLAN_ORDER.map((planId) => {
-          const plan = SUBSCRIPTION_PLANS[planId];
+        {plans.map((plan) => {
+          const planId = plan.id;
           const current = planId === currentPlanId;
           const actionLabel = getPlanActionLabel(currentPlanId, planId);
 
@@ -99,12 +102,13 @@ export function AvailablePlans({
               <button
                 type="button"
                 onClick={() => {
-                  if (!current) {
+                  if (!current && !isSaving) {
                     onSelectPlan(plan.id);
                   }
                 }}
+                disabled={current || isSaving}
                 className={cn(
-                  "mt-5 w-full rounded-[12px] px-4 text-[14px]",
+                  "mt-5 w-full rounded-[12px] px-4 text-[14px] disabled:cursor-not-allowed disabled:opacity-70",
                   current
                     ? getManagerPrimaryButtonClasses(settings.scheme)
                     : getManagerSecondaryButtonClasses(settings.scheme),

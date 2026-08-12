@@ -10,6 +10,12 @@ import {
 } from "@/components/manager/managerUtils";
 import type { ManagerSettings } from "@/components/manager/managerTypes";
 import type { ManagerNotification } from "@/lib/manager-dashboard-api";
+import {
+  MANAGER_DASHBOARD_ACTIVITY_CARD_HEADER,
+  MANAGER_DASHBOARD_ACTIVITY_CARD_HEIGHT,
+  MANAGER_DASHBOARD_ACTIVITY_CARD_LAYOUT,
+  MANAGER_DASHBOARD_ACTIVITY_CARD_SCROLL_AREA,
+} from "./dashboardLayout";
 
 function formatActivityTime(value: string) {
   const date = new Date(value);
@@ -29,13 +35,20 @@ export function DashboardNotifications({
   notifications: ManagerNotification[];
 }) {
   return (
-    <div className={cn("h-full rounded-[22px] border p-5 sm:p-6", getContentSurfaceClasses(settings.scheme))}>
-      <div>
+    <div
+      className={cn(
+        MANAGER_DASHBOARD_ACTIVITY_CARD_HEIGHT,
+        MANAGER_DASHBOARD_ACTIVITY_CARD_LAYOUT,
+        "rounded-[22px] border p-5 sm:p-6",
+        getContentSurfaceClasses(settings.scheme),
+      )}
+    >
+      <div className={MANAGER_DASHBOARD_ACTIVITY_CARD_HEADER}>
         <h3 className={getManagerSectionTitleClasses()}>Notifications</h3>
         <p className={getManagerSectionSubtitleClasses(settings.scheme)}>Latest branch activity</p>
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className={cn(MANAGER_DASHBOARD_ACTIVITY_CARD_SCROLL_AREA, "mt-6 space-y-3 pr-1")}>
         {notifications.length ? (
           notifications.map((item) => (
             <div
