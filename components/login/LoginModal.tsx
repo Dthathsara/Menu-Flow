@@ -96,6 +96,8 @@ export function LoginModal({
       const email = form.email.trim().toLowerCase();
       const password = form.password;
 
+      clearAuthSession();
+
       const response = await axios.post(
         apiUrl(API_ROUTES.auth.login),
         {
@@ -106,7 +108,7 @@ export function LoginModal({
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: false,
+          withCredentials: true,
         },
       );
 
@@ -123,7 +125,7 @@ export function LoginModal({
 
       setStatusType("success");
       setStatusMessage("Login successful.");
-      router.push(dashboardPath);
+      router.replace(dashboardPath);
     } catch (error) {
       setStatusType("error");
       if (axios.isAxiosError(error)) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   type AuthRole,
@@ -17,10 +17,12 @@ interface RoleGuardProps {
 function subscribeToAuthChanges(onStoreChange: () => void) {
   window.addEventListener("storage", onStoreChange);
   window.addEventListener("menuflow:user-updated", onStoreChange);
+  window.addEventListener("menuflow:auth-changed", onStoreChange);
 
   return () => {
     window.removeEventListener("storage", onStoreChange);
     window.removeEventListener("menuflow:user-updated", onStoreChange);
+    window.removeEventListener("menuflow:auth-changed", onStoreChange);
   };
 }
 
@@ -35,6 +37,7 @@ function getServerAuthSnapshot() {
 export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
   const authSnapshot = useSyncExternalStore(
     subscribeToAuthChanges,
     getAuthSnapshot,
@@ -44,6 +47,12 @@ export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
   const authorized = status === "authenticated" && role === allowedRole;
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     if (status !== "authenticated" || !role) {
       router.replace("/");
       return;
@@ -52,9 +61,9 @@ export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
     if (role !== allowedRole) {
       router.replace(getDashboardPathForRole(role) || "/");
     }
-  }, [allowedRole, pathname, role, router, status]);
+  }, [allowedRole, isMounted, pathname, role, router, status]);
 
-  if (!authorized) {
+  if (!isMounted || !authorized) {
     return null;
   }
 

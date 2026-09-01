@@ -234,7 +234,11 @@ export function CustomerDashboard() {
 
     fetchMenu(true);
 
-    const intervalId = window.setInterval(() => fetchMenu(false), 5000);
+    const intervalId = window.setInterval(() => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        fetchMenu(false);
+      }
+    }, 10000);
 
     function handleVisibilityChange() {
       if (document.visibilityState === "visible") {

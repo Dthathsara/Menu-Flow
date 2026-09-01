@@ -2,15 +2,9 @@ import { AdminButton } from "../common/AdminButton";
 import { AdminStatusBadge } from "../common/AdminStatusBadge";
 import { AdminTable, type AdminTableColumn } from "../common/AdminTable";
 import type { AdminScheme } from "../common/adminTypes";
+import type { SystemAdminPackage } from "@/lib/system-admin-api";
 
-export interface PackageRecord {
-  id: string;
-  packageName: string;
-  price: string;
-  clients: number;
-  features: string;
-  status: "Active" | "Inactive";
-}
+export type PackageRecord = SystemAdminPackage;
 
 interface PackagesTableProps {
   scheme: AdminScheme;
@@ -22,9 +16,9 @@ interface PackagesTableProps {
 export function PackagesTable({ scheme, packages, onEdit, onDelete }: PackagesTableProps) {
   const columns: Array<AdminTableColumn<PackageRecord>> = [
     { key: "package", label: "PACKAGE", render: (row) => row.packageName },
-    { key: "price", label: "PRICE", render: (row) => row.price },
-    { key: "clients", label: "CLIENTS", render: (row) => row.clients },
-    { key: "features", label: "FEATURES", render: (row) => row.features },
+    { key: "price", label: "PRICE", render: (row) => row.priceDisplay || (row.isCustomPrice ? "Custom price" : `Rs. ${row.price?.toLocaleString() || 0}`) },
+    { key: "clients", label: "CLIENTS", render: (row) => row.clients ?? 0 },
+    { key: "features", label: "FEATURES", render: (row) => row.featuresSummary || row.features?.join(", ") || "-" },
     { key: "status", label: "STATUS", render: (row) => <AdminStatusBadge scheme={scheme} status={row.status} /> },
     {
       key: "actions",
@@ -39,4 +33,5 @@ export function PackagesTable({ scheme, packages, onEdit, onDelete }: PackagesTa
   ];
   return <AdminTable scheme={scheme} columns={columns} data={packages} getRowKey={(row) => row.id} />;
 }
+
 

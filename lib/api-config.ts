@@ -30,12 +30,28 @@ export const API_ROUTES = {
   systemAdmin: {
     me: "/system-admin/me",
     profile: "/system-admin/me",
-    changePassword: "/system-admin/me/password",
+    changePassword: "/system-admin/me/change-password",
     clients: "/system-admin/clients",
     client: (clientId: string) => `/system-admin/clients/${encodeURIComponent(clientId)}`,
     users: "/system-admin/users",
     user: (userId: string) => `/system-admin/users/${encodeURIComponent(userId)}`,
     roles: "/system-admin/users/roles",
+    packages: "/system-admin/packages",
+    package: (packageId: string) => `/system-admin/packages/${encodeURIComponent(packageId)}`,
+    // System Admin Invoice Endpoints
+    // Note: The NestJS backend controller uses @Controller('admin_invoice') under global prefix /api/v1
+    invoices: "/admin_invoice",
+    invoice: (invoiceId: string) => `/admin_invoice/${encodeURIComponent(invoiceId)}`,
+    invoiceById: (id: string) => `/admin_invoice/${encodeURIComponent(id)}`,
+  },
+  managerInvoices: {
+    base: "/manager-invoices",
+    accessStatus: "/manager-invoices/access-status",
+    plan: "/manager-invoices/plan",
+    pay: "/manager-invoices/pay",
+    paymentMethod: "/manager-invoices/payment-method",
+    renew: "/manager-invoices/renew",
+    invoice: (invoiceId: string) => `/manager-invoices/${encodeURIComponent(invoiceId)}`,
   },
   chef: {
     dashboardSummary: "/chef/dashboard/summary",

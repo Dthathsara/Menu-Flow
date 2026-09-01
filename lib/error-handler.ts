@@ -38,11 +38,7 @@ function cleanMessage(message: string) {
     /cannot\s+(get|post|put|patch|delete)\s+\/api\//i.test(normalized) ||
     lower.includes("prisma") ||
     lower.includes("invocation") ||
-    lower.includes("does not exist in the current database") ||
-    lower.includes("should not exist") ||
-    /^property .+ should not exist$/i.test(normalized) ||
-    lower.includes("orders.assigned_chef_id") ||
-    lower.includes("assigned_chef_id")
+    lower.includes("does not exist in the current database")
   ) {
     return "";
   }

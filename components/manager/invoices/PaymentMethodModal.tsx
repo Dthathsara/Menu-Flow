@@ -77,14 +77,18 @@ export function PaymentMethodModal({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className={getManagerLabelClasses(settings.scheme)}>Card Number</label>
+          <div className="flex items-center justify-between">
+            <label className={getManagerLabelClasses(settings.scheme)}>Card Number</label>
+            <span className="text-xs text-slate-400">Demo card: 4242 4242 4242 4242</span>
+          </div>
           <input
             type="text"
             value={values.cardNumber}
             onChange={(event) => onChange("cardNumber", event.target.value)}
             placeholder="4242 4242 4242 4242"
             inputMode="numeric"
-            autoComplete="cc-number"
+            maxLength={19}
+            autoComplete="off"
             disabled={isSaving}
             className={cn("mt-2", getManagerTextInputClasses(settings.scheme))}
           />
@@ -96,7 +100,7 @@ export function PaymentMethodModal({
             value={values.holderName}
             onChange={(event) => onChange("holderName", event.target.value)}
             placeholder="Account holder name"
-            autoComplete="cc-name"
+            autoComplete="off"
             disabled={isSaving}
             className={cn("mt-2", getManagerTextInputClasses(settings.scheme))}
           />
@@ -109,7 +113,7 @@ export function PaymentMethodModal({
             onChange={(event) => onChange("expiryDate", event.target.value)}
             placeholder="MM / YY"
             inputMode="numeric"
-            autoComplete="cc-exp"
+            autoComplete="off"
             disabled={isSaving}
             className={cn("mt-2", getManagerTextInputClasses(settings.scheme))}
           />
@@ -122,7 +126,7 @@ export function PaymentMethodModal({
             onChange={(event) => onChange("cvc", event.target.value)}
             placeholder="123"
             inputMode="numeric"
-            autoComplete="cc-csc"
+            autoComplete="off"
             disabled={isSaving}
             className={cn("mt-2", getManagerTextInputClasses(settings.scheme))}
           />

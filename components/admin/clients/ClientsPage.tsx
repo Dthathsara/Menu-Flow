@@ -5,10 +5,12 @@ import { getApiErrorMessage } from "@/lib/error-handler";
 import {
   type AdminClient,
   type CreateAdminClientInput,
+  type SystemAdminPackage,
   type UpdateAdminClientInput,
   createAdminClient,
   deleteAdminClient,
   getAdminClients,
+  getAdminPackages,
   updateAdminClient,
 } from "@/lib/system-admin-api";
 import { AdminButton } from "../common/AdminButton";
@@ -19,6 +21,7 @@ import { ClientTable } from "./ClientTable";
 
 export function ClientsPage({ scheme, searchQuery }: AdminPageProps) {
   const [clients, setClients] = useState<AdminClient[]>([]);
+  const [packages, setPackages] = useState<SystemAdminPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -56,7 +59,12 @@ export function ClientsPage({ scheme, searchQuery }: AdminPageProps) {
     setError("");
 
     try {
-      setClients(await getAdminClients());
+      const [fetchedClients, fetchedPackages] = await Promise.all([
+        getAdminClients(),
+        getAdminPackages().catch(() => []),
+      ]);
+      setClients(fetchedClients);
+      setPackages(fetchedPackages);
     } catch (loadError) {
       setError(getApiErrorMessage(loadError, "Unable to load clients."));
     } finally {
@@ -171,6 +179,7 @@ export function ClientsPage({ scheme, searchQuery }: AdminPageProps) {
         scheme={scheme}
         mode={modalMode}
         client={selectedClient}
+        packages={packages}
         open={modalOpen}
         submitting={submitting}
         error={modalError}

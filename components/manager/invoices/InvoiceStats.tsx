@@ -11,7 +11,7 @@ import type { SubscriptionPlan } from "./invoice.types";
 
 interface InvoiceStatsProps {
   settings: ManagerSettings;
-  plan: SubscriptionPlan;
+  plan: SubscriptionPlan | null;
 }
 
 type InvoiceStatAccent = "blue" | "amber" | "violet" | "teal";
@@ -62,15 +62,15 @@ const INVOICE_STAT_ACCENT_STYLES: Record<
     },
   },
   teal: {
-    gradientClassName: "from-emerald-500/20 via-cyan-500/8 to-transparent",
-    glowClassName: "bg-cyan-500/16",
+    gradientClassName: "from-teal-500/20 via-emerald-500/8 to-transparent",
+    glowClassName: "bg-teal-500/16",
     borderClassName: {
-      dark: "border-cyan-400/16",
-      light: "border-cyan-200/90",
+      dark: "border-teal-400/16",
+      light: "border-teal-200/90",
     },
     shadowClassName: {
-      dark: "hover:shadow-[0_28px_60px_rgba(34,211,238,0.18)]",
-      light: "hover:shadow-[0_24px_48px_rgba(34,211,238,0.14)]",
+      dark: "hover:shadow-[0_28px_60px_rgba(20,184,166,0.2)]",
+      light: "hover:shadow-[0_24px_48px_rgba(20,184,166,0.14)]",
     },
   },
 };
@@ -79,26 +79,26 @@ export function InvoiceStats({ settings, plan }: InvoiceStatsProps) {
   const stats = [
     {
       label: "Current Plan",
-      value: plan.label,
-      caption: "Active package for this restaurant account.",
+      value: plan?.planName ?? "No Plan",
+      caption: plan?.headlineDescription ?? "No active subscription assigned",
       accent: "blue",
     },
     {
       label: "Billing Cycle",
-      value: plan.billingCycle,
-      caption: plan.billingCycleDescription,
+      value: plan?.billingCycle ?? "—",
+      caption: plan?.billingCycleDescription ?? "—",
       accent: "amber",
     },
     {
       label: "Next Renewal",
-      value: plan.nextRenewal,
-      caption: plan.nextRenewalDescription,
+      value: plan?.nextRenewal ?? "—",
+      caption: plan?.nextRenewalDescription ?? "—",
       accent: "violet",
     },
     {
       label: "Amount Due",
-      value: plan.amountDue,
-      caption: plan.amountDueDescription,
+      value: plan?.amountDue ?? "Rs. 0",
+      caption: plan?.amountDueDescription ?? "No payment due",
       accent: "teal",
     },
   ] satisfies Array<{

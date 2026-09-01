@@ -23,6 +23,7 @@ interface VerticalShellProps {
   languages: LanguageOption[];
   activeDropdown: "language" | "profile" | null;
   navigationOpen: boolean;
+  isLocked?: boolean;
   onSelectNav: (key: ManagerNavKey) => void;
   onSelectReportTab: (tab: ReportTab) => void;
   onToggleNavigation: () => void;
@@ -46,6 +47,7 @@ export function VerticalShell({
   languages,
   activeDropdown,
   navigationOpen,
+  isLocked = false,
   onSelectNav,
   onSelectReportTab,
   onToggleNavigation,
@@ -76,6 +78,7 @@ export function VerticalShell({
                 navItems={navItems}
                 reportTab={reportTab}
                 restaurantProfile={restaurantProfile}
+                isLocked={isLocked}
                 onSelect={onSelectNav}
                 onSelectReportTab={onSelectReportTab}
               />
@@ -89,6 +92,7 @@ export function VerticalShell({
                 languages={languages}
                 activeDropdown={activeDropdown}
                 menuButtonClassName={menuButtonClassName}
+                isLocked={isLocked}
                 onToggleNavigation={onToggleNavigation}
                 onToggleTheme={onToggleTheme}
                 onToggleDropdown={onToggleDropdown}
@@ -122,6 +126,7 @@ export function VerticalShell({
           restaurantProfile={restaurantProfile}
           overlay
           open={navigationOpen}
+          isLocked={isLocked}
           onSelect={onSelectNav}
           onSelectReportTab={onSelectReportTab}
           onClose={onCloseNavigation}
@@ -140,6 +145,7 @@ export function VerticalShell({
             navItems={navItems}
             reportTab={reportTab}
             restaurantProfile={restaurantProfile}
+            isLocked={isLocked}
             onSelect={onSelectNav}
             onSelectReportTab={onSelectReportTab}
           />
@@ -153,6 +159,7 @@ export function VerticalShell({
             languages={languages}
             activeDropdown={activeDropdown}
             menuButtonClassName={menuButtonClassName}
+            isLocked={isLocked}
             onToggleNavigation={onToggleNavigation}
             onToggleTheme={onToggleTheme}
             onToggleDropdown={onToggleDropdown}
@@ -185,6 +192,7 @@ export function VerticalShell({
         restaurantProfile={restaurantProfile}
         overlay
         open={navigationOpen}
+        isLocked={isLocked}
         onSelect={onSelectNav}
         onSelectReportTab={onSelectReportTab}
         onClose={onCloseNavigation}
@@ -192,3 +200,4 @@ export function VerticalShell({
     </div>
   );
 }
+

@@ -33,6 +33,7 @@ interface InvoiceHistoryTableProps {
   onStatusChange: (value: InvoiceHistoryStatusFilter) => void;
   onView: (invoiceId: string) => void;
   onDownload: (invoiceId: string) => void;
+  onPay?: (invoice: InvoiceRecord) => void;
   isActionLoading?: boolean;
 }
 
@@ -45,6 +46,7 @@ export function InvoiceHistoryTable({
   onStatusChange,
   onView,
   onDownload,
+  onPay,
   isActionLoading = false,
 }: InvoiceHistoryTableProps) {
   return (
@@ -138,12 +140,12 @@ export function InvoiceHistoryTable({
                     getManagerTableRowClasses(settings.scheme),
                   )}
                 >
-                  No invoices match the current filters.
+                  No invoices found.
                 </td>
               </tr>
             ) : (
-              invoices.map((invoice) => (
-                <tr key={invoice.id} className={getManagerTableRowClasses(settings.scheme)}>
+              invoices.map((invoice, index) => (
+                <tr key={`${invoice.id}-${index}`} className={getManagerTableRowClasses(settings.scheme)}>
                   <td
                     className={cn(
                       getManagerTableCellPaddingClasses(),
@@ -151,7 +153,7 @@ export function InvoiceHistoryTable({
                       getManagerStrongTextClasses(settings.scheme),
                     )}
                   >
-                    #{invoice.id}
+                    {invoice.invoiceNumber || (invoice.id.startsWith("INV") ? invoice.id : `INV-${invoice.id.slice(0, 4).toUpperCase()}`)}
                   </td>
                   <td
                     className={cn(
@@ -189,6 +191,18 @@ export function InvoiceHistoryTable({
                   </td>
                   <td className={getManagerTableCellPaddingClasses()}>
                     <div className="flex flex-wrap gap-2">
+                      {onPay && (invoice.status === "Pending" || invoice.status === "Overdue") ? (
+                        <button
+                          type="button"
+                          onClick={() => onPay(invoice)}
+                          disabled={isActionLoading}
+                          className={cn(
+                            "h-9 rounded-[10px] bg-blue-600 px-4 text-[13px] font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-55",
+                          )}
+                        >
+                          Pay
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => onView(invoice.id)}

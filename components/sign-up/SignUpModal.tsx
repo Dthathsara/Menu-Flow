@@ -155,7 +155,7 @@ export function SignUpModal({
       await axios.post(registerUrl, payload);
 
       setStatusType("success");
-      setStatusMessage("Registration successful. Please login.");
+      setStatusMessage("Registration successful. Your 7-day MenuFlow free trial is ready. Please log in.");
 
       loginRedirectTimeoutRef.current = setTimeout(() => {
         onOpenLogin();

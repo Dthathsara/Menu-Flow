@@ -12,12 +12,14 @@ import {
 import { AdminButton } from "../common/AdminButton";
 import { AdminModal } from "../common/AdminModal";
 import { adminInputClasses, adminLabelClasses, adminMutedClasses, adminTextareaClasses } from "../common/adminStyles";
+import type { SystemAdminPackage } from "@/lib/system-admin-api";
 import type { AdminModalMode, AdminScheme } from "../common/adminTypes";
 
 interface ClientModalProps {
   scheme: AdminScheme;
   mode: AdminModalMode;
   client: AdminClient | null;
+  packages?: SystemAdminPackage[];
   open: boolean;
   submitting: boolean;
   error: string;
@@ -36,11 +38,11 @@ interface ClientFormState {
   location: string;
   address: string;
   businessEmail: string;
-  packageName: AdminClientPackage;
+  packageId: string;
+  packageName: string;
   status: AdminClientStatus;
 }
 
-const packageOptions: AdminClientPackage[] = ["Starter", "Business", "Pro", "Enterprise"];
 const statusOptions: AdminClientStatus[] = ["Active", "Pending", "Inactive"];
 
 const emptyClient: ClientFormState = {
@@ -53,7 +55,8 @@ const emptyClient: ClientFormState = {
   location: "",
   address: "",
   businessEmail: "",
-  packageName: "Starter",
+  packageId: "",
+  packageName: "",
   status: "Active",
 };
 
@@ -61,9 +64,37 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function createFormState(client: AdminClient | null): ClientFormState {
+function resolveSelectedPackageId(client: AdminClient | null, packages: SystemAdminPackage[]): { packageId: string; packageName: string } {
   if (!client) {
-    return emptyClient;
+    return { packageId: "", packageName: "" };
+  }
+
+  if (client.packageId && packages.some((p) => p.id === client.packageId)) {
+    const matched = packages.find((p) => p.id === client.packageId)!;
+    return { packageId: matched.id, packageName: matched.packageName };
+  }
+
+  if (client.packageCode) {
+    const matchedByCode = packages.find((p) => p.packageCode.toLowerCase() === client.packageCode!.toLowerCase());
+    if (matchedByCode) {
+      return { packageId: matchedByCode.id, packageName: matchedByCode.packageName };
+    }
+  }
+
+  if (client.packageName) {
+    const matchedByName = packages.find((p) => p.packageName.toLowerCase() === client.packageName.toLowerCase());
+    if (matchedByName) {
+      return { packageId: matchedByName.id, packageName: matchedByName.packageName };
+    }
+  }
+
+  return { packageId: client.packageId ?? "", packageName: client.packageName || "" };
+}
+
+function createFormState(client: AdminClient | null, packages: SystemAdminPackage[]): ClientFormState {
+  const pkgRes = resolveSelectedPackageId(client, packages);
+  if (!client) {
+    return { ...emptyClient, packageId: pkgRes.packageId, packageName: pkgRes.packageName };
   }
 
   return {
@@ -76,7 +107,8 @@ function createFormState(client: AdminClient | null): ClientFormState {
     location: client.location,
     address: client.address,
     businessEmail: client.businessEmail,
-    packageName: client.packageName,
+    packageId: pkgRes.packageId,
+    packageName: pkgRes.packageName,
     status: client.status,
   };
 }
@@ -85,6 +117,7 @@ export function ClientModal({
   scheme,
   mode,
   client,
+  packages = [],
   open,
   submitting,
   error,
@@ -92,7 +125,7 @@ export function ClientModal({
   onSave,
   onConfirmDelete,
 }: ClientModalProps) {
-  const initialState = useMemo(() => createFormState(client), [client]);
+  const initialState = useMemo(() => createFormState(client, packages), [client, packages]);
   const [form, setForm] = useState<ClientFormState>(initialState);
   const [fieldError, setFieldError] = useState("");
   const isEdit = mode === "edit";
@@ -117,6 +150,8 @@ export function ClientModal({
       return;
     }
 
+    const matchedPkg = packages.find((p) => p.id === form.packageId || p.packageName === form.packageName);
+
     const trimmed = {
       restaurantName: form.restaurantName.trim(),
       ownerName: form.ownerName.trim(),
@@ -126,7 +161,8 @@ export function ClientModal({
       location: form.location.trim(),
       address: form.address.trim(),
       businessEmail: form.businessEmail.trim().toLowerCase(),
-      packageName: form.packageName,
+      packageId: matchedPkg?.id || form.packageId || undefined,
+      packageName: matchedPkg?.packageName || form.packageName || undefined,
       status: form.status,
     };
 
@@ -137,7 +173,7 @@ export function ClientModal({
 
     await onSave(null, {
       ...trimmed,
-      temporaryPassword: form.temporaryPassword,
+      temporaryPassword: form.temporaryPassword.trim(),
     });
     setForm((current) => ({ ...current, temporaryPassword: "" }));
   }
@@ -219,8 +255,25 @@ export function ClientModal({
         </label>
         <label className="space-y-2">
           <span className={adminLabelClasses(scheme)}>Package</span>
-          <select value={form.packageName} onChange={(event) => setForm((current) => ({ ...current, packageName: event.target.value as AdminClientPackage }))} className={adminInputClasses(scheme)}>
-            {packageOptions.map((option) => <option key={option}>{option}</option>)}
+          <select
+            value={form.packageId || packages.find((p) => p.packageName === form.packageName)?.id || ""}
+            onChange={(event) => {
+              const selectedId = event.target.value;
+              const pkgObj = packages.find((p) => p.id === selectedId);
+              setForm((current) => ({
+                ...current,
+                packageId: selectedId,
+                packageName: pkgObj?.packageName || "",
+              }));
+            }}
+            className={adminInputClasses(scheme)}
+          >
+            <option value="">No package</option>
+            {packages.map((pkg) => (
+              <option key={pkg.id} value={pkg.id}>
+                {pkg.packageName} ({pkg.priceDisplay})
+              </option>
+            ))}
           </select>
         </label>
         <label className="space-y-2">

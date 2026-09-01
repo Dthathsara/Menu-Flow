@@ -20,6 +20,7 @@ interface HorizontalNavProps {
   navItems: ManagerNavItem[];
   activeKey: ManagerNavKey;
   reportTab: ReportTab;
+  isLocked?: boolean;
   onSelect: (key: ManagerNavKey) => void;
 }
 
@@ -52,6 +53,7 @@ export function HorizontalNav({
   navItems,
   activeKey,
   reportTab,
+  isLocked = false,
   onSelect,
 }: HorizontalNavProps) {
   const router = useRouter();
@@ -83,12 +85,18 @@ export function HorizontalNav({
         {navItems.map((item) => {
           const Icon = getNavIcon(item.icon);
           const active = item.key === activeKey;
+          const isItemLocked = isLocked && item.key !== "invoices";
 
           return (
             <button
               key={item.key}
               type="button"
               onClick={() => {
+                if (isItemLocked) {
+                  router.push("/manager/invoices");
+                  return;
+                }
+
                 onSelect(item.key);
                 const href =
                   item.key === "reports"
@@ -99,13 +107,21 @@ export function HorizontalNav({
                   router.push(href);
                 }
               }}
+              aria-disabled={isItemLocked}
+              title={isItemLocked ? "Complete subscription payment to restore access." : undefined}
               className={cn(
                 "inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-[13px] font-semibold transition sm:px-4 sm:text-sm",
                 active ? activeClasses : idleClasses,
+                isItemLocked && "opacity-50 cursor-not-allowed hover:bg-transparent",
               )}
             >
               <Icon className="size-4.5" />
               <span>{item.label}</span>
+              {isItemLocked ? (
+                <span className="text-amber-400 text-xs" title="Locked - Payment overdue">
+                  🔒
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -113,3 +129,4 @@ export function HorizontalNav({
     </div>
   );
 }
+

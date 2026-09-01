@@ -19,7 +19,7 @@ export function ClientTable({ scheme, clients, onEdit, onDelete, emptyText }: Cl
     { key: "loginEmail", label: "LOGIN EMAIL", render: (row) => row.loginEmail || "Unavailable" },
     { key: "businessEmail", label: "BUSINESS EMAIL", render: (row) => row.businessEmail || "Unavailable" },
     { key: "location", label: "LOCATION", render: (row) => row.location || "Unavailable" },
-    { key: "packageName", label: "PACKAGE", render: (row) => row.packageName },
+    { key: "packageName", label: "PACKAGE", render: (row) => row.packageName || "No package" },
     { key: "status", label: "STATUS", render: (row) => <AdminStatusBadge scheme={scheme} status={row.status} /> },
     {
       key: "actions",

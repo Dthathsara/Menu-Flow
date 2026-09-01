@@ -36,6 +36,7 @@ interface SidebarProps {
   restaurantProfile: RestaurantProfile;
   overlay?: boolean;
   open?: boolean;
+  isLocked?: boolean;
   onSelect: (key: ManagerNavKey) => void;
   onSelectReportTab: (tab: ReportTab) => void;
   onClose?: () => void;
@@ -73,6 +74,7 @@ export function Sidebar({
   restaurantProfile,
   overlay = false,
   open = true,
+  isLocked = false,
   onSelect,
   onSelectReportTab,
   onClose,
@@ -134,18 +136,25 @@ export function Sidebar({
         : "bg-blue-500";
 
   function handleNavigate(key: ManagerNavKey) {
+    if (isLocked && key !== "invoices") {
+      router.push("/manager/invoices");
+      return;
+    }
+
     onSelect(key);
-
     const href = getManagerNavHref(key);
-
     if (href) {
       router.push(href);
     }
-
     onClose?.();
   }
 
   function handleReportsClick() {
+    if (isLocked) {
+      router.push("/manager/invoices");
+      return;
+    }
+
     if (activeKey !== "reports") {
       setReportsExpanded(true);
       onSelect("reports");
@@ -158,6 +167,10 @@ export function Sidebar({
   }
 
   function handleReportTabSelect(tab: "users" | "orders") {
+    if (isLocked) {
+      router.push("/manager/invoices");
+      return;
+    }
     onSelectReportTab(tab);
     onSelect("reports");
     router.push(getManagerNavHref("reports", tab) ?? `/manager/reports?tab=${tab}`);
@@ -237,26 +250,31 @@ export function Sidebar({
 
             <nav className="mt-4 space-y-1.5 pb-4">
               {navItems.map((item) => {
-              const Icon = getNavIcon(item.icon);
-              const active = item.key === activeKey;
-              const textVisibilityClasses =
-                hideText &&
-                !overlay &&
-                "lg:max-w-0 lg:overflow-hidden lg:opacity-0 lg:transition lg:duration-200 lg:group-hover/sidebar:max-w-[180px] lg:group-hover/sidebar:opacity-100";
+                const Icon = getNavIcon(item.icon);
+                const active = item.key === activeKey;
+                const isItemLocked = isLocked && item.key !== "invoices";
+                const textVisibilityClasses =
+                  hideText &&
+                  !overlay &&
+                  "lg:max-w-0 lg:overflow-hidden lg:opacity-0 lg:transition lg:duration-200 lg:group-hover/sidebar:max-w-[180px] lg:group-hover/sidebar:opacity-100";
 
                 if (item.key === "reports") {
-                  const submenuVisible = reportsExpanded;
+                  const submenuVisible = reportsExpanded && !isItemLocked;
 
                   return (
                     <div key={item.key} className="space-y-1.5">
                       <button
                         type="button"
                         onClick={handleReportsClick}
+                        aria-disabled={isItemLocked}
+                        title={isItemLocked ? "Complete subscription payment to restore access." : undefined}
                         className={cn(
                           "group/nav flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left text-l font-medium transition-all duration-200 ease-out active:translate-y-0 active:scale-[0.99]",
                           active ? activeItemClasses : hoverItemClasses,
                           !active && (usesBrandSidebar ? "text-white/86" : ""),
+                          isItemLocked && "opacity-50 cursor-not-allowed hover:translate-x-0 hover:shadow-none",
                           !active &&
+                            !isItemLocked &&
                             (usesBrandSidebar
                               ? "hover:translate-x-1 hover:shadow-[0_14px_26px_rgba(15,23,42,0.12)]"
                               : usesDarkSidebar
@@ -285,17 +303,24 @@ export function Sidebar({
                           <Icon className="size-5 transition-transform duration-200 ease-out group-hover/nav:scale-[1.04]" />
                         </span>
 
-                        <span className={cn("min-w-0 flex-1", textVisibilityClasses)}>
+                        <span className={cn("min-w-0 flex-1 flex items-center justify-between", textVisibilityClasses)}>
                           <span className="block truncate">{item.label}</span>
+                          {isItemLocked ? (
+                            <span className="ml-1 text-amber-400" title="Locked - Payment overdue">
+                              🔒
+                            </span>
+                          ) : null}
                         </span>
 
-                        <ChevronDownIcon
-                          className={cn(
-                            "size-4 shrink-0 transition-transform duration-200",
-                            submenuVisible && "rotate-180",
-                            textVisibilityClasses,
-                          )}
-                        />
+                        {!isItemLocked ? (
+                          <ChevronDownIcon
+                            className={cn(
+                              "size-4 shrink-0 transition-transform duration-200",
+                              submenuVisible && "rotate-180",
+                              textVisibilityClasses,
+                            )}
+                          />
+                        ) : null}
                       </button>
 
                       <div
@@ -318,6 +343,7 @@ export function Sidebar({
                                 key={tab}
                                 type="button"
                                 onClick={() => handleReportTabSelect(tab)}
+                                disabled={isItemLocked}
                                 className={cn(
                                   "relative flex w-full items-center rounded-lg py-2.5 pl-5 pr-3 text-left text-[14px] font-medium transition-all duration-200 ease-out",
                                   subActive ? activeSubItemClasses : idleSubItemClasses,
@@ -360,11 +386,15 @@ export function Sidebar({
                     key={item.key}
                     type="button"
                     onClick={() => handleNavigate(item.key)}
+                    aria-disabled={isItemLocked}
+                    title={isItemLocked ? "Complete subscription payment to restore access." : undefined}
                     className={cn(
                       "group/nav flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left text-l font-medium transition-all duration-200 ease-out active:translate-y-0 active:scale-[0.99]",
                       active ? activeItemClasses : hoverItemClasses,
                       !active && (usesBrandSidebar ? "text-white/86" : ""),
+                      isItemLocked && "opacity-50 cursor-not-allowed hover:translate-x-0 hover:shadow-none",
                       !active &&
+                        !isItemLocked &&
                         (usesBrandSidebar
                           ? "hover:translate-x-1 hover:shadow-[0_14px_26px_rgba(15,23,42,0.12)]"
                           : usesDarkSidebar
@@ -391,13 +421,13 @@ export function Sidebar({
                       <Icon className="size-5 transition-transform duration-200 ease-out group-hover/nav:scale-[1.04]" />
                     </span>
 
-                    <span
-                      className={cn(
-                        "min-w-0 flex-1",
-                        textVisibilityClasses,
-                      )}
-                    >
+                    <span className={cn("min-w-0 flex-1 flex items-center justify-between", textVisibilityClasses)}>
                       <span className="block truncate">{item.label}</span>
+                      {isItemLocked ? (
+                        <span className="ml-1 text-amber-400 text-xs" title="Locked - Payment overdue">
+                          🔒
+                        </span>
+                      ) : null}
                     </span>
                   </button>
                 );
@@ -409,3 +439,4 @@ export function Sidebar({
     </>
   );
 }
+

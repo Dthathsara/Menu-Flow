@@ -15,7 +15,12 @@ import { calculateUsageProgress, formatUsageLimit } from "./invoice.helpers";
 
 interface CurrentPackageCardProps {
   settings: ManagerSettings;
-  plan: SubscriptionPlan;
+  plan: SubscriptionPlan | null;
+  autoRenew?: boolean;
+  savedMethodLabel?: string;
+  isTogglingAutoRenew?: boolean;
+  onToggleAutoRenew?: (enabled: boolean) => void;
+  onAddPaymentMethod?: () => void;
 }
 
 function UsageMetric({
@@ -61,7 +66,56 @@ function UsageMetric({
   );
 }
 
-export function CurrentPackageCard({ settings, plan }: CurrentPackageCardProps) {
+export function CurrentPackageCard({
+  settings,
+  plan,
+  autoRenew = false,
+  savedMethodLabel,
+  isTogglingAutoRenew = false,
+  onToggleAutoRenew,
+  onAddPaymentMethod,
+}: CurrentPackageCardProps) {
+  if (!plan) {
+    return (
+      <section
+        className={cn(
+          "p-5 sm:p-6",
+          getManagerCardShellClasses(settings.scheme, { interactive: true }),
+        )}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className={getManagerSectionTitleClasses()}>Current Package</h3>
+            <p className={cn("text-[13px]", getManagerSectionSubtitleClasses(settings.scheme))}>
+              Your active MenuFlow subscription details.
+            </p>
+          </div>
+          <span
+            className={cn(
+              "inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold",
+              getManagerBadgeClasses("muted", settings.scheme),
+            )}
+          >
+            No Subscription
+          </span>
+        </div>
+
+        <div
+          className={cn(
+            "mt-5 rounded-[18px] border p-6 text-center",
+            getManagerPanelShellClasses(settings.scheme),
+          )}
+        >
+          <h4 className={cn("text-lg font-bold", getManagerStrongTextClasses(settings.scheme))}>
+            No subscription package assigned
+          </h4>
+          <p className={cn("mt-2 text-sm leading-6 max-w-md mx-auto", getMutedTextClasses(settings.scheme))}>
+            This restaurant does not currently have a subscription package. Select an available package below to get started.
+          </p>
+        </div>
+      </section>
+    );
+  }
   return (
     <section
       className={cn(
@@ -153,6 +207,50 @@ export function CurrentPackageCard({ settings, plan }: CurrentPackageCardProps) 
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-4 flex flex-col gap-3 rounded-[14px] border border-blue-500/20 bg-blue-500/8 p-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-[14px] font-bold text-slate-200">
+              <span>Auto Renew</span>
+              <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide", autoRenew ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-slate-700/50 text-slate-400 border border-slate-600/40")}>
+                {autoRenew ? "ON" : "OFF"}
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-slate-400">
+              Automatically renew this package at the end of each billing period using your saved payment method.
+            </p>
+            {savedMethodLabel ? (
+              <p className="mt-1 text-xs font-semibold text-blue-300">
+                Payment method: {savedMethodLabel}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs font-medium text-amber-400">
+                No payment method saved.{" "}
+                {onAddPaymentMethod ? (
+                  <button
+                    type="button"
+                    onClick={onAddPaymentMethod}
+                    className="underline hover:text-amber-200 cursor-pointer"
+                  >
+                    Add a payment method
+                  </button>
+                ) : null}
+              </p>
+            )}
+          </div>
+          {onToggleAutoRenew ? (
+            <label className="relative inline-flex cursor-pointer items-center shrink-0">
+              <input
+                type="checkbox"
+                checked={autoRenew}
+                disabled={isTogglingAutoRenew}
+                onChange={(event) => onToggleAutoRenew(event.target.checked)}
+                className="peer sr-only"
+              />
+              <div className="peer h-6 w-11 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50" />
+            </label>
+          ) : null}
         </div>
 
         <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-[0.9fr_0.9fr_1.35fr]">

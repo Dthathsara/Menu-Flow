@@ -252,7 +252,9 @@ export function OrdersPanel({
     }
 
     const intervalId = window.setInterval(() => {
-      void loadOrderHistory(false);
+      if (typeof document !== "undefined" && !document.hidden) {
+        void loadOrderHistory(false);
+      }
     }, 5000);
 
     return () => window.clearInterval(intervalId);
@@ -266,6 +268,9 @@ export function OrdersPanel({
     let active = true;
 
     async function refreshStatus() {
+      if (typeof document !== "undefined" && document.hidden) {
+        return;
+      }
       try {
         const nextOrder = await fetchCustomerOrder(
           statusOrder?.id ?? "",

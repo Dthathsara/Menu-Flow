@@ -27,7 +27,10 @@ export function ConfirmPlanModal({
   isSaving = false,
   errorMessage = "",
 }: ConfirmPlanModalProps) {
-  const verb = getPlanChangeVerb(currentPlan.id, targetPlan.id);
+  const verb = getPlanChangeVerb(currentPlan, targetPlan);
+  const targetName = targetPlan.label || targetPlan.planName;
+  const currentName = currentPlan.label || currentPlan.planName;
+  const actionText = verb === "Upgrade" ? "upgrading" : "changing";
   const usageImpactLines: string[] = [];
 
   if (
@@ -68,8 +71,8 @@ export function ConfirmPlanModal({
     <InvoiceModalFrame
       open
       settings={settings}
-      title={`${verb} to ${targetPlan.label}`}
-      subtitle={`You are changing from ${currentPlan.label} to ${targetPlan.label}. This will update billing details, invoice summary, usage limits, and the current package view immediately.`}
+      title={`${verb} to ${targetName}`}
+      subtitle={`You are ${actionText} from ${currentName} to ${targetName}. This will update billing details, invoice summary, usage limits, and the current package view immediately.`}
       maxWidthClassName="max-w-[760px]"
       footer={
         <>

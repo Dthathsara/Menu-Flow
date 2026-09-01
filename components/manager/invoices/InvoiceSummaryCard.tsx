@@ -13,7 +13,7 @@ import type { SubscriptionPlan } from "./invoice.types";
 
 interface InvoiceSummaryCardProps {
   settings: ManagerSettings;
-  plan: SubscriptionPlan;
+  plan: SubscriptionPlan | null;
   onRenew: () => void;
   onChangeCard: () => void;
   isActionLoading?: boolean;
@@ -26,6 +26,51 @@ export function InvoiceSummaryCard({
   onChangeCard,
   isActionLoading = false,
 }: InvoiceSummaryCardProps) {
+  if (!plan) {
+    return (
+      <section
+        className={cn(
+          "flex flex-col justify-between p-5 sm:p-6",
+          getManagerCardShellClasses(settings.scheme, { interactive: true }),
+        )}
+      >
+        <div>
+          <h3 className={getManagerSectionTitleClasses()}>Invoice Summary</h3>
+          <p className={cn("text-[13px]", getManagerSectionSubtitleClasses(settings.scheme))}>
+            Latest billing breakdown.
+          </p>
+          <div className="mt-8 rounded-[14px] border border-dashed border-slate-700/60 p-6 text-center text-sm font-medium text-slate-400">
+            No invoice is currently due.
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            disabled
+            className={cn(
+              "flex-1 rounded-[12px] px-4 text-[14px] opacity-50 cursor-not-allowed",
+              getManagerPrimaryButtonClasses(settings.scheme),
+            )}
+          >
+            Pay / Renew Now
+          </button>
+          <button
+            type="button"
+            onClick={onChangeCard}
+            disabled={isActionLoading}
+            className={cn(
+              "rounded-[12px] px-4 text-[14px] disabled:cursor-not-allowed disabled:opacity-55",
+              getManagerSecondaryButtonClasses(settings.scheme),
+            )}
+          >
+            Change Card
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   const rows = [
     { label: plan.billingLabel, value: plan.invoiceLineAmount },
     { label: "Tax / Service", value: plan.taxDisplay },

@@ -116,6 +116,19 @@ function clearStoredSession() {
       window.localStorage.removeItem(key);
     }
   }
+
+  if (typeof document !== "undefined" && document.cookie) {
+    const cookies = document.cookie.split(";");
+    for (const cookie of cookies) {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.slice(0, eqPos).trim() : cookie.trim();
+      if (name) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/api`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/api/v1`;
+      }
+    }
+  }
 }
 
 export function clearAuthSession() {
@@ -448,9 +461,8 @@ export function storeAuthResponse(data: unknown) {
     }
 
     window.localStorage.setItem("user", JSON.stringify(user));
-    window.dispatchEvent(
-      new CustomEvent("menuflow:user-updated", { detail: user }),
-    );
+    window.dispatchEvent(new Event("menuflow:user-updated"));
+    window.dispatchEvent(new Event("menuflow:auth-changed"));
   }
 
   return accessToken;

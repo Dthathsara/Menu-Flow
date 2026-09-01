@@ -114,6 +114,9 @@ export function ManagerRestaurantProfileProvider({
       });
 
     function handleUserUpdated(event: Event) {
+      if (isSelfDispatchingRef.current) {
+        return;
+      }
       const detail = event instanceof CustomEvent ? event.detail : null;
 
       if (!detail) {
@@ -146,6 +149,8 @@ export function ManagerRestaurantProfileProvider({
     };
   }, []);
 
+  const isSelfDispatchingRef = useRef(false);
+
   useEffect(() => {
     if (!hasProfileForSync) {
       return;
@@ -161,9 +166,11 @@ export function ManagerRestaurantProfileProvider({
     lastSyncedProfileRef.current = profileSnapshot;
     const nextUser = cacheRestaurantProfile(restaurantProfile);
 
+    isSelfDispatchingRef.current = true;
     window.dispatchEvent(
       new CustomEvent("menuflow:user-updated", { detail: nextUser }),
     );
+    isSelfDispatchingRef.current = false;
   }, [hasProfileForSync, restaurantProfile]);
 
   useEffect(() => {

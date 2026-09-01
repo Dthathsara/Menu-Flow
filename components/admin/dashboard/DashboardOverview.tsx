@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/components/manager/managerUtils";
 import { getApiErrorMessage } from "@/lib/error-handler";
 import {
   type CreateAdminClientInput,
+  type SystemAdminPackage,
   type UpdateAdminClientInput,
   createAdminClient,
+  getAdminPackages,
 } from "@/lib/system-admin-api";
 import { ClientModal } from "../clients/ClientModal";
 import { AdminButton } from "../common/AdminButton";
@@ -37,6 +39,27 @@ export function DashboardOverview({ scheme, searchQuery }: AdminPageProps) {
   const [modalError, setModalError] = useState("");
   const [submittingClient, setSubmittingClient] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [packages, setPackages] = useState<SystemAdminPackage[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadPackages() {
+      try {
+        const list = await getAdminPackages();
+        if (active) {
+          setPackages(list);
+        }
+      } catch {
+        if (active) {
+          setPackages([]);
+        }
+      }
+    }
+    void loadPackages();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function handleClientSave(clientId: string | null, values: CreateAdminClientInput | UpdateAdminClientInput) {
     if (clientId || submittingClient) {
@@ -125,6 +148,7 @@ export function DashboardOverview({ scheme, searchQuery }: AdminPageProps) {
         scheme={scheme}
         mode={modalMode}
         client={null}
+        packages={packages}
         open={clientModalOpen}
         submitting={submittingClient}
         error={modalError}

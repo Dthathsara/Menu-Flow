@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { LANGUAGE_OPTIONS, MANAGER_NAV_ITEMS } from "./managerConfig";
 import { HorizontalShell } from "./HorizontalShell";
 import { VerticalShell } from "./VerticalShell";
 import { useRestaurantProfile } from "./restaurant-profile-context";
+import { useManagerAccessStatus } from "./useManagerAccessStatus";
 import { cn, getShellBackgroundClasses } from "./managerUtils";
 import { useManagerSettings } from "./useManagerSettings";
 import type { LanguageOption, ManagerNavKey } from "./managerTypes";
@@ -19,6 +21,8 @@ export function ManagerDashboard({
   initialActiveNav = "dashboard",
   initialReportTab = "users",
 }: ManagerDashboardProps) {
+  const router = useRouter();
+  const { locked } = useManagerAccessStatus();
   const [activeNav, setActiveNav] = useState<ManagerNavKey>(initialActiveNav);
   const [activeReportTab, setActiveReportTab] = useState<ReportTab>(initialReportTab);
   const { restaurantProfile, updateRestaurantProfile } = useRestaurantProfile();
@@ -31,14 +35,26 @@ export function ManagerDashboard({
   const [navigationOpen, setNavigationOpen] = useState(false);
   const { settings, toggleScheme } = useManagerSettings();
 
+  useEffect(() => {
+    if (locked && activeNav !== "invoices") {
+      setActiveNav("invoices");
+      router.replace("/manager/invoices");
+    }
+  }, [locked, activeNav, router]);
+
+  const effectiveNav = locked ? "invoices" : activeNav;
   const activeItem =
-    MANAGER_NAV_ITEMS.find((item) => item.key === activeNav) ?? MANAGER_NAV_ITEMS[0];
+    MANAGER_NAV_ITEMS.find((item) => item.key === effectiveNav) ?? MANAGER_NAV_ITEMS[0];
 
   function handleToggleDropdown(dropdown: "language" | "profile") {
     setActiveDropdown((current) => (current === dropdown ? null : dropdown));
   }
 
   function handleSelectNav(key: ManagerNavKey) {
+    if (locked && key !== "invoices") {
+      router.push("/manager/invoices");
+      return;
+    }
     setActiveNav(key);
     setActiveDropdown(null);
     setNavigationOpen(false);
@@ -48,7 +64,7 @@ export function ManagerDashboard({
     settings,
     navItems: MANAGER_NAV_ITEMS,
     activeItem,
-    activeKey: activeNav,
+    activeKey: effectiveNav,
     initialReportTab,
     reportTab: activeReportTab,
     restaurantProfile,
@@ -56,6 +72,7 @@ export function ManagerDashboard({
     languages: LANGUAGE_OPTIONS,
     activeDropdown,
     navigationOpen,
+    isLocked: locked,
     onSelectNav: handleSelectNav,
     onSelectReportTab: setActiveReportTab,
     onToggleNavigation: () => setNavigationOpen((current) => !current),
@@ -82,12 +99,13 @@ export function ManagerDashboard({
       <div className="pointer-events-none absolute right-[-8rem] top-28 size-[18rem] rounded-full bg-cyan-400/10 blur-3xl" />
 
       <div className="relative z-0">
-        {settings.layoutType === "vertical" ? (
-          <VerticalShell {...sharedProps} />
-        ) : (
+        {settings.layoutMode === "horizontal" ? (
           <HorizontalShell {...sharedProps} />
+        ) : (
+          <VerticalShell {...sharedProps} />
         )}
       </div>
     </div>
   );
 }
+

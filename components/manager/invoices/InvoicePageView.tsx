@@ -5,10 +5,12 @@ import {
   changeManagerInvoicePlan,
   fetchManagerInvoice,
   fetchManagerInvoices,
-  renewManagerSubscription,
+  payManagerInvoice,
+  toggleManagerAutoRenew,
   updateManagerPaymentMethod,
 } from "@/lib/manager-invoices-api";
 import { SessionExpiredError } from "@/lib/auth-session";
+import { useManagerAccessStatus } from "../useManagerAccessStatus";
 import {
   exportInvoicePdf,
   filterInvoices,
@@ -16,7 +18,6 @@ import {
   formatExpiryInput,
   getDefaultTargetPlanId,
   getInvoiceDocument,
-  validateBillingEmail,
   validatePaymentMethodForm,
 } from "./invoice.helpers";
 import { AvailablePlans } from "./AvailablePlans";
@@ -55,6 +56,7 @@ const EMPTY_PAYMENT_FORM: PaymentMethodFormValues = {
 };
 
 export function InvoicePageView({ settings }: InvoicePageViewProps) {
+  const { locked, reason: lockReason, refetch: refetchAccessStatus } = useManagerAccessStatus();
   const [pageData, setPageData] = useState<ManagerInvoicesPageData | null>(null);
   const [pendingPlanId, setPendingPlanId] = useState<PlanId>("");
   const [query, setQuery] = useState("");
@@ -64,7 +66,9 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
   const [changePlanOpen, setChangePlanOpen] = useState(false);
   const [confirmPlanOpen, setConfirmPlanOpen] = useState(false);
   const [paymentMethodOpen, setPaymentMethodOpen] = useState(false);
-  const [renewOpen, setRenewOpen] = useState(false);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [activeInvoiceForPayment, setActiveInvoiceForPayment] = useState<InvoiceRecord | null>(null);
+  const [activePendingInvoiceId, setActivePendingInvoiceId] = useState<string>("");
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState("");
   const [paymentMethodForm, setPaymentMethodForm] =
     useState<PaymentMethodFormValues>(EMPTY_PAYMENT_FORM);
@@ -74,8 +78,10 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [invoiceAction, setInvoiceAction] = useState<InvoiceAction>("");
   const [isChangingPlan, setIsChangingPlan] = useState(false);
-  const [isRenewing, setIsRenewing] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
   const [isSavingPaymentMethod, setIsSavingPaymentMethod] = useState(false);
+  const [autoRenew, setAutoRenew] = useState(false);
+  const [isTogglingAutoRenew, setIsTogglingAutoRenew] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [modalErrorMessage, setModalErrorMessage] = useState("");
 
@@ -86,6 +92,7 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
     try {
       const nextData = await fetchManagerInvoices();
       setPageData(nextData);
+      setAutoRenew(Boolean(nextData.autoRenew));
       setSelectedPaymentMethodId((current) =>
         current && nextData.paymentMethods.some((method) => method.id === current)
           ? current
@@ -93,11 +100,23 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
       );
       setBillingEmail((current) => current || nextData.billingProfile.billingEmail);
       setCardHolderName((current) => current || nextData.paymentMethods[0]?.holderName || "");
-      setPendingPlanId((current) =>
-        current && nextData.availablePlans.some((plan) => plan.id === current)
-          ? current
-          : getDefaultTargetPlanId(nextData.currentPlan.id),
-      );
+      setPendingPlanId((current) => {
+        if (current && nextData.availablePlans.some((plan) => plan.id === current)) {
+          return current;
+        }
+        return nextData.currentPlan?.id
+          ? getDefaultTargetPlanId(nextData.currentPlan.id)
+          : nextData.availablePlans[0]?.id ?? "";
+      });
+
+      if (nextData.invoices.length === 0) {
+        setPreviewInvoice(null);
+        setActiveInvoiceForPayment(null);
+        setActivePendingInvoiceId("");
+      }
+      if (nextData.paymentMethods.length === 0) {
+        setSelectedPaymentMethodId("");
+      }
     } catch (error) {
       setPageData(null);
       setErrorMessage(getInvoiceErrorMessage(error));
@@ -108,6 +127,15 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
 
   useEffect(() => {
     void loadInvoices();
+
+    function onFocus() {
+      void loadInvoices();
+    }
+
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+    };
   }, [loadInvoices]);
 
   const currentPlan = pageData?.currentPlan;
@@ -130,7 +158,7 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
     pageData?.paymentMethods[0] ??
     null;
   const actionInFlight =
-    Boolean(invoiceAction) || isChangingPlan || isRenewing || isSavingPaymentMethod;
+    Boolean(invoiceAction) || isChangingPlan || isPaying || isSavingPaymentMethod;
 
   function pushToast(title: string) {
     const id =
@@ -145,8 +173,24 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
     }, 2800);
   }
 
+  function openInitialPackagePayment(planId: PlanId) {
+    const selected = availablePlans.find((plan) => plan.id === planId);
+    if (!selected) {
+      return;
+    }
+    setPendingPlanId(selected.id);
+    setActivePendingInvoiceId("");
+    setActiveInvoiceForPayment(null);
+    setModalErrorMessage("");
+    setPayModalOpen(true);
+  }
+
   function openChangePlan(targetPlanId?: PlanId) {
     if (!currentPlan) {
+      const targetId = targetPlanId || availablePlans[0]?.id;
+      if (targetId) {
+        openInitialPackagePayment(targetId);
+      }
       return;
     }
 
@@ -158,6 +202,127 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
     setPendingPlanId(nextTargetPlanId);
     setModalErrorMessage("");
     setChangePlanOpen(true);
+  }
+
+  function openPaymentModalForCurrentOrPending() {
+    const pendingInv = pageData?.invoices.find((inv) => inv.status === "Pending" || inv.status === "Overdue");
+    const initialPlanId = pendingPlanId || currentPlan?.id || availablePlans[0]?.id || "";
+    setPendingPlanId(initialPlanId);
+    const targetInvoice = pendingInv ?? latestInvoice ?? pageData?.invoices[0] ?? null;
+    setActiveInvoiceForPayment(targetInvoice);
+    setActivePendingInvoiceId(targetInvoice?.id ?? "");
+    setModalErrorMessage("");
+    setPayModalOpen(true);
+  }
+
+  async function handlePayInvoice(payload: {
+    paymentMethodId?: string;
+    cardNumber?: string;
+    holderName?: string;
+    expiryDate?: string;
+    cvc?: string;
+    billingEmail: string;
+  }) {
+    if (isPaying) {
+      return;
+    }
+
+    setIsPaying(true);
+    setModalErrorMessage("");
+
+    try {
+      const selectedPlan =
+        availablePlans.find((plan) => plan.id === pendingPlanId) ??
+        availablePlans[0] ??
+        null;
+
+      let invoiceId =
+        activePendingInvoiceId ||
+        activeInvoiceForPayment?.id ||
+        "";
+
+      // 1. Search page invoices for a matching pending invoice for this selected plan
+      if (!invoiceId && selectedPlan) {
+        const matchingPendingInv = pageData?.invoices.find((inv) => {
+          if (inv.status !== "Pending" && inv.status !== "Overdue") return false;
+          const labelMatch =
+            inv.packageLabel?.toLowerCase() === selectedPlan.label.toLowerCase() ||
+            inv.packageLabel?.toLowerCase() === selectedPlan.planName.toLowerCase() ||
+            inv.invoiceLineLabel?.toLowerCase().includes(selectedPlan.label.toLowerCase());
+          return labelMatch;
+        });
+
+        if (matchingPendingInv) {
+          invoiceId = matchingPendingInv.id;
+          setActivePendingInvoiceId(invoiceId);
+          setActiveInvoiceForPayment(matchingPendingInv);
+        }
+      }
+
+      // 2. If no pending invoice exists, call PATCH /manager-invoices/plan to create one
+      if (!invoiceId) {
+        if (!selectedPlan) {
+          throw new Error("Please select a package.");
+        }
+
+        const planTarget = selectedPlan.packageId || selectedPlan.id;
+        const changeResult = await changeManagerInvoicePlan(planTarget);
+
+        invoiceId =
+          changeResult.pendingInvoiceId ||
+          changeResult.invoiceId ||
+          "";
+
+        if (!invoiceId) {
+          throw new Error("Unable to prepare the subscription invoice. Please try again.");
+        }
+
+        setActivePendingInvoiceId(invoiceId);
+
+        try {
+          const preparedInvoice = await fetchManagerInvoice(invoiceId);
+          setActiveInvoiceForPayment(preparedInvoice);
+        } catch {
+          // Invoice ID is enough to continue payment even if detail fetch fails
+        }
+      }
+
+      if (typeof invoiceId !== "string" || !invoiceId.trim()) {
+        throw new Error("A valid invoice could not be prepared for payment.");
+      }
+
+      const cleanInvoiceId = invoiceId.trim();
+
+      const requestPayload = payload.paymentMethodId
+        ? {
+            invoiceId: cleanInvoiceId,
+            paymentMethodId: payload.paymentMethodId,
+            billingEmail: payload.billingEmail,
+          }
+        : {
+            invoiceId: cleanInvoiceId,
+            cardNumber: payload.cardNumber,
+            holderName: payload.holderName,
+            expiryDate: payload.expiryDate,
+            cvc: payload.cvc,
+            billingEmail: payload.billingEmail,
+          };
+
+      await payManagerInvoice(requestPayload);
+
+      setPayModalOpen(false);
+      setActivePendingInvoiceId("");
+      setActiveInvoiceForPayment(null);
+      pushToast("Payment completed successfully.");
+
+      window.dispatchEvent(new Event("menuflow:subscription-updated"));
+      await refetchAccessStatus();
+      await loadInvoices();
+    } catch (error) {
+      setModalErrorMessage(getInvoiceErrorMessage(error));
+    } finally {
+      setIsPaying(false);
+    }
   }
 
   async function getDetailedInvoice(invoiceId: string) {
@@ -240,17 +405,51 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
     setModalErrorMessage("");
 
     try {
-      await changeManagerInvoicePlan(pendingPlan.id);
-      setChangePlanOpen(false);
+      const targetPlanCodeOrId = pendingPlan.packageId || pendingPlan.id;
+      const result = await changeManagerInvoicePlan(targetPlanCodeOrId);
       setConfirmPlanOpen(false);
-      pushToast(`Current package changed to ${pendingPlan.planName}.`);
-      await loadInvoices();
+      setChangePlanOpen(false);
+
+      const pendingId = result.pendingInvoiceId || "";
+      setActivePendingInvoiceId(pendingId);
+
+      if (pendingId) {
+        try {
+          const invObj = await fetchManagerInvoice(pendingId);
+          setActiveInvoiceForPayment(invObj);
+        } catch {
+          setActiveInvoiceForPayment(null);
+        }
+      } else {
+        setActiveInvoiceForPayment(null);
+      }
+
+      setModalErrorMessage("");
+      setPayModalOpen(true);
     } catch (error) {
       setModalErrorMessage(getInvoiceErrorMessage(error));
     } finally {
       setIsChangingPlan(false);
     }
   }
+
+  function openPaymentModalForInvoice(invoice: InvoiceRecord) {
+    setActiveInvoiceForPayment(invoice);
+    setActivePendingInvoiceId(invoice.id);
+    const matchingPlan = availablePlans.find(
+      (plan) =>
+        plan.label.toLowerCase() === invoice.packageLabel?.toLowerCase() ||
+        plan.planName.toLowerCase() === invoice.packageLabel?.toLowerCase() ||
+        plan.id === invoice.packageId,
+    );
+    if (matchingPlan) {
+      setPendingPlanId(matchingPlan.id);
+    }
+    setModalErrorMessage("");
+    setPayModalOpen(true);
+  }
+
+
 
   function openPaymentMethodModal() {
     setPaymentMethodForm({
@@ -289,45 +488,6 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
     }
   }
 
-  async function handleRenewSubscription() {
-    if (isRenewing) {
-      return;
-    }
-
-    if (!selectedPaymentMethod) {
-      setModalErrorMessage("Add a payment method before renewing this subscription.");
-      return;
-    }
-
-    if (!cardHolderName.trim()) {
-      setModalErrorMessage("Card holder name is required.");
-      return;
-    }
-
-    if (!validateBillingEmail(billingEmail)) {
-      setModalErrorMessage("Enter a valid billing email.");
-      return;
-    }
-
-    setIsRenewing(true);
-    setModalErrorMessage("");
-
-    try {
-      await renewManagerSubscription({
-        paymentMethodId: selectedPaymentMethod.id,
-        cardHolderName,
-        billingEmail,
-      });
-      setRenewOpen(false);
-      pushToast("Subscription renewed successfully.");
-      await loadInvoices();
-    } catch (error) {
-      setModalErrorMessage(getInvoiceErrorMessage(error));
-    } finally {
-      setIsRenewing(false);
-    }
-  }
-
   function handlePaymentMethodFormChange(
     field: keyof PaymentMethodFormValues,
     value: string,
@@ -343,6 +503,14 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
 
     setPaymentMethodForm((current) => ({ ...current, [field]: nextValue }));
   }
+
+  const selectedPaymentPlan = availablePlans.find((plan) => plan.id === pendingPlanId) ?? availablePlans[0] ?? null;
+  const payableAmount =
+    activeInvoiceForPayment?.totalDisplay ||
+    selectedPaymentPlan?.totalDisplay ||
+    selectedPaymentPlan?.priceDisplay ||
+    currentPlan?.totalDisplay ||
+    "Rs. 0";
 
   return (
     <>
@@ -367,8 +535,32 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
             }}
             onOpenChangePlan={() => openChangePlan()}
             hasLatestInvoice={Boolean(latestInvoice)}
+            hasCurrentPlan={Boolean(currentPlan)}
+            hasAvailablePlans={availablePlans.length > 0}
             isActionLoading={actionInFlight}
           />
+
+          {locked ? (
+            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 shadow-lg">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-base font-extrabold text-amber-300">
+                    Subscription payment required
+                  </h3>
+                  <p className="mt-1 text-sm font-medium text-amber-200/90">
+                    {lockReason || "Your subscription payment is overdue. Complete payment to restore full access to MenuFlow."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openPaymentModalForCurrentOrPending}
+                  className="inline-flex shrink-0 items-center justify-center rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-amber-400 active:scale-95"
+                >
+                  Pay Now
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {errorMessage ? (
             <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-5 py-4 text-sm font-semibold text-rose-300">
@@ -385,21 +577,35 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
 
           {isLoading ? <InvoiceLoadingState settings={settings} /> : null}
 
-          {!isLoading && currentPlan ? (
+          {!isLoading ? (
             <>
               <InvoiceStats settings={settings} plan={currentPlan} />
 
               <section className="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
-                <CurrentPackageCard settings={settings} plan={currentPlan} />
+                <CurrentPackageCard
+                  settings={settings}
+                  plan={currentPlan}
+                  autoRenew={autoRenew}
+                  savedMethodLabel={selectedPaymentMethod?.label}
+                  isTogglingAutoRenew={isTogglingAutoRenew}
+                  onToggleAutoRenew={async (enabled) => {
+                    setIsTogglingAutoRenew(true);
+                    try {
+                      const nextState = await toggleManagerAutoRenew(enabled);
+                      setAutoRenew(nextState);
+                      pushToast(nextState ? "Auto Renew enabled." : "Auto Renew disabled.");
+                    } catch (err) {
+                      pushToast(err instanceof Error ? err.message : "Failed to toggle Auto Renew.");
+                    } finally {
+                      setIsTogglingAutoRenew(false);
+                    }
+                  }}
+                  onAddPaymentMethod={openPaymentMethodModal}
+                />
                 <InvoiceSummaryCard
                   settings={settings}
                   plan={currentPlan}
-                  onRenew={() => {
-                    setCardHolderName(selectedPaymentMethod?.holderName ?? "");
-                    setBillingEmail(pageData?.billingProfile.billingEmail ?? "");
-                    setModalErrorMessage("");
-                    setRenewOpen(true);
-                  }}
+                  onRenew={openPaymentModalForCurrentOrPending}
                   onChangeCard={openPaymentMethodModal}
                   isActionLoading={actionInFlight}
                 />
@@ -414,12 +620,15 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
                 onStatusChange={setStatusFilter}
                 onView={(invoiceId) => void handleOpenInvoicePreview(invoiceId)}
                 onDownload={(invoiceId) => void handleDownloadInvoice(invoiceId)}
+                onPay={openPaymentModalForInvoice}
                 isActionLoading={actionInFlight}
               />
 
               <AvailablePlans
                 settings={settings}
-                currentPlanId={currentPlan.id}
+                currentPlan={currentPlan}
+                currentPlanId={currentPlan?.id}
+                currentPlanCode={currentPlan?.packageType}
                 plans={availablePlans}
                 onSelectPlan={openChangePlan}
                 isSaving={actionInFlight}
@@ -498,14 +707,37 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
         />
       ) : null}
 
-      {renewOpen && currentPlan ? (
+      {payModalOpen ? (
         <PaymentModal
           settings={settings}
-          amount={currentPlan.totalDisplay}
+          title={activePendingInvoiceId ? "Complete Plan Payment" : "Subscription Payment"}
+          subtitle={
+            activePendingInvoiceId
+              ? `Pay for pending subscription upgrade to ${pendingPlan?.planName || "new package"}.`
+              : "Confirm payment method to renew subscription."
+          }
+          amount={payableAmount}
           cardHolderName={cardHolderName}
           selectedPaymentMethodId={selectedPaymentMethodId}
           paymentMethods={pageData?.paymentMethods ?? []}
           billingEmail={billingEmail}
+          availablePlans={availablePlans}
+          selectedPlanId={pendingPlanId || selectedPaymentPlan?.id || ""}
+          onPlanChange={(planId) => {
+            setPendingPlanId(planId);
+            const selectedPlan = availablePlans.find((p) => p.id === planId);
+            const matchingPendingInv = pageData?.invoices.find((inv) => {
+              if (inv.status !== "Pending" && inv.status !== "Overdue") return false;
+              return (
+                inv.packageLabel?.toLowerCase() === selectedPlan?.label.toLowerCase() ||
+                inv.packageLabel?.toLowerCase() === selectedPlan?.planName.toLowerCase()
+              );
+            });
+            if (matchingPendingInv) {
+              setActivePendingInvoiceId(matchingPendingInv.id);
+              setActiveInvoiceForPayment(matchingPendingInv);
+            }
+          }}
           onCardHolderNameChange={setCardHolderName}
           onPaymentMethodChange={(methodId) => {
             setSelectedPaymentMethodId(methodId);
@@ -514,13 +746,15 @@ export function InvoicePageView({ settings }: InvoicePageViewProps) {
           }}
           onBillingEmailChange={setBillingEmail}
           onClose={() => {
-            if (!isRenewing) {
-              setRenewOpen(false);
+            if (!isPaying) {
+              setPayModalOpen(false);
+              setActivePendingInvoiceId("");
+              setActiveInvoiceForPayment(null);
               setModalErrorMessage("");
             }
           }}
-          onConfirm={handleRenewSubscription}
-          isSaving={isRenewing}
+          onConfirmPay={handlePayInvoice}
+          isSaving={isPaying}
           errorMessage={modalErrorMessage}
         />
       ) : null}

@@ -177,7 +177,15 @@ export function ManagerDashboardOverview({ settings }: { settings: ManagerSettin
       setData(nextData);
     } catch (loadError) {
       if (process.env.NODE_ENV === "development") {
-        console.error(loadError);
+        const is402 =
+          typeof loadError === "object" &&
+          loadError !== null &&
+          "status" in loadError &&
+          (loadError as { status?: number }).status === 402;
+
+        if (!is402) {
+          console.error(loadError);
+        }
       }
 
       setError(getApiErrorMessage(loadError, "Unable to load dashboard data. Please try again."));

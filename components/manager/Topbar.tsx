@@ -28,6 +28,7 @@ interface TopbarProps {
   languages: LanguageOption[];
   activeDropdown: "language" | "profile" | null;
   menuButtonClassName: string;
+  isLocked?: boolean;
   profileDropdown?: React.ReactNode;
   onToggleNavigation: () => void;
   onToggleTheme: () => void;
@@ -43,6 +44,7 @@ export function Topbar({
   languages,
   activeDropdown,
   menuButtonClassName,
+  isLocked = false,
   profileDropdown,
   onToggleNavigation,
   onToggleTheme,
@@ -154,6 +156,7 @@ export function Topbar({
               open={activeDropdown === "profile"}
               scheme={settings.scheme}
               triggerClassName={controlClasses}
+              isLocked={isLocked}
               onToggle={() => onToggleDropdown("profile")}
               onClose={onCloseDropdowns}
             />

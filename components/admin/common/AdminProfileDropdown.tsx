@@ -114,7 +114,10 @@ export function AdminProfileDropdown({ scheme }: AdminProfileDropdownProps) {
 
         setProfile(nextProfile);
         setForm(createAccountForm(nextProfile));
-        storeAuthResponse({ user: nextProfile });
+        const currentUser = getStoredAuthUser();
+        if (!currentUser || currentUser.email !== nextProfile.email || currentUser.name !== nextProfile.fullName) {
+          storeAuthResponse({ user: nextProfile });
+        }
       } catch (loadError) {
         if (active) {
           setError(getApiErrorMessage(loadError, "Unable to load system admin profile."));

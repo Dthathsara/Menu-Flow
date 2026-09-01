@@ -113,7 +113,9 @@ export function OrdersPageView({ settings }: OrdersPageViewProps) {
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      void loadOrders(false);
+      if (typeof document !== "undefined" && !document.hidden) {
+        void loadOrders(false);
+      }
     }, 5000);
 
     return () => window.clearInterval(intervalId);

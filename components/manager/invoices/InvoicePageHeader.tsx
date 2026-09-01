@@ -16,6 +16,8 @@ interface InvoicePageHeaderProps {
   onDownloadLatest: () => void;
   onOpenChangePlan: () => void;
   hasLatestInvoice: boolean;
+  hasCurrentPlan?: boolean;
+  hasAvailablePlans?: boolean;
   isActionLoading?: boolean;
 }
 
@@ -26,6 +28,8 @@ export function InvoicePageHeader({
   onDownloadLatest,
   onOpenChangePlan,
   hasLatestInvoice,
+  hasCurrentPlan = true,
+  hasAvailablePlans = true,
   isActionLoading = false,
 }: InvoicePageHeaderProps) {
   return (
@@ -93,13 +97,13 @@ export function InvoicePageHeader({
           <button
             type="button"
             onClick={onOpenChangePlan}
-            disabled={isActionLoading}
+            disabled={isActionLoading || !hasAvailablePlans}
             className={cn(
               getManagerPrimaryButtonClasses(settings.scheme),
               "h-10 rounded-[12px] px-4 text-[13px] disabled:cursor-not-allowed disabled:opacity-55",
             )}
           >
-            Upgrade Plan
+            {hasCurrentPlan ? "Upgrade Plan" : "Select Package"}
           </button>
         </div>
       </div>

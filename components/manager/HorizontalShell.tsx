@@ -27,6 +27,7 @@ interface HorizontalShellProps {
   languages: LanguageOption[];
   activeDropdown: "language" | "profile" | null;
   navigationOpen: boolean;
+  isLocked?: boolean;
   onSelectNav: (key: ManagerNavKey) => void;
   onSelectReportTab: (tab: ReportTab) => void;
   onToggleNavigation: () => void;
@@ -50,6 +51,7 @@ export function HorizontalShell({
   languages,
   activeDropdown,
   navigationOpen,
+  isLocked = false,
   onSelectNav,
   onSelectReportTab,
   onToggleNavigation,
@@ -74,6 +76,7 @@ export function HorizontalShell({
         languages={languages}
         activeDropdown={activeDropdown}
         menuButtonClassName="hidden"
+        isLocked={isLocked}
         onToggleNavigation={onToggleNavigation}
         onToggleTheme={onToggleTheme}
         onToggleDropdown={onToggleDropdown}
@@ -86,6 +89,7 @@ export function HorizontalShell({
         navItems={navItems}
         activeKey={activeKey}
         reportTab={reportTab}
+        isLocked={isLocked}
         onSelect={onSelectNav}
       />
 

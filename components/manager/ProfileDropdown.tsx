@@ -33,6 +33,7 @@ interface ProfileDropdownProps {
   open: boolean;
   scheme: Scheme;
   triggerClassName: string;
+  isLocked?: boolean;
   onToggle: () => void;
   onClose: () => void;
 }
@@ -41,6 +42,7 @@ export function ProfileDropdown({
   open,
   scheme,
   triggerClassName,
+  isLocked = false,
   onToggle,
   onClose,
 }: ProfileDropdownProps) {
@@ -92,11 +94,13 @@ export function ProfileDropdown({
       "?")[0].toUpperCase();
 
   function handleOpenProfileModal() {
+    if (isLocked) return;
     onClose();
     setProfileModalOpen(true);
   }
 
   function handleOpenCustomerMenu() {
+    if (isLocked) return;
     const tenantId =
       typeof user?.tenantId === "string" ? user.tenantId.trim() : "";
 
@@ -164,11 +168,14 @@ export function ProfileDropdown({
               <button
                 type="button"
                 onClick={handleOpenProfileModal}
+                disabled={isLocked}
+                title={isLocked ? "Account access locked until payment is complete." : undefined}
                 className={cn(
                   "flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-all duration-200 ease-out",
                   scheme === "dark"
                     ? "text-slate-200 hover:bg-white/8 hover:text-white"
                     : "text-slate-700 hover:bg-slate-50 hover:text-slate-900",
+                  isLocked && "opacity-40 cursor-not-allowed hover:bg-transparent",
                   getFocusRingClasses(scheme),
                 )}
               >
@@ -179,11 +186,14 @@ export function ProfileDropdown({
               <button
                 type="button"
                 onClick={handleOpenCustomerMenu}
+                disabled={isLocked}
+                title={isLocked ? "Account access locked until payment is complete." : undefined}
                 className={cn(
                   "flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-all duration-200 ease-out",
                   scheme === "dark"
                     ? "text-slate-200 hover:bg-white/8 hover:text-white"
                     : "text-slate-700 hover:bg-slate-50 hover:text-slate-900",
+                  isLocked && "opacity-40 cursor-not-allowed hover:bg-transparent",
                   getFocusRingClasses(scheme),
                 )}
               >

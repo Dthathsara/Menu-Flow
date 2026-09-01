@@ -40,20 +40,75 @@ export function getDefaultTargetPlanId(currentPlanId: PlanId): PlanId {
   return currentPlanId === "premium" ? "growth" : "premium";
 }
 
-export function getPlanActionLabel(currentPlanId: PlanId, targetPlanId: PlanId) {
-  if (currentPlanId === targetPlanId) {
+export function getPlanPrice(plan: SubscriptionPlan | null | undefined): number {
+  if (!plan) return 0;
+  if (typeof plan.price === "number" && Number.isFinite(plan.price) && plan.price > 0) {
+    return plan.price;
+  }
+  const str = plan.priceDisplay || plan.totalDisplay || plan.amountDue || "";
+  const parsed = Number(str.replace(/[^\d.-]/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function isUpgradePlan(
+  currentPlan: SubscriptionPlan | null | undefined,
+  targetPlan: SubscriptionPlan,
+): boolean {
+  if (!currentPlan) return true;
+  const currentPrice = getPlanPrice(currentPlan);
+  const targetPrice = getPlanPrice(targetPlan);
+
+  if (targetPrice !== currentPrice) {
+    return targetPrice > currentPrice;
+  }
+  const currentTier = currentPlan.tier ?? PLAN_CATALOG[currentPlan.id.toLowerCase()]?.tier ?? 0;
+  const targetTier = targetPlan.tier ?? PLAN_CATALOG[targetPlan.id.toLowerCase()]?.tier ?? 0;
+  return targetTier > currentTier;
+}
+
+export function getPlanActionLabel(
+  currentPlan: SubscriptionPlan | PlanId | null | undefined,
+  targetPlan: SubscriptionPlan | PlanId,
+): string {
+  if (!currentPlan) {
+    return "Select Package";
+  }
+
+  // Handle object inputs
+  if (typeof currentPlan === "object" && typeof targetPlan === "object") {
+    const isSamePlan =
+      targetPlan.id === currentPlan.id ||
+      (Boolean(targetPlan.packageId) && targetPlan.packageId === currentPlan.packageId);
+
+    if (isSamePlan) {
+      return "Current Plan";
+    }
+
+    return isUpgradePlan(currentPlan, targetPlan) ? "Upgrade Plan" : "Downgrade Plan";
+  }
+
+  // Handle string ID fallback
+  const currId = typeof currentPlan === "string" ? currentPlan : currentPlan.id;
+  const targId = typeof targetPlan === "string" ? targetPlan : targetPlan.id;
+
+  if (currId === targId) {
     return "Current Plan";
   }
 
-  if (targetPlanId.toLowerCase() === "premium") {
-    return "Talk to Sales / Upgrade";
-  }
-
-  return getPlanTier(targetPlanId) > getPlanTier(currentPlanId) ? "Upgrade" : "Downgrade";
+  return getPlanTier(targId) > getPlanTier(currId) ? "Upgrade Plan" : "Downgrade Plan";
 }
 
-export function getPlanChangeVerb(currentPlanId: PlanId, targetPlanId: PlanId) {
-  return getPlanTier(targetPlanId) > getPlanTier(currentPlanId) ? "Upgrade" : "Downgrade";
+export function getPlanChangeVerb(
+  currentPlan: SubscriptionPlan | PlanId | null | undefined,
+  targetPlan: SubscriptionPlan | PlanId,
+): "Upgrade" | "Downgrade" {
+  if (!currentPlan) return "Upgrade";
+  if (typeof currentPlan === "object" && typeof targetPlan === "object") {
+    return isUpgradePlan(currentPlan, targetPlan) ? "Upgrade" : "Downgrade";
+  }
+  const currId = typeof currentPlan === "string" ? currentPlan : currentPlan.id;
+  const targId = typeof targetPlan === "string" ? targetPlan : targetPlan.id;
+  return getPlanTier(targId) > getPlanTier(currId) ? "Upgrade" : "Downgrade";
 }
 
 export function getPlanTier(planId: PlanId) {
@@ -346,20 +401,16 @@ export async function exportInvoicePdf(invoice: InvoiceRecord) {
 export function validatePaymentMethodForm(values: PaymentMethodFormValues) {
   const cardNumber = values.cardNumber.replace(/\D/g, "");
 
-  if (!/^[\d\s]+$/.test(values.cardNumber.trim()) || cardNumber.length < 12 || cardNumber.length > 19) {
-    return "Enter a valid card number.";
-  }
-
-  if (!passesLuhn(cardNumber)) {
-    return "Enter a valid card number.";
+  if (!/^[\d\s]+$/.test(values.cardNumber.trim()) || cardNumber.length !== 16) {
+    return "Card number must contain exactly 16 digits.";
   }
 
   if (!values.holderName.trim()) {
     return "Name on card is required.";
   }
 
-  if (!isValidFutureExpiry(values.expiryDate)) {
-    return "Enter a valid future expiry date in MM / YY format.";
+  if (!isValidDemoExpiry(values.expiryDate)) {
+    return "Enter a valid expiry date in MM / YY format.";
   }
 
   if (!/^\d{3,4}$/.test(values.cvc.trim())) {
@@ -370,12 +421,8 @@ export function validatePaymentMethodForm(values: PaymentMethodFormValues) {
 }
 
 export function formatCardNumberInput(value: string) {
-  return value
-    .replace(/[^\d\s]/g, "")
-    .replace(/\s+/g, "")
-    .slice(0, 19)
-    .replace(/(.{4})/g, "$1 ")
-    .trim();
+  const digits = value.replace(/\D/g, "").slice(0, 16);
+  return digits.replace(/(.{4})/g, "$1 ").trim();
 }
 
 export function formatExpiryInput(value: string) {
@@ -413,7 +460,7 @@ function passesLuhn(value: string) {
   return sum % 10 === 0;
 }
 
-function isValidFutureExpiry(value: string) {
+function isValidDemoExpiry(value: string) {
   const match = /^(\d{2})\s*\/?\s*(\d{2})$/.exec(value.trim());
 
   if (!match) {
@@ -421,14 +468,7 @@ function isValidFutureExpiry(value: string) {
   }
 
   const month = Number(match[1]);
-  const year = 2000 + Number(match[2]);
-
-  if (month < 1 || month > 12) {
-    return false;
-  }
-
-  const expiryEnd = new Date(year, month, 0, 23, 59, 59, 999);
-  return expiryEnd.getTime() >= Date.now();
+  return month >= 1 && month <= 12;
 }
 
 function escapeHtml(value: string) {

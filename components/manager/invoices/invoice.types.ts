@@ -17,6 +17,8 @@ export interface UsageLimit {
 
 export interface SubscriptionPlan {
   id: PlanId;
+  packageId?: string;
+  price?: number;
   tier: number;
   label: string;
   planName: string;
@@ -84,12 +86,13 @@ export interface InvoiceRecord {
 }
 
 export interface ManagerInvoicesPageData {
-  currentPlan: SubscriptionPlan;
+  currentPlan: SubscriptionPlan | null;
   availablePlans: SubscriptionPlan[];
   invoices: InvoiceRecord[];
   latestInvoice: InvoiceRecord | null;
   billingProfile: BillingProfile;
   paymentMethods: PaymentMethodRecord[];
+  autoRenew?: boolean;
 }
 
 export interface PaymentMethodRecord {
@@ -109,12 +112,22 @@ export interface PaymentMethodFormValues {
 }
 
 export interface RenewSubscriptionPayload {
-  paymentMethodId: string;
-  cardHolderName: string;
-  billingEmail: string;
+  paymentMethodId?: string;
+  cardHolderName?: string;
+  billingEmail?: string;
+  confirmSavedPaymentMethod?: boolean;
 }
 
 export type UpdatePaymentMethodPayload = PaymentMethodFormValues;
+
+export interface PlanChangeResult {
+  pendingInvoiceId?: string;
+  invoiceId?: string;
+  invoiceNumber?: string;
+  amount?: number | null;
+  amountDue?: number | null;
+  message?: string;
+}
 
 export interface ToastMessage {
   id: string;
