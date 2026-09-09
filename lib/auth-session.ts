@@ -103,6 +103,7 @@ function clearStoredSession() {
     return;
   }
 
+  window.localStorage.removeItem(LAST_ACTIVITY_KEY);
   window.localStorage.removeItem("accessToken");
   window.localStorage.removeItem("refreshToken");
   window.localStorage.removeItem("user");
@@ -438,6 +439,8 @@ export function storeAuthResponse(data: unknown) {
       : typeof record.refresh_token === "string"
         ? record.refresh_token
         : "";
+
+  markActivity();
 
   if (accessToken) {
     window.localStorage.setItem("accessToken", accessToken);

@@ -28,6 +28,7 @@ export const API_ROUTES = {
     refresh: "/auth/refresh",
   },
   systemAdmin: {
+    dashboard: "/system-admin/dashboard",
     me: "/system-admin/me",
     profile: "/system-admin/me",
     changePassword: "/system-admin/me/change-password",

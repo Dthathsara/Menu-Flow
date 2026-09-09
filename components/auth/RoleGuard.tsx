@@ -7,6 +7,7 @@ import {
   getAccessToken,
   getDashboardPathForRole,
   getStoredAuthRole,
+  initializeSessionActivity,
 } from "@/lib/auth-session";
 
 interface RoleGuardProps {
@@ -47,6 +48,7 @@ export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
   const authorized = status === "authenticated" && role === allowedRole;
 
   useEffect(() => {
+    initializeSessionActivity();
     setIsMounted(true);
   }, []);
 
